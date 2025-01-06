@@ -8,15 +8,17 @@ import { Button } from '~/components/ui/button';
 import { Settings } from '~/src/lib/icons/Settings';
 import AssessmentScreen from '../screens/AssessmentScreen';
 import HomeScreen from '../screens/HomeScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 export type RootStackParamList = {
     Home: undefined;
     Assessment: undefined;
+    Settings: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-const HomeHeader = () => (
+const HomeHeader = ({ navigation }: { navigation: any }) => (
     <SafeAreaView edges={['top']} className="bg-background">
         <View className="px-4 pt-2">
             <View className="flex-row items-center justify-between">
@@ -27,7 +29,7 @@ const HomeHeader = () => (
                 <View className="flex-1 items-end">
                     <Button 
                         variant="ghost" 
-                        onPress={() => alert('Settings Open')}
+                        onPress={() => navigation.navigate('Settings')}
                         className="h-10 w-10 rounded-full"
                     >
                         <Settings className="text-primary" size={24} />
@@ -53,12 +55,16 @@ const AppNavigator: React.FC = () => {
                     component={HomeScreen}
                     options={{
                         headerShown: true,
-                        header: () => <HomeHeader />
+                        header: ({ navigation }) => <HomeHeader navigation={navigation} />
                     }}
                 />
                 <Stack.Screen 
                     name="Assessment" 
                     component={AssessmentScreen} 
+                />
+                <Stack.Screen 
+                    name="Settings" 
+                    component={SettingsScreen} 
                 />
             </Stack.Navigator>
         </NavigationContainer>
