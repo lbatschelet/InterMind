@@ -1,12 +1,12 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Dimensions, StatusBar, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Circle, Svg } from 'react-native-svg';
+import ADayAtThePark from '~/assets/a-day-at-the-park.svg';
 import { Button } from '~/components/ui/button';
 import { Text } from '~/components/ui/text';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -26,29 +26,20 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
                 {/* Center SVG */}
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                    <Svg
-                        height={width * 0.6}
-                        width={width * 0.6}
-                        viewBox="0 0 100 100"
-                    >
-                        <Circle 
-                            cx="50" 
-                            cy="50" 
-                            r="40" 
-                            className="stroke-foreground fill-background"
-                            strokeWidth="2.5"
-                        />
-                    </Svg>
+                    <ADayAtThePark 
+                        width={width * 0.8}
+                        height={width * 0.8}
+                    />
                 </View>
 
                 {/* Bottom Button */}
-                <View className="w-full px-4 mb-8 items-center">
+                <View className="w-full px-4 mb-20 items-center">
                     <Button
                         variant="default"
                         className="bg-accent"
                         onPress={() => navigation.navigate('Assessment')}
                     >
-                        <Text className="text-primary text-lg font-medium">
+                        <Text className="text-primary text-lg font-bold">
                             Start Assessment
                         </Text>
                     </Button>
