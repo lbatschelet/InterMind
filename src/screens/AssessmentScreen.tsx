@@ -39,7 +39,7 @@ function RadioGroupItemWithLabel({
 }
 
 const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
-    const [mood, setMood] = useState('neutral');
+    const [mood, setMood] = useState<string | undefined>(undefined);
 
     function onLabelPress(value: string) {
         return () => {
@@ -65,7 +65,7 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                 </View>
 
                 {/* Assessment Content */}
-                <View className="flex-1 px-4 pt-20">
+                <View className="flex-1 items-center px-4 pt-40">
                     <Text className="text-xl font-bold mb-6 text-primary">
                         Wie fühlst du dich heute?
                     </Text>
@@ -79,7 +79,7 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                     </View>
                     
                     {/* Radio Group Container */}
-                    <View className='flex-1 justify-center items-center p-6'>
+                    <View className='flex-1 justify-center items-center p-6 pb-20'>
                         <RadioGroup value={mood} onValueChange={setMood} className="gap-4">
                             <RadioGroupItemWithLabel 
                                 value="very_good" 
