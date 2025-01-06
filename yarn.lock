@@ -5976,7 +5976,7 @@ lru-cache@^5.1.1:
 
 lucide-react-native@^0.469.0:
   version "0.469.0"
-  resolved "https://registry.npmjs.org/lucide-react-native/-/lucide-react-native-0.469.0.tgz"
+  resolved "https://registry.yarnpkg.com/lucide-react-native/-/lucide-react-native-0.469.0.tgz#ff03fc4ab6e211716f53509820d32aae7f448a5e"
   integrity sha512-r3FRoWGymkSoFzZ2JeDHyHzs3IdS9EFbG/uTKMZCR5VtrYq81yhXGu768aqHrMBXYiJeSHGSd7ogzJDPoUdYCg==
 
 make-dir@^2.0.0, make-dir@^2.1.0:
