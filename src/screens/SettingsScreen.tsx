@@ -1,4 +1,3 @@
-// src/screens/AssessmentScreen.tsx
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,13 +6,13 @@ import { Text } from '~/components/ui/text';
 import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
-type AssessmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Assessment'>;
+type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
-interface AssessmentScreenProps {
-    navigation: AssessmentScreenNavigationProp;
+interface SettingsScreenProps {
+    navigation: SettingsScreenNavigationProp;
 }
 
-const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
     return (
         <View className="flex-1 bg-background">
             <SafeAreaView edges={['top']} className="flex-1">
@@ -27,20 +26,19 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                         <ArrowLeft className="text-primary" size={24} />
                     </Button>
                     <Text className="flex-1 text-center text-xl font-bold text-primary mr-10">
-                        Assessment
+                        Einstellungen
                     </Text>
                 </View>
 
-                {/* Assessment Content */}
+                {/* Settings Content */}
                 <View className="p-4">
                     <Text className="text-primary text-lg">
-                        Wie fühlst du dich heute?
+                        Einstellungen kommen hier...
                     </Text>
-                    {/* Hier können wir später die Assessment-Fragen und Antwortmöglichkeiten hinzufügen */}
                 </View>
             </SafeAreaView>
         </View>
     );
 };
 
-export default AssessmentScreen;
+export default SettingsScreen; 
