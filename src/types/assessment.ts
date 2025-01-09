@@ -1,5 +1,18 @@
+/**
+ * Defines the available types of questions in the assessment.
+ */
 export type QuestionType = 'single_choice' | 'multiple_choice';
 
+/**
+ * Interface for a question in the assessment.
+ * 
+ * @interface
+ * @property {string} id - Unique identifier for the question
+ * @property {string} questionText - The text content of the question
+ * @property {string} [imageUrl] - Optional URL for an associated image
+ * @property {QuestionType} type - Type of question (single or multiple choice)
+ * @property {Array<{value: string, label: string}>} options - Available answer options
+ */
 export interface Question {
     id: string;
     questionText: string;
@@ -11,7 +24,9 @@ export interface Question {
     }>;
 }
 
-// Beispiel für eine Single-Choice Frage
+/**
+ * Example of a single-choice question about sleep quality.
+ */
 export const MOCK_SLEEP_QUESTION: Question = {
     id: '1',
     type: 'single_choice',
@@ -26,7 +41,9 @@ export const MOCK_SLEEP_QUESTION: Question = {
     ]
 };
 
-// Beispiel für eine Multiple-Choice Frage
+/**
+ * Example of a multiple-choice question about symptoms.
+ */
 export const MOCK_SYMPTOMS_QUESTION: Question = {
     id: '2',
     type: 'multiple_choice',

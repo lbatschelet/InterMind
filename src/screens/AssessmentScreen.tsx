@@ -4,9 +4,7 @@ import { useState } from 'react';
 import { Dimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import OurNeighborhood from '~/assets/our-neighborhood.svg';
-import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
-import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import { MOCK_SYMPTOMS_QUESTION, Question } from '~/src/types/assessment';
 import { MultipleChoiceQuestion } from '../components/question-types/MultipleChoiceQuestion';
 import { SingleChoiceQuestion } from '../components/question-types/SingleChoiceQuestion';
@@ -36,20 +34,6 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
     return (
         <View className="flex-1 bg-background">
             <SafeAreaView edges={['top']} className="flex-1">
-                {/* Header */}
-                <View className="flex-row items-center px-4 py-2">
-                    <Button
-                        variant="ghost"
-                        className="h-10 w-10 rounded-full"
-                        onPress={() => navigation.goBack()}
-                    >
-                        <ArrowLeft className="text-primary" size={24} />
-                    </Button>
-                    <Text className="flex-1 text-center text-xl font-bold text-primary mr-10">
-                        Assessment
-                    </Text>
-                </View>
-
                 <View className="flex-1 px-4">
                     <Text className="text-xl font-bold mb-6 text-primary">
                         {question.questionText}
@@ -73,7 +57,7 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                             <MultipleChoiceQuestion
                                 options={question.options}
                                 selectedOptions={multipleChoice}
-                                onToggle={handleMultipleChoice}
+                                onSelect={handleMultipleChoice}
                             />
                         )}
                     </View>
