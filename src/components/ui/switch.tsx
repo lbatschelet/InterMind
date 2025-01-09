@@ -7,8 +7,8 @@ import Animated, {
   useDerivedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useColorScheme } from '~/lib/useColorScheme';
-import { cn } from '~/lib/utils';
+import { useColorScheme } from '~/src/lib/useColorScheme';
+import { cn } from '~/src/lib/utils';
 
 const SwitchWeb = React.forwardRef<SwitchPrimitives.RootRef, SwitchPrimitives.RootProps>(
   ({ className, ...props }, ref) => (

@@ -2,8 +2,8 @@ import * as TogglePrimitive from '@rn-primitives/toggle';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { LucideIcon } from 'lucide-react-native';
 import * as React from 'react';
-import { cn } from '~/lib/utils';
-import { TextClassContext } from '~/components/ui/text';
+import { cn } from '~/src/lib/utils';
+import { TextClassContext } from '~/src/components/ui/text';
 
 const toggleVariants = cva(
   'web:group web:inline-flex items-center justify-center rounded-md web:ring-offset-background web:transition-colors web:hover:bg-muted active:bg-muted web:focus-visible:outline-none web:focus-visible:ring-2 web:focus-visible:ring-ring web:focus-visible:ring-offset-2',

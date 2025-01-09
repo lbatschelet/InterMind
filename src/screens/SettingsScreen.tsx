@@ -1,8 +1,8 @@
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '~/components/ui/button';
-import { Text } from '~/components/ui/text';
+import { Button } from '~/src/components/ui/button';
+import { Text } from '~/src/components/ui/text';
 import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 

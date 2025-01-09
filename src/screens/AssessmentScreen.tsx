@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { Dimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import OurNeighborhood from '~/assets/our-neighborhood.svg';
-import { Button } from '~/components/ui/button';
-import { Label } from '~/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '~/components/ui/radio-group';
-import { Text } from '~/components/ui/text';
+import { Button } from '~/src/components/ui/button';
+import { Label } from '~/src/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '~/src/components/ui/radio-group';
+import { Text } from '~/src/components/ui/text';
 import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
