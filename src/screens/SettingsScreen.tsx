@@ -58,13 +58,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                             </View>
                             <AlertDialogFooter className="space-y-2">
                                 <Button 
+                                    variant="outline"
                                     className="w-full"
                                     onPress={copyToClipboard}
                                 >
                                     <Text>Copy ID</Text>
                                 </Button>
-                                <Button 
-                                    variant="outline"
+                                <Button                                     
                                     className="w-full"
                                     onPress={() => setOpen(false)}
                                 >
