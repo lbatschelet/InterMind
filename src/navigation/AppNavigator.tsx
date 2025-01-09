@@ -5,6 +5,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '~/src/components/ui/button';
+import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import { Settings } from '~/src/lib/icons/Settings';
 import AssessmentScreen from '../screens/AssessmentScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -46,15 +47,23 @@ const AppNavigator: React.FC = () => {
             <Stack.Navigator 
                 initialRouteName="Home"
                 screenOptions={{ 
-                    headerShown: false,
-                    cardStyle: { backgroundColor: 'transparent' }
+                    headerShown: true,
+                    cardStyle: { backgroundColor: 'transparent' },
+                    headerLeft: ({ onPress }) => (
+                        <Button
+                            variant="ghost"
+                            className="h-10 w-10 rounded-full"
+                            onPress={onPress}
+                        >
+                            <ArrowLeft className="text-primary" size={24} />
+                        </Button>
+                    ),
                 }}
             >
                 <Stack.Screen 
                     name="Home" 
                     component={HomeScreen}
                     options={{
-                        headerShown: true,
                         header: ({ navigation }) => <HomeHeader navigation={navigation} />
                     }}
                 />

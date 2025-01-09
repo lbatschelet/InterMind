@@ -1,0 +1,8 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/lib/utils/deviceId.ts"],
+  "out": "docs",
+  "skipErrorChecking": true,
+  "excludeExternals": true,
+  "excludeNotDocumented": true
+} 
