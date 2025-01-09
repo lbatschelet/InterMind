@@ -5,11 +5,11 @@ import { Dimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import OurNeighborhood from '~/assets/our-neighborhood.svg';
 import { Button } from '~/src/components/ui/button';
-import { Label } from '~/src/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '~/src/components/ui/radio-group';
 import { Text } from '~/src/components/ui/text';
 import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
-import { MOCK_QUESTION, Question } from '~/src/types/assessment';
+import { MOCK_SYMPTOMS_QUESTION, Question } from '~/src/types/assessment';
+import { MultipleChoiceQuestion } from '../components/question-types/MultipleChoiceQuestion';
+import { SingleChoiceQuestion } from '../components/question-types/SingleChoiceQuestion';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type AssessmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Assessment'>;
@@ -20,34 +20,18 @@ interface AssessmentScreenProps {
 
 const { width } = Dimensions.get('window');
 
-function RadioGroupItemWithLabel({
-  value,
-  label,
-  onLabelPress,
-}: {
-  value: string;
-  label: string;
-  onLabelPress: () => void;
-}) {
-  return (
-    <View className={'flex-row gap-2 items-center'}>
-      <RadioGroupItem aria-labelledby={`label-for-${value}`} value={value} />
-      <Label nativeID={`label-for-${value}`} onPress={onLabelPress}>
-        {label}
-      </Label>
-    </View>
-  );
-}
-
 const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
-    const [mood, setMood] = useState<string | undefined>(undefined);
-    const question: Question = MOCK_QUESTION;
+    const [singleChoice, setSingleChoice] = useState<string>();
+    const [multipleChoice, setMultipleChoice] = useState<string[]>([]);
+    const question: Question = MOCK_SYMPTOMS_QUESTION;
 
-    function onLabelPress(value: string) {
-        return () => {
-            setMood(value);
-        };
-    }
+    const handleMultipleChoice = (value: string) => {
+        setMultipleChoice(prev => 
+            prev.includes(value) 
+                ? prev.filter(v => v !== value)
+                : [...prev, value]
+        );
+    };
 
     return (
         <View className="flex-1 bg-background">
@@ -67,7 +51,7 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                 </View>
 
                 <View className="flex-1 px-4">
-                    <Text className="text-xl font-bold mb-6 text-primary pt-12">
+                    <Text className="text-xl font-bold mb-6 text-primary">
                         {question.questionText}
                     </Text>
                     
@@ -78,17 +62,20 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                         />
                     </View>
                     
-                    <View className="flex-1 justify-end mb-12 items-center pb-12">
-                        <RadioGroup value={mood} onValueChange={setMood} className="gap-4">
-                            {question.options.map(option => (
-                                <RadioGroupItemWithLabel 
-                                    key={option.value}
-                                    value={option.value}
-                                    label={option.label}
-                                    onLabelPress={onLabelPress(option.value)}
-                                />
-                            ))}
-                        </RadioGroup>
+                    <View className="flex-1 justify-end">
+                        {question.type === 'single_choice' ? (
+                            <SingleChoiceQuestion
+                                options={question.options}
+                                selectedOption={singleChoice}
+                                onSelect={setSingleChoice}
+                            />
+                        ) : (
+                            <MultipleChoiceQuestion
+                                options={question.options}
+                                selectedOptions={multipleChoice}
+                                onToggle={handleMultipleChoice}
+                            />
+                        )}
                     </View>
                 </View>
             </SafeAreaView>
