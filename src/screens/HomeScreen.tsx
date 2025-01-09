@@ -6,7 +6,7 @@ import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
@@ -33,7 +33,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 </View>
 
                 {/* Bottom Button */}
-                <View className="w-full px-4 mb-20 items-center">
+                <View className="w-full px-4 mb-12 items-center">
                     <Button
                         variant="default"
                         className="bg-accent"

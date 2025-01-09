@@ -1,4 +1,4 @@
-const { getDefaultConfig } = require('expo/metro-config');
+const { getDefaultConfig } = require("expo/metro-config");
 const { withNativeWind } = require('nativewind/metro');
 
 const config = (() => {
@@ -8,7 +8,7 @@ const config = (() => {
 
   baseConfig.transformer = {
     ...transformer,
-    babelTransformerPath: require.resolve("react-native-svg-transformer/expo")
+    babelTransformerPath: require.resolve("react-native-svg-transformer")
   };
   baseConfig.resolver = {
     ...resolver,
