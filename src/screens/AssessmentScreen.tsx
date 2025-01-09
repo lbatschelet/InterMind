@@ -9,6 +9,7 @@ import { Label } from '~/src/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '~/src/components/ui/radio-group';
 import { Text } from '~/src/components/ui/text';
 import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
+import { MOCK_QUESTION, Question } from '~/src/types/assessment';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type AssessmentScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Assessment'>;
@@ -40,6 +41,7 @@ function RadioGroupItemWithLabel({
 
 const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
     const [mood, setMood] = useState<string | undefined>(undefined);
+    const question: Question = MOCK_QUESTION;
 
     function onLabelPress(value: string) {
         return () => {
@@ -64,13 +66,11 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                     </Text>
                 </View>
 
-                {/* Assessment Content */}
-                <View className="flex-1 items-center px-4 pt-40">
-                    <Text className="text-xl font-bold mb-6 text-primary">
-                        Wie fühlst du dich heute?
+                <View className="flex-1 px-4">
+                    <Text className="text-xl font-bold mb-6 text-primary pt-12">
+                        {question.questionText}
                     </Text>
                     
-                    {/* SVG Container */}
                     <View className="items-center mb-8">
                         <OurNeighborhood 
                             width={width * 0.8}
@@ -78,34 +78,16 @@ const AssessmentScreen: React.FC<AssessmentScreenProps> = ({ navigation }) => {
                         />
                     </View>
                     
-                    {/* Radio Group Container */}
-                    <View className='flex-1 justify-center items-center p-6 pb-20'>
+                    <View className="flex-1 justify-end mb-12 items-center pb-12">
                         <RadioGroup value={mood} onValueChange={setMood} className="gap-4">
-                            <RadioGroupItemWithLabel 
-                                value="very_good" 
-                                label="Sehr gut"
-                                onLabelPress={onLabelPress('very_good')} 
-                            />
-                            <RadioGroupItemWithLabel 
-                                value="good" 
-                                label="Gut"
-                                onLabelPress={onLabelPress('good')} 
-                            />
-                            <RadioGroupItemWithLabel 
-                                value="neutral" 
-                                label="Neutral"
-                                onLabelPress={onLabelPress('neutral')} 
-                            />
-                            <RadioGroupItemWithLabel 
-                                value="bad" 
-                                label="Schlecht"
-                                onLabelPress={onLabelPress('bad')} 
-                            />
-                            <RadioGroupItemWithLabel 
-                                value="unknown" 
-                                label="Weiss nicht"
-                                onLabelPress={onLabelPress('unknown')} 
-                            />
+                            {question.options.map(option => (
+                                <RadioGroupItemWithLabel 
+                                    key={option.value}
+                                    value={option.value}
+                                    label={option.label}
+                                    onLabelPress={onLabelPress(option.value)}
+                                />
+                            ))}
                         </RadioGroup>
                     </View>
                 </View>
