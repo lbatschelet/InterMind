@@ -4,7 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import React from 'react';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button } from '~/components/ui/button';
+import { Button } from '~/src/components/ui/button';
 import { Settings } from '~/src/lib/icons/Settings';
 import AssessmentScreen from '../screens/AssessmentScreen';
 import HomeScreen from '../screens/HomeScreen';

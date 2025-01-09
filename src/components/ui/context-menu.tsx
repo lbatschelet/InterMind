@@ -9,12 +9,12 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
-import { Check } from '~/lib/icons/Check';
-import { ChevronDown } from '~/lib/icons/ChevronDown';
-import { ChevronRight } from '~/lib/icons/ChevronRight';
-import { ChevronUp } from '~/lib/icons/ChevronUp';
-import { cn } from '~/lib/utils';
-import { TextClassContext } from '~/components/ui/text';
+import { Check } from '~/src/lib/icons/Check';
+import { ChevronDown } from '~/src/lib/icons/ChevronDown';
+import { ChevronRight } from '~/src/lib/icons/ChevronRight';
+import { ChevronUp } from '~/src/lib/icons/ChevronUp';
+import { cn } from '~/src/lib/utils';
+import { TextClassContext } from '~/src/components/ui/text';
 
 const ContextMenu = ContextMenuPrimitive.Root;
 const ContextMenuTrigger = ContextMenuPrimitive.Trigger;

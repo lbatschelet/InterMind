@@ -2,8 +2,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Dimensions, StatusBar, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ADayAtThePark from '~/assets/a-day-at-the-park.svg';
-import { Button } from '~/components/ui/button';
-import { Text } from '~/components/ui/text';
+import { Button } from '~/src/components/ui/button';
+import { Text } from '~/src/components/ui/text';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 
 const { width, height } = Dimensions.get('window');
