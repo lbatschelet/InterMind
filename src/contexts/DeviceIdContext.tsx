@@ -1,33 +1,29 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { getOrCreateDeviceId } from '../lib/utils/deviceId';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { UserService } from '../services/user';
 
 interface DeviceIdContextType {
     deviceId: string | null;
-    isLoading: boolean;
 }
 
-const DeviceIdContext = createContext<DeviceIdContextType>({
-    deviceId: null,
-    isLoading: true,
-});
+const DeviceIdContext = createContext<DeviceIdContextType>({ deviceId: null });
 
-export function DeviceIdProvider({ children }: { children: React.ReactNode }) {
+export const useDeviceId = () => useContext(DeviceIdContext);
+
+export const DeviceIdProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [deviceId, setDeviceId] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        getOrCreateDeviceId()
-            .then(setDeviceId)
-            .finally(() => setIsLoading(false));
+        const loadDeviceId = async () => {
+            const id = await UserService.getUserId();
+            setDeviceId(id);
+        };
+
+        loadDeviceId();
     }, []);
 
     return (
-        <DeviceIdContext.Provider value={{ deviceId, isLoading }}>
+        <DeviceIdContext.Provider value={{ deviceId }}>
             {children}
         </DeviceIdContext.Provider>
     );
-}
-
-export function useDeviceId() {
-    return useContext(DeviceIdContext);
-} 
+}; 

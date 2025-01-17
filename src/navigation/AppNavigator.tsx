@@ -10,7 +10,6 @@ import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import { Settings } from '~/src/lib/icons/Settings';
 import { PORTAL_HOST_NAME } from '../lib/constants';
 import { mockAssessment } from '../mocks/questions';
-import AssessmentScreen from '../screens/AssessmentScreen';
 import HomeScreen from '../screens/HomeScreen';
 import QuestionScreen from '../screens/QuestionScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -18,7 +17,6 @@ import { AssessmentService } from '../services/assessment';
 
 export type RootStackParamList = {
     Home: undefined;
-    Assessment: undefined;
     Settings: undefined;
     Question: { questionIndex: number };
 };
@@ -130,18 +128,11 @@ const AppNavigator = () => {
                     }}
                 />
                 <Stack.Screen 
-                    name="Assessment" 
-                    component={AssessmentScreen}
-                    options={{
-                        header: AssessmentHeader
-                    }}
-                />
-                <Stack.Screen 
                     name="Question" 
                     component={QuestionScreen}
                     options={{
                         header: AssessmentHeader,
-                        animation: 'slide_from_right'
+                        animation: 'none'
                     }}
                 />
                 <Stack.Screen 

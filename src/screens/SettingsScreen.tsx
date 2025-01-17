@@ -5,18 +5,22 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     AlertDialog,
+    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
+    AlertDialogTrigger
 } from "~/src/components/ui/alert-dialog";
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
 import { useDeviceId } from '../contexts/DeviceIdContext';
 import { PORTAL_HOST_NAME } from '../lib/constants';
 import type { RootStackParamList } from '../navigation/AppNavigator';
+import { AssessmentService } from '../services/assessment';
+import { supabase } from '../services/supabase';
+import { UserService } from '../services/user';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -27,16 +31,53 @@ interface SettingsScreenProps {
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
     const { deviceId } = useDeviceId();
     const [open, setOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteStatus, setDeleteStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
     const copyToClipboard = async () => {
         await Clipboard.setStringAsync(deviceId || '');
     };
 
+    const handleShowUserId = async () => {
+        const userId = await UserService.getCurrentUserId();
+        console.log('User ID:', userId);
+    };
+
+    const verifyDeletion = async (userId: string): Promise<boolean> => {
+        const { data: assessments } = await supabase
+            .from('assessments')
+            .select('id')
+            .eq('user_id', userId);
+        
+        return !assessments || assessments.length === 0;
+    };
+
+    const handleDeleteData = async () => {
+        try {
+            const userId = await UserService.getCurrentUserId();
+            if (userId) {
+                await AssessmentService.deleteUserData(userId);
+                
+                // Überprüfe, ob die Daten wirklich gelöscht wurden
+                const isDeleted = await verifyDeletion(userId);
+                
+                if (isDeleted) {
+                    setDeleteStatus('success');
+                    console.log('Alle Daten erfolgreich gelöscht');
+                } else {
+                    setDeleteStatus('error');
+                    console.error('Daten konnten nicht vollständig gelöscht werden');
+                }
+            }
+        } catch (error) {
+            console.error('Fehler beim Löschen der Daten:', error);
+            setDeleteStatus('error');
+        }
+    };
+
     return (
         <View className="flex-1 bg-background">
             <SafeAreaView edges={['top']} className="flex-1">
-
-                {/* Settings Content */}
                 <View className="p-4 space-y-4">
                     <AlertDialog open={open} onOpenChange={setOpen}>
                         <AlertDialogTrigger asChild>
@@ -93,6 +134,66 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                             About
                         </Text>
                     </Button>
+
+                    <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="w-full">
+                                <Text className="text-destructive-foreground">Alle Daten löschen</Text>
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
+                            {deleteStatus === 'idle' ? (
+                                <>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Daten wirklich löschen?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Assessment-Daten werden permanent gelöscht.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter className="space-y-2">
+                                        <AlertDialogCancel className="w-full" onPress={() => {
+                                            setDeleteDialogOpen(false);
+                                            setDeleteStatus('idle');
+                                        }}>
+                                            <Text>Abbrechen</Text>
+                                        </AlertDialogCancel>
+                                        <Button 
+                                            className="w-full bg-destructive"
+                                            onPress={async () => {
+                                                await handleDeleteData();
+                                            }}
+                                        >
+                                            <Text className="text-destructive-foreground">Ja, alle Daten löschen</Text>
+                                        </Button>
+                                    </AlertDialogFooter>
+                                </>
+                            ) : (
+                                <>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                            {deleteStatus === 'success' ? 'Daten gelöscht' : 'Fehler beim Löschen'}
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            {deleteStatus === 'success' 
+                                                ? 'Alle deine Daten wurden erfolgreich gelöscht.'
+                                                : 'Beim Löschen deiner Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut.'}
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <Button 
+                                            className="w-full"
+                                            onPress={() => {
+                                                setDeleteDialogOpen(false);
+                                                setDeleteStatus('idle');
+                                            }}
+                                        >
+                                            <Text>Schließen</Text>
+                                        </Button>
+                                    </AlertDialogFooter>
+                                </>
+                            )}
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </View>
             </SafeAreaView>
         </View>

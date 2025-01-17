@@ -37,7 +37,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     <Button
                         variant="default"
                         className="bg-accent"
-                        onPress={() => navigation.navigate('Assessment')}
+                        onPress={() => navigation.navigate('Question', { questionIndex: 0 })}
                     >
                         <Text className="text-primary text-lg font-bold">
                             Start Assessment
