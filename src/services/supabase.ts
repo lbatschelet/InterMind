@@ -13,16 +13,19 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+export type QuestionType = 'single_choice' | 'multiple_choice' | 'slider' | 'text';
+
 export interface Question {
-    id: number;
+    id: string;
     question: string;
-    options: string[];
+    type: QuestionType;
+    options: any;
     category: string;
     created_at: string;
 }
 
 export interface Assessment {
-    id: number;
+    id: string;
     user_id: string;
     device_id: string;
     started_at: string;
@@ -31,9 +34,10 @@ export interface Assessment {
 }
 
 export interface AssessmentAnswer {
-    id: number;
-    assessment_id: number;
-    question_id: number;
-    selected_option: number;
+    id: string;
+    assessment_id: string;
+    question_id: string;
+    answer_value: any;
+    question_type: QuestionType;
     answered_at: string;
 } 

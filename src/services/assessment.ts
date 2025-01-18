@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Assessment, AssessmentAnswer, Question } from './supabase';
+import type { Assessment, AssessmentAnswer, Question, QuestionType } from './supabase';
 import { supabase } from './supabase';
 import { UserService } from './user';
 
@@ -77,15 +77,35 @@ export const AssessmentService = {
     createAssessment: async (): Promise<Assessment | null> => {
         console.log('Erstelle neues Assessment...');
         
-        // Hole die User-ID
         const userId = await UserService.getUserId();
         console.log('Erstelle Assessment für User:', userId);
+
+        // Debug: Session-Variablen prüfen
+        const { data: sessionData, error: sessionError } = await supabase
+            .rpc('debug_session');
+        console.log('Session Variables:', sessionData);
+
+        // Setze den device_id Parameter in der Session
+        const { error: claimError } = await supabase.rpc('set_claim', {
+            claim: 'app.device_id',
+            value: userId
+        });
+
+        if (claimError) {
+            console.error('Fehler beim Setzen des Claims:', claimError);
+            return null;
+        }
+
+        // Debug: Session-Variablen nach dem Setzen erneut prüfen
+        const { data: updatedSessionData } = await supabase
+            .rpc('debug_session');
+        console.log('Updated Session Variables:', updatedSessionData);
 
         const { data, error } = await supabase
             .from('assessments')
             .insert([{
                 user_id: userId,
-                device_id: userId // Verwende die gleiche ID
+                device_id: userId
             }])
             .select()
             .single();
@@ -102,15 +122,36 @@ export const AssessmentService = {
     /**
      * Speichert eine Antwort in Supabase
      */
-    saveAnswer: async (assessmentId: number, questionId: number, selectedOption: number): Promise<AssessmentAnswer | null> => {
-        console.log('Speichere Antwort:', { assessmentId, questionId, selectedOption });
+    saveAnswer: async (
+        assessmentId: string, 
+        questionId: string, 
+        answerValue: number | number[] | string,
+        questionType: QuestionType
+    ): Promise<AssessmentAnswer | null> => {
+        console.log('Speichere Antwort:', { assessmentId, questionId, answerValue, questionType });
+
+        // Hole die device_id des Assessments
+        const { data: assessment } = await supabase
+            .from('assessments')
+            .select('device_id')
+            .eq('id', assessmentId)
+            .single();
+
+        if (assessment) {
+            // Setze die device_id in der Session
+            await supabase.rpc('set_claim', {
+                claim: 'device_id',
+                value: assessment.device_id
+            });
+        }
 
         const { data, error } = await supabase
             .from('assessment_answers')
             .insert([{
                 assessment_id: assessmentId,
                 question_id: questionId,
-                selected_option: selectedOption
+                answer_value: answerValue,
+                question_type: questionType
             }])
             .select()
             .single();
@@ -127,7 +168,7 @@ export const AssessmentService = {
     /**
      * Schließt ein Assessment ab
      */
-    completeAssessment: async (assessmentId: number) => {
+    completeAssessment: async (assessmentId: string) => {
         console.log('Schließe Assessment ab:', assessmentId);
 
         const { error } = await supabase

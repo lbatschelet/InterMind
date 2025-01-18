@@ -2,6 +2,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { QuestionFactory } from '~/src/components/questions/QuestionFactory';
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
@@ -14,10 +15,10 @@ type QuestionScreenProps = NativeStackScreenProps<RootStackParamList, 'Question'
 
 const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
     const { questionIndex } = route.params;
-    const [answers, setAnswers] = useState<Record<string, number>>({});
-    const [answeredQuestions, setAnsweredQuestions] = useState<Set<number>>(new Set());
+    const [answers, setAnswers] = useState<Record<string, any>>({});
+    const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
     const [questions, setQuestions] = useState<Question[]>([]);
-    const [assessmentId, setAssessmentId] = useState<number | null>(null);
+    const [assessmentId, setAssessmentId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     
     // Neue Animations-States
@@ -82,16 +83,14 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
     useEffect(() => {
         const loadDraft = async () => {
             if (assessmentId) {
-                const draft = await AssessmentService.loadDraft(assessmentId.toString());
+                const draft = await AssessmentService.loadDraft(assessmentId);
                 if (draft && !draft.completed) {
-                    const numericAnswers: Record<string, number> = {};
+                    const numericAnswers: Record<string, any> = {};
                     Object.entries(draft.answers).forEach(([key, value]) => {
-                        if (typeof value === 'number') {
-                            numericAnswers[key] = value;
-                        }
+                        numericAnswers[key] = value;
                     });
                     setAnswers(numericAnswers);
-                    setAnsweredQuestions(new Set(Object.keys(numericAnswers).map(Number)));
+                    setAnsweredQuestions(new Set(Object.keys(numericAnswers)));
                 }
             }
         };
@@ -106,7 +105,7 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
                 Object.entries(answers).forEach(([key, value]) => {
                     stringAnswers[key] = value.toString();
                 });
-                await AssessmentService.saveDraft(assessmentId.toString(), stringAnswers);
+                await AssessmentService.saveDraft(assessmentId, stringAnswers);
             }
         };
         saveDraft();
@@ -126,7 +125,16 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
     const canGoForward = questionIndex < questions.length - 1;
     const showNextButton = answeredQuestions.has(question.id);
 
-    const handleAnswer = async (value: number) => {
+    const renderQuestionInput = (question: Question) => {
+        const component = QuestionFactory.getComponent(question.type);
+        return component.render({
+            question,
+            value: answers[question.id],
+            onChange: (value) => handleAnswer(value)
+        });
+    };
+
+    const handleAnswer = async (value: any) => {
         const isFirstAnswer = !answeredQuestions.has(question.id);
         
         setAnswers(prev => ({
@@ -140,9 +148,13 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
             return next;
         });
 
-        // Speichere Antwort in Supabase
-        if (isFirstAnswer) {
-            await AssessmentService.saveAnswer(assessmentId, question.id, value);
+        if (isFirstAnswer && assessmentId) {
+            await AssessmentService.saveAnswer(
+                assessmentId,
+                question.id,
+                value,
+                question.type
+            );
         }
     };
 
@@ -150,13 +162,17 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
         if (isLastQuestion) {
             handleComplete();
         } else {
-            navigation.navigate('Question', { questionIndex: questionIndex + 1 });
+            navigation.navigate('Question', { 
+                questionIndex: questionIndex + 1 
+            });
         }
     };
 
     const handleBack = () => {
         if (canGoBack) {
-            navigation.navigate('Question', { questionIndex: questionIndex - 1 });
+            navigation.navigate('Question', { 
+                questionIndex: questionIndex - 1 
+            });
         }
     };
 
@@ -176,27 +192,12 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
                     opacity: fadeAnim
                 }}
             >
-                {/* Question Content */}
                 <View className="flex-1 justify-center items-center">
                     <View className="w-full max-w-md">
                         <Text className="text-2xl font-bold mb-8 text-center">
                             {question.question}
                         </Text>
-
-                        <View className="space-y-4">
-                            {question.options.map((option, index) => (
-                                <Button
-                                    key={index}
-                                    variant={answers[question.id] === index ? "default" : "outline"}
-                                    className={answers[question.id] === index ? "bg-accent" : ""}
-                                    onPress={() => handleAnswer(index)}
-                                >
-                                    <Text className={`text-lg ${answers[question.id] === index ? "text-primary" : "text-primary"}`}>
-                                        {option}
-                                    </Text>
-                                </Button>
-                            ))}
-                        </View>
+                        {renderQuestionInput(question)}
                     </View>
                 </View>
 
