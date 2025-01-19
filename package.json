@@ -55,6 +55,7 @@
     "expo-constants": "^17.0.4",
     "expo-crypto": "~14.0.1",
     "expo-device": "~7.0.1",
+    "expo-location": "~18.0.5",
     "expo-navigation-bar": "~4.0.6",
     "expo-status-bar": "~2.0.0",
     "lucide-react-native": "^0.469.0",

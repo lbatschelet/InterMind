@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { setDeviceId } from '../services/supabase';
 import { UserService } from '../services/user';
 
 interface DeviceIdContextType {
@@ -10,12 +11,15 @@ const DeviceIdContext = createContext<DeviceIdContextType>({ deviceId: null });
 export const useDeviceId = () => useContext(DeviceIdContext);
 
 export const DeviceIdProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [deviceId, setDeviceId] = useState<string | null>(null);
+    const [deviceId, setDeviceIdState] = useState<string | null>(null);
 
     useEffect(() => {
         const loadDeviceId = async () => {
             const id = await UserService.getUserId();
-            setDeviceId(id);
+            setDeviceIdState(id);
+            if (id) {
+                await setDeviceId(id);
+            }
         };
 
         loadDeviceId();

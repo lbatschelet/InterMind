@@ -1,10 +1,42 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Assessment, AssessmentAnswer, Question, QuestionType } from './supabase';
-import { supabase } from './supabase';
+import { LocationData } from './location';
+import {
+    Assessment,
+    AssessmentAnswer,
+    Question,
+    QuestionType,
+    mapDbToAssessment,
+    supabase
+} from './supabase';
 import { UserService } from './user';
+
+/**
+ * This service handles all assessment-related operations.
+ * 
+ * What is an Assessment?
+ * ---------------------
+ * Think of an assessment as a survey or questionnaire that users fill out.
+ * It starts when a user begins answering questions and includes:
+ * - The questions and their answers
+ * - When it was started/completed
+ * - Where it was taken (location)
+ * - A draft system to save progress
+ * 
+ * Main Features:
+ * -------------
+ * 1. Creating new assessments
+ * 2. Saving answers
+ * 3. Auto-saving drafts
+ * 4. Loading saved progress
+ * 5. Completing assessments
+ * 6. Managing user data
+ */
 
 const STORAGE_KEY = 'assessment_drafts';
 
+/**
+ * Structure for storing assessment progress locally
+ */
 interface AssessmentDraft {
     assessmentId: string;
     answers: Record<string, string | string[]>;
@@ -14,117 +46,80 @@ interface AssessmentDraft {
 
 export const AssessmentService = {
     /**
-     * Lädt alle verfügbaren Fragen aus der Supabase-Datenbank
+     * Loads all available questions from the database
+     * @returns Array of questions ordered by ID
      */
     getQuestions: async (): Promise<Question[]> => {
-        console.log('Lade Fragen aus der Datenbank...');
+        console.log('Loading questions from database...');
         const { data, error } = await supabase
             .from('questions')
             .select('*')
             .order('id');
 
         if (error) {
-            console.error('Fehler beim Laden der Fragen:', error);
+            console.error('Error loading questions:', error);
             return [];
         }
 
-        console.log(`${data.length} Fragen erfolgreich geladen`);
-        return data;
+        console.log(`Successfully loaded ${data.length} questions`);
+
+        // Transform options format
+        return data.map(question => ({
+            ...question,
+            options: question.type === 'slider' 
+                ? question.options  // Slider format is already correct
+                : (question.options as string[])?.map((label, index) => ({
+                    value: (index + 1).toString(),
+                    label
+                })) || []
+        }));
     },
 
     /**
-     * Speichert den aktuellen Zustand eines Assessments im lokalen Speicher
+     * Creates a new assessment with optional location data
+     * This is called when a user starts a new assessment
+     * 
+     * @param location - Optional location data from the device
+     * @returns The created assessment or null if creation failed
      */
-    saveDraft: async (assessmentId: string, answers: Record<string, string | string[]>) => {
-        console.log('Speichere Assessment-Draft:', { assessmentId, answers });
-        try {
-            const draft: AssessmentDraft = {
-                assessmentId,
-                answers,
-                lastUpdated: Date.now(),
-                completed: false
-            };
-            
-            await AsyncStorage.setItem(
-                `${STORAGE_KEY}:${assessmentId}`, 
-                JSON.stringify(draft)
-            );
-            console.log('Assessment-Draft erfolgreich gespeichert');
-        } catch (error) {
-            console.error('Fehler beim Speichern des Assessment-Entwurfs:', error);
-        }
-    },
-
-    /**
-     * Lädt einen Entwurf aus dem lokalen Speicher
-     */
-    loadDraft: async (assessmentId: string): Promise<AssessmentDraft | null> => {
-        console.log('Lade Assessment-Draft:', assessmentId);
-        try {
-            const stored = await AsyncStorage.getItem(`${STORAGE_KEY}:${assessmentId}`);
-            const draft = stored ? JSON.parse(stored) : null;
-            console.log('Geladener Draft:', draft);
-            return draft;
-        } catch (error) {
-            console.error('Fehler beim Laden des Assessment-Entwurfs:', error);
-            return null;
-        }
-    },
-
-    /**
-     * Erstellt ein neues Assessment in Supabase
-     */
-    createAssessment: async (): Promise<Assessment | null> => {
-        console.log('Erstelle neues Assessment...');
+    createAssessment: async (location?: LocationData): Promise<Assessment | null> => {
+        const deviceId = await UserService.getUserId();
         
-        const userId = await UserService.getUserId();
-        console.log('Erstelle Assessment für User:', userId);
-
-        // Debug: Session-Variablen prüfen
-        const { data: sessionData, error: sessionError } = await supabase
-            .rpc('debug_session');
-        console.log('Session Variables:', sessionData);
-
-        // Setze den device_id Parameter in der Session
-        const { error: claimError } = await supabase.rpc('set_claim', {
-            claim: 'app.device_id',
-            value: userId
-        });
-
-        if (claimError) {
-            console.error('Fehler beim Setzen des Claims:', claimError);
-            return null;
-        }
-
-        // Debug: Session-Variablen nach dem Setzen erneut prüfen
-        const { data: updatedSessionData } = await supabase
-            .rpc('debug_session');
-        console.log('Updated Session Variables:', updatedSessionData);
-
+        // Erst device_id in Session setzen
+        await supabase.rpc('set_device_id', { device_id: deviceId });
+        
+        // Dann Assessment erstellen
         const { data, error } = await supabase
             .from('assessments')
-            .insert([{
-                user_id: userId,
-                device_id: userId
-            }])
+            .insert({
+                device_id: deviceId,
+                user_id: deviceId,
+                started_at: new Date(),
+                location
+            })
             .select()
             .single();
-
+        
         if (error) {
-            console.error('Fehler beim Erstellen des Assessments:', error);
+            console.error('Error creating assessment:', error);
             return null;
         }
 
-        console.log('Assessment erfolgreich erstellt:', data);
-        return data;
+        return mapDbToAssessment(data);
     },
 
     /**
-     * Speichert eine Antwort in Supabase
+     * Saves an answer for a specific question
+     * Only saves the first answer to prevent multiple submissions
+     * 
+     * @param assessmentId - ID of the current assessment
+     * @param questionId - ID of the answered question
+     * @param answerValue - The user's answer (can be number, array, or string)
+     * @param questionType - Type of question (single_choice, multiple_choice, etc.)
      */
     saveAnswer: async (
-        assessmentId: string, 
-        questionId: string, 
+        assessmentId: string,
+        questionId: string,
         answerValue: number | number[] | string,
         questionType: QuestionType
     ): Promise<AssessmentAnswer | null> => {
@@ -166,7 +161,55 @@ export const AssessmentService = {
     },
 
     /**
-     * Schließt ein Assessment ab
+     * Saves the current state of an assessment locally
+     * This allows users to continue later if they close the app
+     * 
+     * @param assessmentId - ID of the assessment to save
+     * @param answers - Current answers for the assessment
+     */
+    saveDraft: async (assessmentId: string, answers: Record<string, string | string[]>) => {
+        console.log('Speichere Assessment-Draft:', { assessmentId, answers });
+        try {
+            const draft: AssessmentDraft = {
+                assessmentId,
+                answers,
+                lastUpdated: Date.now(),
+                completed: false
+            };
+            
+            await AsyncStorage.setItem(
+                `${STORAGE_KEY}:${assessmentId}`, 
+                JSON.stringify(draft)
+            );
+            console.log('Assessment-Draft erfolgreich gespeichert');
+        } catch (error) {
+            console.error('Fehler beim Speichern des Assessment-Entwurfs:', error);
+        }
+    },
+
+    /**
+     * Loads a previously saved assessment draft
+     * 
+     * @param assessmentId - ID of the assessment to load
+     * @returns The saved draft or null if none exists
+     */
+    loadDraft: async (assessmentId: string): Promise<AssessmentDraft | null> => {
+        console.log('Lade Assessment-Draft:', assessmentId);
+        try {
+            const stored = await AsyncStorage.getItem(`${STORAGE_KEY}:${assessmentId}`);
+            const draft = stored ? JSON.parse(stored) : null;
+            console.log('Geladener Draft:', draft);
+            return draft;
+        } catch (error) {
+            console.error('Fehler beim Laden des Assessment-Entwurfs:', error);
+            return null;
+        }
+    },
+
+    /**
+     * Marks an assessment as completed and removes the draft
+     * 
+     * @param assessmentId - ID of the assessment to complete
      */
     completeAssessment: async (assessmentId: string) => {
         console.log('Schließe Assessment ab:', assessmentId);
@@ -193,7 +236,10 @@ export const AssessmentService = {
     },
 
     /**
-     * Bricht ein Assessment ab und löscht den Draft
+     * Cancels an assessment and removes its draft
+     * Also logs the cancellation for analytics
+     * 
+     * @param assessmentId - ID of the assessment to cancel
      */
     cancelAssessment: async (assessmentId: string) => {
         console.log('Breche Assessment ab:', assessmentId);
@@ -218,7 +264,10 @@ export const AssessmentService = {
     },
 
     /**
-     * Löscht alle Daten eines Benutzers aus der Datenbank
+     * Deletes all data associated with a user
+     * This includes assessments, answers, and local drafts
+     * 
+     * @param userId - ID of the user whose data should be deleted
      */
     deleteUserData: async (userId: string): Promise<void> => {
         console.log('Lösche alle Daten für User:', userId);

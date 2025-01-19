@@ -9,20 +9,37 @@ import { Button } from '~/src/components/ui/button';
 import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import { Settings } from '~/src/lib/icons/Settings';
 import { PORTAL_HOST_NAME } from '../lib/constants';
-import { mockAssessment } from '../mocks/questions';
 import HomeScreen from '../screens/HomeScreen';
 import QuestionScreen from '../screens/QuestionScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { AssessmentService } from '../services/assessment';
 
+/**
+ * Type definitions for the root stack navigator parameters.
+ * Defines the available screens and their respective props.
+ */
 export type RootStackParamList = {
+    /** Home screen with no parameters */
     Home: undefined;
+    /** Settings screen with no parameters */
     Settings: undefined;
-    Question: { questionIndex: number };
+    /** Question screen requiring the current question index */
+    Question: { 
+        /** The index of the current question being displayed */
+        questionIndex: number;
+        /** The ID of the current assessment */
+        assessmentId: string;
+    };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
+/**
+ * Header component for the Home screen.
+ * Displays the app title and settings button.
+ * 
+ * @param navigation - Navigation prop for screen navigation
+ */
 const HomeHeader = ({ navigation }: { navigation: any }) => (
     <SafeAreaView edges={['top']} className="bg-background">
         <View className="px-4 pt-2">
@@ -45,12 +62,24 @@ const HomeHeader = ({ navigation }: { navigation: any }) => (
     </SafeAreaView>
 );
 
+/**
+ * Header component for the Assessment/Question screen.
+ * Includes a back button with confirmation dialog for canceling the assessment.
+ * 
+ * @param navigation - Navigation prop for screen navigation
+ */
 const AssessmentHeader = ({ navigation }: { navigation: any }) => {
     const [open, setOpen] = useState(false);
-    const assessment = mockAssessment;
     
+    /**
+     * Handles the cancellation of the current assessment.
+     * Deletes the assessment data and navigates back to home.
+     */
     const handleCancel = async () => {
-        await AssessmentService.cancelAssessment(assessment.id);
+        const assessmentId = navigation.getParam('assessmentId');
+        if (assessmentId) {
+            await AssessmentService.cancelAssessment(assessmentId);
+        }
         setOpen(false);
         navigation.navigate('Home');
     };
@@ -70,20 +99,20 @@ const AssessmentHeader = ({ navigation }: { navigation: any }) => {
                         </AlertDialogTrigger>
                         <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
                             <AlertDialogHeader>
-                                <AlertDialogTitle>Assessment abbrechen?</AlertDialogTitle>
+                                <AlertDialogTitle>Cancel Assessment?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Möchtest du das Assessment wirklich abbrechen? Dein Fortschritt geht dabei verloren.
+                                    Do you really want to cancel the assessment? Your progress will be lost.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter className="space-y-2">
                                 <AlertDialogCancel className="w-full">
-                                    <Text>Weiter machen</Text>
+                                    <Text>Continue</Text>
                                 </AlertDialogCancel>
                                 <AlertDialogAction 
                                     className="w-full"
                                     onPress={handleCancel}
                                 >
-                                    <Text>Abbrechen</Text>
+                                    <Text>Cancel</Text>
                                 </AlertDialogAction>
                             </AlertDialogFooter>
                         </AlertDialogContent>
@@ -97,6 +126,12 @@ const AssessmentHeader = ({ navigation }: { navigation: any }) => {
     );
 };
 
+/**
+ * Header component for the Settings screen.
+ * Displays a back button and the settings title.
+ * 
+ * @param navigation - Navigation prop for screen navigation
+ */
 const SettingsHeader = ({ navigation }: { navigation: any }) => (
     <SafeAreaView edges={['top']} className="bg-background">
         <View className="px-4 pt-2">
@@ -116,6 +151,12 @@ const SettingsHeader = ({ navigation }: { navigation: any }) => (
     </SafeAreaView>
 );
 
+/**
+ * Main navigation component for the app.
+ * Sets up the stack navigator with all available screens and their respective headers.
+ * 
+ * @returns The configured navigation container with all screens
+ */
 const AppNavigator = () => {
     return (
         <NavigationContainer>

@@ -7,18 +7,17 @@ import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '~/src/services/assessment';
-import { Question } from '~/src/services/supabase';
+import { Question, isSliderConfig } from '~/src/types/Question';
 
 const { width } = Dimensions.get('window');
 
 type QuestionScreenProps = NativeStackScreenProps<RootStackParamList, 'Question'>;
 
 const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
-    const { questionIndex } = route.params;
+    const { questionIndex, assessmentId } = route.params;
     const [answers, setAnswers] = useState<Record<string, any>>({});
     const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
     const [questions, setQuestions] = useState<Question[]>([]);
-    const [assessmentId, setAssessmentId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     
     // Neue Animations-States
@@ -55,28 +54,20 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
         animateTransition('forward');
     }, [questionIndex]);
 
-    // Lade Fragen und erstelle Assessment beim ersten Laden
+    // Lade nur die Fragen beim ersten Laden
     useEffect(() => {
-        const initializeAssessment = async () => {
+        const loadQuestions = async () => {
             try {
-                // Lade Fragen
                 const loadedQuestions = await AssessmentService.getQuestions();
                 setQuestions(loadedQuestions);
-
-                // Erstelle neues Assessment mit einer validen UUID
-                const assessment = await AssessmentService.createAssessment();
-                if (assessment) {
-                    setAssessmentId(assessment.id);
-                }
-
                 setLoading(false);
             } catch (error) {
-                console.error('Fehler beim Initialisieren des Assessments:', error);
+                console.error('Fehler beim Laden der Fragen:', error);
                 setLoading(false);
             }
         };
 
-        initializeAssessment();
+        loadQuestions();
     }, []);
 
     // Lade Draft wenn verfügbar
@@ -125,12 +116,27 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
     const canGoForward = questionIndex < questions.length - 1;
     const showNextButton = answeredQuestions.has(question.id);
 
+    const handleAutoAdvance = () => {
+        if (canGoForward) {
+            navigation.navigate('Question', { 
+                questionIndex: questionIndex + 1,
+                assessmentId 
+            });
+        }
+    };
+
     const renderQuestionInput = (question: Question) => {
         const component = QuestionFactory.getComponent(question.type);
+        
+        if (question.type === 'slider' && isSliderConfig(question.options)) {
+            const { min, max, step } = question.options;
+        }
+        
         return component.render({
             question,
             value: answers[question.id],
-            onChange: (value) => handleAnswer(value)
+            onChange: (value) => handleAnswer(value),
+            onAutoAdvance: question.autoAdvance ? handleAutoAdvance : undefined
         });
     };
 
@@ -163,7 +169,8 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
             handleComplete();
         } else {
             navigation.navigate('Question', { 
-                questionIndex: questionIndex + 1 
+                questionIndex: questionIndex + 1,
+                assessmentId 
             });
         }
     };
@@ -171,7 +178,8 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
     const handleBack = () => {
         if (canGoBack) {
             navigation.navigate('Question', { 
-                questionIndex: questionIndex - 1 
+                questionIndex: questionIndex - 1,
+                assessmentId 
             });
         }
     };
@@ -201,7 +209,7 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
                     </View>
                 </View>
 
-                {/* Navigation Buttons */}
+                {/* Navigation Buttons - immer sichtbar */}
                 <View className="flex-row justify-between items-center w-full py-4">
                     <Button
                         variant="outline"
@@ -209,20 +217,18 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
                         disabled={!canGoBack}
                         className={!canGoBack ? "opacity-50" : ""}
                     >
-                        <Text>Zurück</Text>
+                        <Text>Back</Text>
                     </Button>
 
-                    {showNextButton && (
-                        <Button
-                            variant="default"
-                            className="bg-accent"
-                            onPress={handleNext}
-                        >
-                            <Text className="text-primary">
-                                {isLastQuestion ? "Abschließen" : "Weiter"}
-                            </Text>
-                        </Button>
-                    )}
+                    <Button
+                        variant="default"
+                        className="bg-accent"
+                        onPress={handleNext}
+                    >
+                        <Text className="text-primary">
+                            {isLastQuestion ? "Complete" : "Next"}
+                        </Text>
+                    </Button>
                 </View>
             </Animated.View>
         </SafeAreaView>

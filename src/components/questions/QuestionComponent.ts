@@ -1,10 +1,11 @@
-import type { Question } from '~/src/services/supabase';
+import type { Question } from '~/src/types/Question';
 
 export interface QuestionComponentProps {
     question: Question;
     value: any;
     onChange: (value: any) => void;
     isValid?: boolean;
+    onAutoAdvance?: () => void;
 }
 
 export interface QuestionComponent {

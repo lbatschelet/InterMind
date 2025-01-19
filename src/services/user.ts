@@ -1,28 +1,46 @@
+/**
+ * User Service
+ * -----------
+ * Handles device identification in the app. In our case, each device is treated
+ * as a unique "user" with its own readable ID (e.g., "ABC1-2DEF-3GHI").
+ * 
+ * Why readable IDs?
+ * ---------------
+ * - Easy to communicate if needed (support, debugging)
+ * - User-friendly format (compared to UUIDs)
+ * - Follows pattern: XXXX-XXXX-XXXX (like product keys)
+ * 
+ * ID Lifecycle:
+ * -----------
+ * 1. First app start: Generate new ID
+ * 2. Store ID in AsyncStorage
+ * 3. Reuse stored ID on subsequent starts
+ * 4. Reset possible through resetUserId()
+ */
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const USER_ID_KEY = 'user_id';
 
 /**
- * Generiert eine 12-stellige alphanumerische ID im Format "XXXX-XXXX-XXXX"
- * Beispiel: "ABC1-2DEF-3GHI"
+ * Generates a 12-character readable ID in format "XXXX-XXXX-XXXX"
+ * Example: "ABC1-2DEF-3GHI"
  */
 const generateReadableId = (): string => {
     const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let result = '';
-    
-    // Generiere 3 Blöcke von je 4 Zeichen
-    for (let block = 0; block < 3; block++) {
-        for (let i = 0; i < 4; i++) {
-            result += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        if (block < 2) result += '-'; // Füge Bindestrich zwischen den Blöcken hinzu
-    }
-    
-    return result;
+    const blocks = Array(3)
+        .fill(0)
+        .map(() => 
+            Array(4)
+                .fill(0)
+                .map(() => chars.charAt(Math.floor(Math.random() * chars.length)))
+                .join('')
+        );
+    return blocks.join('-');
 };
 
 /**
- * Prüft, ob eine ID dem korrekten Format entspricht
+ * Validates if a string matches the ID format XXXX-XXXX-XXXX
  */
 const isValidFormat = (id: string): boolean => {
     return /^[0-9A-Z]{4}-[0-9A-Z]{4}-[0-9A-Z]{4}$/.test(id);
@@ -30,56 +48,56 @@ const isValidFormat = (id: string): boolean => {
 
 export const UserService = {
     /**
-     * Holt die User-ID aus dem AsyncStorage oder erstellt eine neue
+     * Gets or creates a device ID
+     * 
+     * Flow:
+     * 1. Try to get existing ID from storage
+     * 2. Validate format if ID exists
+     * 3. Generate new ID if none exists or invalid
+     * 4. Store and return ID
+     * 
+     * @returns Promise<string> Device ID in format XXXX-XXXX-XXXX
      */
     getUserId: async (): Promise<string> => {
-        console.log('Hole User-ID...');
         try {
             let userId = await AsyncStorage.getItem(USER_ID_KEY);
             
-            // Prüfe ob die ID existiert und dem korrekten Format entspricht
             if (!userId || !isValidFormat(userId)) {
-                if (userId) {
-                    console.log('Gefundene ID hat falsches Format:', userId);
-                }
                 userId = generateReadableId();
                 await AsyncStorage.setItem(USER_ID_KEY, userId);
-                console.log('Neue User-ID erstellt:', userId);
+                console.log('Created new device ID:', userId);
             } else {
-                console.log('Existierende User-ID gefunden:', userId);
+                console.log('Using existing device ID:', userId);
             }
             
             return userId;
         } catch (error) {
-            console.error('Fehler beim Holen der User-ID:', error);
-            const fallbackId = generateReadableId();
-            console.log('Fallback User-ID erstellt:', fallbackId);
-            return fallbackId;
+            console.error('Error managing device ID:', error);
+            // Fallback: Generate new ID if storage fails
+            return generateReadableId();
         }
     },
 
     /**
-     * Zeigt die aktuelle User-ID an
+     * Gets the current device ID without generating a new one
+     * Useful for checking if a device is already registered
+     * 
+     * @returns Promise<string | null> Current device ID or null if none exists
      */
     getCurrentUserId: async (): Promise<string | null> => {
-        try {
-            const userId = await AsyncStorage.getItem(USER_ID_KEY);
-            console.log('Aktuelle User-ID:', userId);
-            return userId;
-        } catch (error) {
-            console.error('Fehler beim Lesen der User-ID:', error);
-            return null;
-        }
+        return AsyncStorage.getItem(USER_ID_KEY);
     },
 
     /**
-     * Setzt die User-ID zurück und generiert eine neue
+     * Resets the device ID by generating a new one
+     * Use with caution as this will disconnect from previous data
+     * 
+     * @returns Promise<string> New device ID
      */
     resetUserId: async (): Promise<string> => {
-        console.log('Setze User-ID zurück...');
         const newId = generateReadableId();
         await AsyncStorage.setItem(USER_ID_KEY, newId);
-        console.log('Neue User-ID generiert:', newId);
+        console.log('Reset device ID to:', newId);
         return newId;
     }
 }; 
