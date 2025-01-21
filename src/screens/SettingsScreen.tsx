@@ -18,9 +18,8 @@ import { Text } from '~/src/components/ui/text';
 import { useDeviceId } from '../contexts/DeviceIdContext';
 import { PORTAL_HOST_NAME } from '../lib/constants';
 import type { RootStackParamList } from '../navigation/AppNavigator';
-import { AssessmentService } from '../services/assessment';
+import { DeviceService } from '../services/device';
 import { supabase } from '../services/supabase';
-import { UserService } from '../services/user';
 
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
@@ -39,27 +38,27 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
     };
 
     const handleShowUserId = async () => {
-        const userId = await UserService.getCurrentUserId();
+        const userId = await DeviceService.getCurrentDeviceId();
         console.log('User ID:', userId);
     };
 
-    const verifyDeletion = async (userId: string): Promise<boolean> => {
+    const verifyDeletion = async (deviceId: string): Promise<boolean> => {
         const { data: assessments } = await supabase
             .from('assessments')
             .select('id')
-            .eq('user_id', userId);
+            .eq('device_id', deviceId);
         
         return !assessments || assessments.length === 0;
     };
 
     const handleDeleteData = async () => {
         try {
-            const userId = await UserService.getCurrentUserId();
-            if (userId) {
-                await AssessmentService.deleteUserData(userId);
+            const deviceId = await DeviceService.getCurrentDeviceId();
+            if (deviceId) {
+                await DeviceService.deleteDeviceData();
                 
                 // Überprüfe, ob die Daten wirklich gelöscht wurden
-                const isDeleted = await verifyDeletion(userId);
+                const isDeleted = await verifyDeletion(deviceId);
                 
                 if (isDeleted) {
                     setDeleteStatus('success');

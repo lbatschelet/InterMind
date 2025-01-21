@@ -1,33 +1,41 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { setDeviceId } from '../services/supabase';
-import { UserService } from '../services/user';
+import { DeviceService } from '../services/device';
 
 interface DeviceIdContextType {
-    deviceId: string | null;
+    deviceId: string | undefined;
+    setDeviceId: (id: string) => Promise<void>;
 }
 
-const DeviceIdContext = createContext<DeviceIdContextType>({ deviceId: null });
-
-export const useDeviceId = () => useContext(DeviceIdContext);
+const DeviceIdContext = createContext<DeviceIdContextType | undefined>(undefined);
 
 export const DeviceIdProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [deviceId, setDeviceIdState] = useState<string | null>(null);
+    const [deviceId, setDeviceIdState] = useState<string>();
 
     useEffect(() => {
-        const loadDeviceId = async () => {
-            const id = await UserService.getUserId();
-            setDeviceIdState(id);
-            if (id) {
-                await setDeviceId(id);
-            }
+        // Beim ersten Laden die device_id abrufen
+        const initDeviceId = async () => {
+            const id = await DeviceService.getCurrentDeviceId();
+            if (id) setDeviceIdState(id);
         };
-
-        loadDeviceId();
+        initDeviceId();
     }, []);
 
+    const setDeviceId = async (id: string) => {
+        await DeviceService.resetDeviceId();
+        setDeviceIdState(id);
+    };
+
     return (
-        <DeviceIdContext.Provider value={{ deviceId }}>
+        <DeviceIdContext.Provider value={{ deviceId, setDeviceId }}>
             {children}
         </DeviceIdContext.Provider>
     );
+};
+
+export const useDeviceId = (): DeviceIdContextType => {
+    const context = useContext(DeviceIdContext);
+    if (!context) {
+        throw new Error('useDeviceId muss innerhalb eines DeviceIdProvider verwendet werden');
+    }
+    return context;
 }; 

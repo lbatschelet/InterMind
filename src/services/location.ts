@@ -20,6 +20,7 @@
  */
 
 import * as Location from 'expo-location';
+import { debugLog } from '~/src/config/debug';
 
 /**
  * Represents a single location reading with reduced accuracy
@@ -57,13 +58,15 @@ export const LocationService = {
      */
     getCurrentLocation: async (): Promise<LocationData | undefined> => {
         try {
+            debugLog('services', 'Frage Standort-Berechtigung an');
             const { status } = await Location.requestForegroundPermissionsAsync();
             
             if (status !== 'granted') {
-                console.log('Location permission denied');
+                debugLog('services', 'Standort-Berechtigung verweigert');
                 return undefined;
             }
 
+            debugLog('services', 'Hole aktuellen Standort mit reduzierter Genauigkeit');
             const location = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.Lowest,  // Lowest accuracy for privacy
             });
@@ -74,14 +77,17 @@ export const LocationService = {
                 return Number(coord.toFixed(precision));
             };
 
-            return {
+            const locationData = {
                 latitude: roundCoordinate(location.coords.latitude),
                 longitude: roundCoordinate(location.coords.longitude),
                 accuracy: location.coords.accuracy,
                 timestamp: location.timestamp
             };
+
+            debugLog('services', 'Standort ermittelt:', locationData);
+            return locationData;
         } catch (error) {
-            console.error('Error getting location:', error);
+            debugLog('services', 'Fehler beim Ermitteln des Standorts:', error);
             return undefined;
         }
     }

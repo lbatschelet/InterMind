@@ -1,6 +1,5 @@
 import { render } from '@testing-library/react-native';
-import React from 'react';
-import QuestionScreen from '../../src/screens/QuestionScreen';
+import QuestionScreen from '~/src/screens/QuestionScreen';
 import { mockQuestions } from '../mocks/questions';
 
 const mockNavigation = {
@@ -13,6 +12,11 @@ const mockRoute = {
         assessmentId: 'test-assessment-1'
     }
 } as any;
+
+// Mock der QuestionFactory
+jest.mock('~/src/components/questions/QuestionFactory', () => ({
+    QuestionFactory: () => null
+}));
 
 describe('QuestionScreen', () => {
     it('renders the correct question component based on question type', () => {

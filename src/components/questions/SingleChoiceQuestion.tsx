@@ -30,18 +30,23 @@ const SingleChoiceQuestionContent = React.memo(({
 
     return (
         <View className="space-y-4">
-            {options.map((option, index) => (
-                <Button
-                    key={option.value.toString()}
-                    variant={value === index ? "default" : "outline"}
-                    className={value === index ? "bg-accent" : ""}
-                    onPress={() => handleOptionPress(index)}
-                >
-                    <Text className={`text-lg ${value === index ? "text-primary" : "text-primary"}`}>
-                        {option.label}
-                    </Text>
-                </Button>
-            ))}
+            {options.map((option, index) => {
+                // Sicherstellen, dass option.value existiert und konvertierbar ist
+                const key = option.value != null ? option.value.toString() : index.toString();
+                
+                return (
+                    <Button
+                        key={key}
+                        variant={value === index ? "default" : "outline"}
+                        className={value === index ? "bg-accent" : ""}
+                        onPress={() => handleOptionPress(index)}
+                    >
+                        <Text className={`text-lg ${value === index ? "text-primary" : "text-primary"}`}>
+                            {option.label}
+                        </Text>
+                    </Button>
+                );
+            })}
         </View>
     );
 });

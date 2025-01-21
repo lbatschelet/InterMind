@@ -1,30 +1,32 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { QuestionComponentProps } from '~/src/components/questions/QuestionComponent';
 import { QuestionFactory } from '~/src/components/questions/QuestionFactory';
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '~/src/services/assessment';
-import { Question, isSliderConfig } from '~/src/types/Question';
+import { Question } from '~/src/types/Question';
 
 const { width } = Dimensions.get('window');
 
 type QuestionScreenProps = NativeStackScreenProps<RootStackParamList, 'Question'>;
 
-const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
+export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigation }) => {
     const { questionIndex, assessmentId } = route.params;
+    
+    // Alle State-Hooks am Anfang
+    const [questions, setQuestions] = useState<Question[]>([]);
     const [answers, setAnswers] = useState<Record<string, any>>({});
     const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
-    const [questions, setQuestions] = useState<Question[]>([]);
     const [loading, setLoading] = useState(true);
-    
-    // Neue Animations-States
-    const slideAnim = useState(new Animated.Value(0))[0];
-    const fadeAnim = useState(new Animated.Value(1))[0];
+    const [debouncedValue, setDebouncedValue] = useState<any>(null);
+    const [slideAnim] = useState(() => new Animated.Value(0));
+    const [fadeAnim] = useState(() => new Animated.Value(1));
 
-    const animateTransition = (direction: 'forward' | 'backward') => {
+    const animateTransition = useCallback((direction: 'forward' | 'backward') => {
         // Reset animations
         slideAnim.setValue(direction === 'forward' ? width : -width);
         fadeAnim.setValue(0);
@@ -47,14 +49,9 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
                 })
             ])
         ]).start();
-    };
+    }, [slideAnim, fadeAnim]);
 
-    // Effekt für die initiale Animation
-    useEffect(() => {
-        animateTransition('forward');
-    }, [questionIndex]);
-
-    // Lade nur die Fragen beim ersten Laden
+    // Fragen laden
     useEffect(() => {
         const loadQuestions = async () => {
             try {
@@ -66,11 +63,10 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
                 setLoading(false);
             }
         };
-
         loadQuestions();
     }, []);
 
-    // Lade Draft wenn verfügbar
+    // Draft laden
     useEffect(() => {
         const loadDraft = async () => {
             if (assessmentId) {
@@ -88,19 +84,24 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
         loadDraft();
     }, [assessmentId]);
 
-    // Speichere Draft wenn sich Antworten ändern
+    // Animation
     useEffect(() => {
-        const saveDraft = async () => {
-            if (assessmentId) {
-                const stringAnswers: Record<string, string | string[]> = {};
-                Object.entries(answers).forEach(([key, value]) => {
-                    stringAnswers[key] = value.toString();
-                });
-                await AssessmentService.saveDraft(assessmentId, stringAnswers);
+        animateTransition('forward');
+    }, [questionIndex, animateTransition]);
+
+    // Debounced Antwort speichern
+    useEffect(() => {
+        const saveAnswer = async () => {
+            if (debouncedValue !== null && assessmentId && questions[questionIndex]) {
+                await AssessmentService.saveAnswerLocally(
+                    assessmentId,
+                    questions[questionIndex].id,
+                    debouncedValue
+                );
             }
         };
-        saveDraft();
-    }, [assessmentId, answers]);
+        saveAnswer();
+    }, [debouncedValue, assessmentId, questionIndex, questions]);
 
     if (loading || !questions.length || assessmentId === null) {
         return (
@@ -116,55 +117,25 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
     const canGoForward = questionIndex < questions.length - 1;
     const showNextButton = answeredQuestions.has(question.id);
 
-    const handleAutoAdvance = () => {
-        if (canGoForward) {
-            navigation.navigate('Question', { 
-                questionIndex: questionIndex + 1,
-                assessmentId 
+    const handleNext = async () => {
+        if (assessmentId && question && answeredQuestions.has(question.id)) {
+            // Speichere Draft
+            const stringAnswers: Record<string, string> = {};
+            Object.entries(answers).forEach(([key, value]) => {
+                stringAnswers[key] = Array.isArray(value) 
+                    ? value.join(',') 
+                    : String(value);
             });
-        }
-    };
+            await AssessmentService.saveDraft(assessmentId, stringAnswers);
 
-    const renderQuestionInput = (question: Question) => {
-        const component = QuestionFactory.getComponent(question.type);
-        
-        if (question.type === 'slider' && isSliderConfig(question.options)) {
-            const { min, max, step } = question.options;
-        }
-        
-        return component.render({
-            question,
-            value: answers[question.id],
-            onChange: (value) => handleAnswer(value),
-            onAutoAdvance: question.autoAdvance ? handleAutoAdvance : undefined
-        });
-    };
-
-    const handleAnswer = async (value: any) => {
-        const isFirstAnswer = !answeredQuestions.has(question.id);
-        
-        setAnswers(prev => ({
-            ...prev,
-            [question.id]: value
-        }));
-
-        setAnsweredQuestions(prev => {
-            const next = new Set(prev);
-            next.add(question.id);
-            return next;
-        });
-
-        if (isFirstAnswer && assessmentId) {
-            await AssessmentService.saveAnswer(
+            // Speichere in DB
+            await AssessmentService.saveAnswerToDb(
                 assessmentId,
                 question.id,
-                value,
                 question.type
             );
         }
-    };
 
-    const handleNext = () => {
         if (isLastQuestion) {
             handleComplete();
         } else {
@@ -175,10 +146,53 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
         }
     };
 
-    const handleBack = () => {
+    const handleBack = async () => {
+        if (assessmentId && question && answeredQuestions.has(question.id)) {
+            // Speichere Draft
+            const stringAnswers: Record<string, string> = {};
+            Object.entries(answers).forEach(([key, value]) => {
+                stringAnswers[key] = Array.isArray(value) 
+                    ? value.join(',') 
+                    : String(value);
+            });
+            await AssessmentService.saveDraft(assessmentId, stringAnswers);
+
+            // Speichere in DB
+            await AssessmentService.saveAnswerToDb(
+                assessmentId,
+                question.id,
+                question.type
+            );
+        }
+
         if (canGoBack) {
             navigation.navigate('Question', { 
                 questionIndex: questionIndex - 1,
+                assessmentId 
+            });
+        }
+    };
+
+    const handleAutoAdvance = async () => {
+        if (canGoForward && assessmentId) {
+            // Speichere Draft
+            const stringAnswers: Record<string, string> = {};
+            Object.entries(answers).forEach(([key, value]) => {
+                stringAnswers[key] = Array.isArray(value) 
+                    ? value.join(',') 
+                    : String(value);
+            });
+            await AssessmentService.saveDraft(assessmentId, stringAnswers);
+
+            // Speichere in DB
+            await AssessmentService.saveAnswerToDb(
+                assessmentId,
+                question.id,
+                question.type
+            );
+
+            navigation.navigate('Question', { 
+                questionIndex: questionIndex + 1,
                 assessmentId 
             });
         }
@@ -189,6 +203,54 @@ const QuestionScreen = ({ route, navigation }: QuestionScreenProps) => {
             await AssessmentService.completeAssessment(assessmentId);
             navigation.navigate('Home');
         }
+    };
+
+    const handleAnswer = async (value: any) => {
+        if (!question || !assessmentId) return;
+
+        // Aktualisiere den lokalen State sofort
+        setAnswers(prev => ({
+            ...prev,
+            [question.id]: value
+        }));
+        setAnsweredQuestions(prev => new Set(prev).add(question.id));
+
+        // Speichere die Antwort lokal
+        await AssessmentService.saveAnswerLocally(
+            assessmentId, 
+            question.id, 
+            value
+        );
+
+        // Bei Text und Slider: Setze den debounced Wert für UI-Updates
+        if (question.type === 'text' || question.type === 'slider') {
+            setDebouncedValue(value);
+        }
+
+        // Auto-advance Logik
+        if (question.autoAdvance && canGoForward) {
+            // Speichere in DB bevor wir weiternavigieren
+            await AssessmentService.saveAnswerToDb(
+                assessmentId,
+                question.id,
+                question.type
+            );
+            handleAutoAdvance();
+        }
+    };
+
+    const renderQuestionInput = (question: Question) => {
+        if (!question) return null;
+        
+        const component = QuestionFactory.getComponent(question.type);
+        const currentValue = answers[question.id];
+        
+        return component.render({
+            question,
+            value: currentValue,
+            onChange: (value) => handleAnswer(value),
+            onAutoAdvance: question.autoAdvance ? handleAutoAdvance : undefined
+        } as QuestionComponentProps);
     };
 
     return (

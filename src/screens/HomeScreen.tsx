@@ -38,11 +38,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             
             // Get location first
             const location = await LocationService.getCurrentLocation();
-            console.log('Got location:', location);
             
             // Create assessment with location
             const assessment = await AssessmentService.createAssessment(location);
-            console.log('Created assessment:', assessment);
             
             if (assessment) {
                 navigation.navigate('Question', { 
@@ -51,7 +49,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 });
             }
         } catch (error) {
-            console.error('Error starting assessment:', error);
+            // Fehler werden bereits im Service geloggt
         } finally {
             setIsCreating(false);
         }

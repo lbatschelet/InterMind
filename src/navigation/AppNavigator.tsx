@@ -63,7 +63,7 @@ const HomeHeader = ({ navigation }: { navigation: any }) => (
 );
 
 /**
- * Header component for the Assessment/Question screen.
+ * Header component for the Question screen.
  * Includes a back button with confirmation dialog for canceling the assessment.
  * 
  * @param navigation - Navigation prop for screen navigation
@@ -76,7 +76,9 @@ const AssessmentHeader = ({ navigation }: { navigation: any }) => {
      * Deletes the assessment data and navigates back to home.
      */
     const handleCancel = async () => {
-        const assessmentId = navigation.getParam('assessmentId');
+        const state = navigation.getState();
+        const assessmentId = state.routes[state.index].params?.assessmentId;
+        
         if (assessmentId) {
             await AssessmentService.cancelAssessment(assessmentId);
         }

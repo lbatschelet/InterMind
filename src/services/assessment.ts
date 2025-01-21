@@ -1,14 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { debugLog } from '~/src/config/debug';
+import { DeviceService } from './device';
 import { LocationData } from './location';
 import {
     Assessment,
     AssessmentAnswer,
     Question,
     QuestionType,
+    ensureDeviceSession,
     mapDbToAssessment,
     supabase
 } from './supabase';
-import { UserService } from './user';
 
 /**
  * This service handles all assessment-related operations.
@@ -39,10 +41,41 @@ const STORAGE_KEY = 'assessment_drafts';
  */
 interface AssessmentDraft {
     assessmentId: string;
-    answers: Record<string, string | string[]>;
+    answers: Record<string, string>;  // Alles wird als String gespeichert
     lastUpdated: number;
     completed: boolean;
 }
+
+/**
+ * Normalisiert einen Antwortwert für den Vergleich
+ * - Arrays mit einem Wert werden zu einer einzelnen Zahl
+ * - Arrays mit mehreren Werten bleiben Arrays (sortiert)
+ * - Strings mit Zahlen werden zu Zahlen
+ * - Strings bleiben Strings
+ */
+const normalizeAnswerValue = (value: any): any => {
+    // Wenn es ein Array ist
+    if (Array.isArray(value)) {
+        const numbers = value.map(Number);
+        // Wenn es nur ein Element hat, gib die Zahl zurück
+        return numbers.length === 1 ? numbers[0] : numbers.sort((a, b) => a - b);
+    }
+    
+    // Wenn es ein String ist
+    if (typeof value === 'string') {
+        // Wenn der String ein Array-Format hat (z.B. "1,2,3")
+        if (value.includes(',')) {
+            const numbers = value.split(',').map(v => Number(v.trim()));
+            // Auch hier: Einzelnes Element wird zur Zahl
+            return numbers.length === 1 ? numbers[0] : numbers.sort((a, b) => a - b);
+        }
+        // Wenn der String eine Zahl ist
+        const num = Number(value);
+        return isNaN(num) ? value : num;
+    }
+    
+    return value;
+};
 
 export const AssessmentService = {
     /**
@@ -50,26 +83,26 @@ export const AssessmentService = {
      * @returns Array of questions ordered by ID
      */
     getQuestions: async (): Promise<Question[]> => {
-        console.log('Loading questions from database...');
+        debugLog('database', 'Lade Fragen aus der Datenbank');
         const { data, error } = await supabase
             .from('questions')
             .select('*')
-            .order('id');
+            .order('created_at', { ascending: true });
 
         if (error) {
-            console.error('Error loading questions:', error);
+            debugLog('database', 'Fehler beim Laden der Fragen:', error);
             return [];
         }
 
-        console.log(`Successfully loaded ${data.length} questions`);
-
-        // Transform options format
+        debugLog('services', `${data.length} Fragen geladen`);
+        
+        // Transformiere die Optionen in das richtige Format
         return data.map(question => ({
             ...question,
             options: question.type === 'slider' 
-                ? question.options  // Slider format is already correct
+                ? question.options  // Slider-Format ist bereits korrekt
                 : (question.options as string[])?.map((label, index) => ({
-                    value: (index + 1).toString(),
+                    value: index,
                     label
                 })) || []
         }));
@@ -83,81 +116,190 @@ export const AssessmentService = {
      * @returns The created assessment or null if creation failed
      */
     createAssessment: async (location?: LocationData): Promise<Assessment | null> => {
-        const deviceId = await UserService.getUserId();
-        
-        // Erst device_id in Session setzen
-        await supabase.rpc('set_device_id', { device_id: deviceId });
-        
-        // Dann Assessment erstellen
-        const { data, error } = await supabase
-            .from('assessments')
-            .insert({
-                device_id: deviceId,
-                user_id: deviceId,
-                started_at: new Date(),
-                location
-            })
-            .select()
-            .single();
-        
-        if (error) {
-            console.error('Error creating assessment:', error);
+        try {
+            const deviceId = await DeviceService.getDeviceId();
+            await ensureDeviceSession(deviceId);
+
+            debugLog('services', 'Erstelle neues Assessment');
+            const { data, error } = await supabase
+                .from('assessments')
+                .insert({
+                    device_id: deviceId,
+                    location: location || null
+                })
+                .select()
+                .single();
+
+            if (error) {
+                debugLog('database', 'Fehler beim Erstellen des Assessments:', error);
+                return null;
+            }
+
+            debugLog('services', 'Assessment erstellt:', data.id);
+            return mapDbToAssessment(data);
+        } catch (error) {
+            debugLog('services', 'Fehler beim Assessment erstellen:', error);
             return null;
         }
-
-        return mapDbToAssessment(data);
     },
 
     /**
-     * Saves an answer for a specific question
-     * Only saves the first answer to prevent multiple submissions
-     * 
-     * @param assessmentId - ID of the current assessment
-     * @param questionId - ID of the answered question
-     * @param answerValue - The user's answer (can be number, array, or string)
-     * @param questionType - Type of question (single_choice, multiple_choice, etc.)
+     * Speichert eine Antwort nur lokal im Draft
+     * Wird sofort aufgerufen, wenn der User eine Antwort ändert
      */
-    saveAnswer: async (
+    saveAnswerLocally: async (
         assessmentId: string,
         questionId: string,
         answerValue: number | number[] | string,
+    ): Promise<void> => {
+        try {
+            const draft = await AssessmentService.loadDraft(assessmentId) || {
+                assessmentId,
+                answers: {},
+                lastUpdated: Date.now(),
+                completed: false
+            };
+
+            // Konvertiere den Wert zu String für die Speicherung
+            const stringValue = Array.isArray(answerValue) 
+                ? answerValue.join(',')
+                : String(answerValue);
+
+            draft.answers[questionId] = stringValue;
+            draft.lastUpdated = Date.now();
+
+            await AsyncStorage.setItem(
+                `${STORAGE_KEY}:${assessmentId}`, 
+                JSON.stringify(draft)
+            );
+            debugLog('ui', 'Antwort lokal gespeichert:', { questionId, answerValue });
+        } catch (error) {
+            debugLog('ui', 'Fehler beim lokalen Speichern:', error);
+        }
+    },
+
+    /**
+     * Speichert die aktuelle Antwort in der Datenbank
+     * Wird aufgerufen, wenn zur nächsten Frage navigiert wird
+     */
+    saveAnswerToDb: async (
+        assessmentId: string,
+        questionId: string,
         questionType: QuestionType
     ): Promise<AssessmentAnswer | null> => {
-        console.log('Speichere Antwort:', { assessmentId, questionId, answerValue, questionType });
+        try {
+            const deviceId = await DeviceService.getDeviceId();
+            await ensureDeviceSession(deviceId);
 
-        // Hole die device_id des Assessments
-        const { data: assessment } = await supabase
-            .from('assessments')
-            .select('device_id')
-            .eq('id', assessmentId)
-            .single();
+            const draft = await AssessmentService.loadDraft(assessmentId);
+            if (!draft || !draft.answers[questionId]) {
+                debugLog('services', 'Keine lokale Antwort gefunden für:', { assessmentId, questionId });
+                return null;
+            }
 
-        if (assessment) {
-            // Setze die device_id in der Session
-            await supabase.rpc('set_claim', {
-                claim: 'device_id',
-                value: assessment.device_id
-            });
-        }
+            const stringValue = draft.answers[questionId];
+            debugLog('database', 'Speichere Antwort in DB:', { questionId, stringValue, questionType });
 
-        const { data, error } = await supabase
-            .from('assessment_answers')
-            .insert([{
-                assessment_id: assessmentId,
-                question_id: questionId,
-                answer_value: answerValue,
-                question_type: questionType
-            }])
-            .select()
-            .single();
+            let formattedValue: string | number | number[];
+            if (questionType === 'multiple_choice') {
+                formattedValue = stringValue.split(',').map(Number);
+            } else if (questionType === 'slider' || questionType === 'single_choice') {
+                formattedValue = Number(stringValue);
+            } else {
+                formattedValue = stringValue;
+            }
 
-        if (error) {
-            console.error('Fehler beim Speichern der Antwort:', error);
+            const { data, error } = await supabase
+                .from('assessment_answers')
+                .upsert({
+                    assessment_id: assessmentId,
+                    question_id: questionId,
+                    answer_value: formattedValue,
+                    question_type: questionType,
+                    answered_at: new Date().toISOString()
+                }, {
+                    onConflict: 'assessment_id,question_id'
+                })
+                .select()
+                .single();
+
+            if (error) {
+                debugLog('database', 'Fehler beim Speichern in DB:', error);
+                return null;
+            }
+
+            debugLog('database', 'Antwort erfolgreich in DB gespeichert');
+            return data;
+        } catch (error) {
+            debugLog('services', 'Fehler beim DB-Speichern:', error);
             return null;
         }
+    },
 
-        console.log('Antwort erfolgreich gespeichert:', data);
-        return data;
+    /**
+     * Verifies that all answers in the local draft match the database entries
+     * Called at the end of an assessment to ensure data consistency
+     * 
+     * @param assessmentId - ID of the assessment to verify
+     * @returns true if all answers match, false if there are discrepancies
+     */
+    verifyAnswers: async (assessmentId: string): Promise<boolean> => {
+        try {
+            const deviceId = await DeviceService.getDeviceId();
+            await ensureDeviceSession(deviceId);
+
+            // Hole lokale Antworten
+            const draft = await AssessmentService.loadDraft(assessmentId);
+            if (!draft) {
+                debugLog('services', 'Kein lokaler Draft gefunden für Assessment:', assessmentId);
+                return false;
+            }
+
+            // Hole Antworten aus der Datenbank
+            const { data: dbAnswers, error } = await supabase
+                .from('assessment_answers')
+                .select('question_id, answer_value')
+                .eq('assessment_id', assessmentId);
+
+            if (error) {
+                debugLog('database', 'Fehler beim Laden der DB-Antworten:', error);
+                return false;
+            }
+
+            // Vergleiche Antworten
+            const dbAnswersMap = Object.fromEntries(
+                dbAnswers.map(answer => [answer.question_id, answer.answer_value])
+            );
+
+            let allMatch = true;
+            for (const [questionId, localAnswer] of Object.entries(draft.answers)) {
+                const dbAnswer = dbAnswersMap[questionId];
+                const normalizedLocal = normalizeAnswerValue(localAnswer);
+                const normalizedDb = normalizeAnswerValue(dbAnswer);
+                
+                if (JSON.stringify(normalizedLocal) !== JSON.stringify(normalizedDb)) {
+                    debugLog('services', 
+                        `Diskrepanz gefunden für Frage ${questionId}:`,
+                        '\nLokal (normalisiert):', normalizedLocal,
+                        '\nDB (normalisiert):', normalizedDb,
+                        '\nOriginal Lokal:', localAnswer,
+                        '\nOriginal DB:', dbAnswer
+                    );
+                    allMatch = false;
+                }
+            }
+
+            if (allMatch) {
+                debugLog('services', 'Alle Antworten stimmen überein');
+            } else {
+                debugLog('services', 'Einige Antworten stimmen nicht überein');
+            }
+
+            return allMatch;
+        } catch (error) {
+            debugLog('services', 'Fehler beim Verifizieren der Antworten:', error);
+            return false;
+        }
     },
 
     /**
@@ -167,8 +309,8 @@ export const AssessmentService = {
      * @param assessmentId - ID of the assessment to save
      * @param answers - Current answers for the assessment
      */
-    saveDraft: async (assessmentId: string, answers: Record<string, string | string[]>) => {
-        console.log('Speichere Assessment-Draft:', { assessmentId, answers });
+    saveDraft: async (assessmentId: string, answers: Record<string, string>) => {
+        debugLog('ui', 'Speichere Assessment-Draft:', { assessmentId, answers });
         try {
             const draft: AssessmentDraft = {
                 assessmentId,
@@ -181,27 +323,41 @@ export const AssessmentService = {
                 `${STORAGE_KEY}:${assessmentId}`, 
                 JSON.stringify(draft)
             );
-            console.log('Assessment-Draft erfolgreich gespeichert');
+            debugLog('ui', 'Assessment-Draft erfolgreich gespeichert');
         } catch (error) {
-            console.error('Fehler beim Speichern des Assessment-Entwurfs:', error);
+            debugLog('ui', 'Fehler beim Speichern des Assessment-Entwurfs:', error);
         }
     },
 
     /**
      * Loads a previously saved assessment draft
-     * 
-     * @param assessmentId - ID of the assessment to load
-     * @returns The saved draft or null if none exists
      */
     loadDraft: async (assessmentId: string): Promise<AssessmentDraft | null> => {
-        console.log('Lade Assessment-Draft:', assessmentId);
+        debugLog('ui', 'Lade Draft:', assessmentId);
         try {
             const stored = await AsyncStorage.getItem(`${STORAGE_KEY}:${assessmentId}`);
-            const draft = stored ? JSON.parse(stored) : null;
-            console.log('Geladener Draft:', draft);
+            if (!stored) return null;
+            
+            const parsed = JSON.parse(stored);
+            
+            const answers: Record<string, string> = {};
+            for (const [key, value] of Object.entries(parsed.answers)) {
+                answers[key] = Array.isArray(value) 
+                    ? value.join(',') 
+                    : String(value);
+            }
+            
+            const draft: AssessmentDraft = {
+                assessmentId: parsed.assessmentId,
+                answers,
+                lastUpdated: parsed.lastUpdated,
+                completed: parsed.completed
+            };
+            
+            debugLog('ui', 'Draft geladen:', draft);
             return draft;
         } catch (error) {
-            console.error('Fehler beim Laden des Assessment-Entwurfs:', error);
+            debugLog('ui', 'Fehler beim Laden des Drafts:', error);
             return null;
         }
     },
@@ -211,27 +367,37 @@ export const AssessmentService = {
      * 
      * @param assessmentId - ID of the assessment to complete
      */
-    completeAssessment: async (assessmentId: string) => {
-        console.log('Schließe Assessment ab:', assessmentId);
-
-        const { error } = await supabase
-            .from('assessments')
-            .update({ 
-                completed_at: new Date().toISOString()
-            })
-            .eq('id', assessmentId);
-
-        if (error) {
-            console.error('Fehler beim Abschließen des Assessments:', error);
-            return;
-        }
-
-        // Lösche den lokalen Draft
+    completeAssessment: async (assessmentId: string): Promise<boolean> => {
         try {
-            await AsyncStorage.removeItem(`${STORAGE_KEY}:${assessmentId}`);
-            console.log('Assessment erfolgreich abgeschlossen und Draft gelöscht');
+            debugLog('services', 'Schließe Assessment ab:', assessmentId);
+            const deviceId = await DeviceService.getDeviceId();
+            await ensureDeviceSession(deviceId);
+
+            const { error } = await supabase
+                .from('assessments')
+                .update({ completed_at: new Date().toISOString() })
+                .eq('id', assessmentId);
+
+            if (error) {
+                debugLog('database', 'Fehler beim Abschließen des Assessments:', error);
+                return false;
+            }
+
+            // Markiere den Draft als abgeschlossen
+            const draft = await AssessmentService.loadDraft(assessmentId);
+            if (draft) {
+                draft.completed = true;
+                await AsyncStorage.setItem(
+                    `${STORAGE_KEY}:${assessmentId}`, 
+                    JSON.stringify(draft)
+                );
+            }
+
+            debugLog('services', 'Assessment erfolgreich abgeschlossen');
+            return true;
         } catch (error) {
-            console.error('Fehler beim Löschen des Assessment-Entwurfs:', error);
+            debugLog('services', 'Fehler beim Abschließen des Assessments:', error);
+            return false;
         }
     },
 
@@ -241,88 +407,43 @@ export const AssessmentService = {
      * 
      * @param assessmentId - ID of the assessment to cancel
      */
-    cancelAssessment: async (assessmentId: string) => {
-        console.log('Breche Assessment ab:', assessmentId);
+    cancelAssessment: async (assessmentId: string): Promise<boolean> => {
         try {
+            debugLog('services', 'Breche Assessment ab:', assessmentId);
+            const deviceId = await DeviceService.getDeviceId();
+            await ensureDeviceSession(deviceId);
+
+            // Lösche zuerst alle Antworten
+            const { error: answersError } = await supabase
+                .from('assessment_answers')
+                .delete()
+                .eq('assessment_id', assessmentId);
+
+            if (answersError) {
+                debugLog('database', 'Fehler beim Löschen der Antworten:', answersError);
+                return false;
+            }
+
+            // Dann das Assessment selbst
+            const { error: assessmentError } = await supabase
+                .from('assessments')
+                .delete()
+                .eq('id', assessmentId);
+
+            if (assessmentError) {
+                debugLog('database', 'Fehler beim Löschen des Assessments:', assessmentError);
+                return false;
+            }
+
+            // Lösche den lokalen Draft
             await AsyncStorage.removeItem(`${STORAGE_KEY}:${assessmentId}`);
-            
-            const cancelLog = {
-                assessmentId,
-                timestamp: Date.now(),
-                action: 'cancelled',
-            };
-            
-            const existingLogs = await AsyncStorage.getItem('assessment_cancellations') || '[]';
-            const logs = JSON.parse(existingLogs);
-            logs.push(cancelLog);
-            
-            await AsyncStorage.setItem('assessment_cancellations', JSON.stringify(logs));
-            console.log('Assessment erfolgreich abgebrochen:', cancelLog);
+            debugLog('services', 'Assessment erfolgreich abgebrochen');
+            return true;
         } catch (error) {
-            console.error('Fehler beim Abbrechen des Assessments:', error);
+            debugLog('services', 'Fehler beim Abbrechen des Assessments:', error);
+            return false;
         }
     },
 
-    /**
-     * Deletes all data associated with a user
-     * This includes assessments, answers, and local drafts
-     * 
-     * @param userId - ID of the user whose data should be deleted
-     */
-    deleteUserData: async (userId: string): Promise<void> => {
-        console.log('Lösche alle Daten für User:', userId);
-        
-        try {
-            // Hole zuerst alle Assessments des Users
-            const { data: assessments, error: assessmentError } = await supabase
-                .from('assessments')
-                .select('id')
-                .eq('user_id', userId);
-
-            if (assessmentError) {
-                console.error('Fehler beim Laden der Assessments:', assessmentError);
-                throw assessmentError;
-            }
-
-            const assessmentIds = assessments?.map(a => a.id) || [];
-            console.log('Gefundene Assessment IDs:', assessmentIds);
-
-            // Lösche alle zugehörigen Antworten
-            if (assessmentIds.length > 0) {
-                const { error: answersError } = await supabase
-                    .from('assessment_answers')
-                    .delete()
-                    .in('assessment_id', assessmentIds);
-
-                if (answersError) {
-                    console.error('Fehler beim Löschen der Antworten:', answersError);
-                    throw answersError;
-                }
-                console.log('Alle Antworten gelöscht');
-            }
-
-            // Lösche alle Assessments des Users
-            const { error: deleteError } = await supabase
-                .from('assessments')
-                .delete()
-                .eq('user_id', userId);
-
-            if (deleteError) {
-                console.error('Fehler beim Löschen der Assessments:', deleteError);
-                throw deleteError;
-            }
-            console.log('Alle Assessments gelöscht');
-
-            // Lösche lokale Drafts
-            const keys = await AsyncStorage.getAllKeys();
-            const draftKeys = keys.filter(key => key.startsWith(STORAGE_KEY));
-            await AsyncStorage.multiRemove(draftKeys);
-            console.log('Lokale Drafts gelöscht');
-
-            console.log('Alle Benutzerdaten erfolgreich gelöscht');
-        } catch (error) {
-            console.error('Fehler beim Löschen der Benutzerdaten:', error);
-            throw error;
-        }
-    }
+    
 }; 

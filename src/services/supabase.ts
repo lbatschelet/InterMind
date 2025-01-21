@@ -22,6 +22,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
+import { debugLog, isDebugEnabled } from '~/src/config/debug';
 import type { Question, QuestionType } from '~/src/types/Question';
 import type { LocationData } from './location';
 
@@ -36,16 +37,86 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
- * Sets the device ID in the Supabase session context
- * This is used by Row Level Security policies to control data access
+ * Ensures that the device ID is properly set in the session
+ * This function will retry the session check a few times if needed
  * 
- * @param deviceId - The unique identifier for the current device
+ * @param deviceId - The device ID to set in the session
+ * @returns Promise<void>
+ * @throws Error if session could not be activated after max retries
  */
-export const setDeviceId = async (deviceId: string) => {
-    await supabase.rpc('set_claim', {
-        claim: 'device_id',
-        value: deviceId
-    });
+export const ensureDeviceSession = async (deviceId: string, maxRetries = 3): Promise<void> => {
+    // Debug vor dem Setzen der device_id
+    if (isDebugEnabled('session')) {
+        const { data: beforeSession } = await supabase.rpc('debug_session');
+        const { data: beforeRls } = await supabase.rpc('debug_rls');
+        debugLog('session', 'Before setting device_id:', {
+            session: beforeSession,
+            rls: beforeRls
+        });
+    }
+
+    // Setze die device_id
+    await supabase.rpc('set_device_id', { device_id: deviceId });
+    debugLog('database', 'Called set_device_id with:', deviceId);
+    
+    if (isDebugEnabled('session')) {
+        // Debug direkt nach dem Setzen
+        const { data: afterSession } = await supabase.rpc('debug_session');
+        const { data: afterRls } = await supabase.rpc('debug_rls');
+        debugLog('session', 'After setting device_id:', {
+            session: afterSession,
+            rls: afterRls
+        });
+    }
+    
+    // Überprüfe die Session mit Retries
+    for (let i = 0; i < maxRetries; i++) {
+        // Kurze Pause zwischen den Versuchen (exponentiell länger)
+        if (i > 0) {
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 50));
+            if (isDebugEnabled('session')) {
+                // Debug nach jedem Retry
+                const { data: retrySession } = await supabase.rpc('debug_session');
+                const { data: retryRls } = await supabase.rpc('debug_rls');
+                debugLog('session', `After retry ${i + 1}:`, {
+                    session: retrySession,
+                    rls: retryRls
+                });
+            }
+        }
+        
+        // Überprüfe ob die Session aktiv ist
+        const { error: sessionError } = await supabase
+            .from('assessments')
+            .select('id')
+            .limit(1);
+            
+        if (!sessionError) {
+            if (isDebugEnabled('session')) {
+                // Session ist aktiv
+                const { data: finalSession } = await supabase.rpc('debug_session');
+                const { data: finalRls } = await supabase.rpc('debug_rls');
+                debugLog('session', 'When successful:', {
+                    session: finalSession,
+                    rls: finalRls
+                });
+            }
+            return;
+        }
+        
+        debugLog('database', `Session check attempt ${i + 1} failed, retrying...`);
+    }
+    
+    if (isDebugEnabled('session')) {
+        // Debug wenn alle Versuche fehlgeschlagen sind
+        const { data: failureSession } = await supabase.rpc('debug_session');
+        const { data: failureRls } = await supabase.rpc('debug_rls');
+        debugLog('session', 'After all retries failed:', {
+            session: failureSession,
+            rls: failureRls
+        });
+    }
+    throw new Error('Could not activate device session after multiple attempts');
 };
 
 // Re-export question types from central definition
@@ -60,8 +131,6 @@ export interface DbAssessment {
     id: string;
     /** Device identifier that created the assessment */
     device_id: string;
-    /** User identifier (same as device_id in our case) */
-    user_id: string;
     /** ISO timestamp when assessment was started */
     started_at: string;
     /** ISO timestamp when assessment was completed (if finished) */
@@ -79,7 +148,6 @@ export interface DbAssessment {
 export interface Assessment {
     id: string;
     deviceId: string;
-    userId: string;
     startedAt: Date;
     completedAt: Date | null;
     location?: LocationData;
@@ -92,7 +160,6 @@ export interface Assessment {
 export const mapDbToAssessment = (dbAssessment: DbAssessment): Assessment => ({
     id: dbAssessment.id,
     deviceId: dbAssessment.device_id,
-    userId: dbAssessment.user_id || dbAssessment.device_id,
     startedAt: new Date(dbAssessment.started_at),
     completedAt: dbAssessment.completed_at ? new Date(dbAssessment.completed_at) : null,
     location: dbAssessment.location || undefined
@@ -104,7 +171,6 @@ export const mapDbToAssessment = (dbAssessment: DbAssessment): Assessment => ({
  */
 export const mapAssessmentToDb = (assessment: Partial<Assessment>): Partial<DbAssessment> => ({
     device_id: assessment.deviceId,
-    user_id: assessment.userId || assessment.deviceId,
     started_at: assessment.startedAt?.toISOString(),
     completed_at: assessment.completedAt?.toISOString() || null,
     location: assessment.location || null
