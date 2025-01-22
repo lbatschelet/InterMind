@@ -1,0 +1,35 @@
+{
+    "entryPoints": [
+        "./src/services",
+        "./src/types",
+        "./src/lib/utils.ts"
+    ],
+    "entryPointStrategy": "expand",
+    "out": "docs",
+    "readme": "README.md",
+    "name": "SerenCity API Documentation",
+    "includeVersion": true,
+    "categorizeByGroup": true,
+    "searchInComments": true,
+    "hideGenerator": true,
+    "visibilityFilters": {
+        "protected": true,
+        "private": false,
+        "inherited": true,
+        "external": false
+    },
+    "navigationLinks": {
+        "GitHub": "https://github.com/lbatschelet/SerenCity"
+    },
+    "sort": ["source-order"],
+    "validation": {
+        "invalidLink": true,
+        "notExported": true
+    },
+    "navigation": {
+        "includeCategories": true,
+        "includeGroups": true,
+        "excludeReferences": false,
+        "includeFolders": true
+    }
+} 

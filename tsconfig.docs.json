@@ -1,0 +1,5 @@
+{
+    "extends": "./tsconfig.json",
+    "exclude": ["src/components/ui/**/*"],
+    "include": ["src/**/*"]
+} 

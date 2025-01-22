@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "main": "src/index.ts",
   "scripts": {
-    "test": "jest --config ./__tests__/config/jest.config.js --watchAll",
+    "test": "NODE_ENV=test jest --config ./__tests__/config/jest.config.js",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "docs": "typedoc --config ./config/typedoc.json"
+    "docs": "typedoc --options ./typedoc.json --tsconfig ./tsconfig.docs.json --out docs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
@@ -83,6 +83,7 @@
     "@testing-library/react-native": "^13.0.0",
     "@types/jest": "^29.5.14",
     "@types/react": "~18.3.12",
+    "babel-jest": "^29.7.0",
     "babel-plugin-module-resolver": "^5.0.2",
     "dotenv": "^16.4.7",
     "jest": "^29.7.0",
