@@ -1,11 +1,27 @@
+import mockAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import React from 'react';
+import 'react-native-gesture-handler/jestSetup';
 
-// Mock der Umgebungsvariablen für Tests
+// Umgebungsvariablen für Tests
 process.env.SUPABASE_URL = 'http://localhost:54321';
 process.env.SUPABASE_ANON_KEY = 'test-key';
 
+// Globale Test-Setup-Konfiguration
+jest.useFakeTimers();
+
+// Unterdrücke React Native Warnungen in Tests
+console.warn = jest.fn();
+console.error = jest.fn();
+
+// Mock für AsyncStorage
+jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage);
+
+// Mock für SVGs
+jest.mock('~/assets/our-neighborhood.svg', () => 'OurNeighborhood');
+jest.mock('~/assets/a-day-at-the-park.svg', () => 'ADayAtThePark');
+
 // Mock für react-native-css-interop
-const mockModule = {
+const mockCssInterop = {
     getColorScheme: jest.fn(() => 'light'),
     addColorSchemeListener: jest.fn(),
     createCssInterop: jest.fn(() => ({
@@ -21,17 +37,8 @@ const mockModule = {
 
 jest.mock('react-native-css-interop', () => ({
     __esModule: true,
-    ...mockModule,
-    default: mockModule
-}));
-
-// Mock für AsyncStorage
-jest.mock('@react-native-async-storage/async-storage', () => ({
-    setItem: jest.fn(() => Promise.resolve()),
-    getItem: jest.fn(() => Promise.resolve(null)),
-    removeItem: jest.fn(() => Promise.resolve()),
-    getAllKeys: jest.fn(() => Promise.resolve([])),
-    multiRemove: jest.fn(() => Promise.resolve())
+    ...mockCssInterop,
+    default: mockCssInterop
 }));
 
 // Mock für React Native Komponenten
@@ -65,6 +72,15 @@ jest.mock('react-native', () => ({
     SafeAreaView: 'SafeAreaView'
 }));
 
+// Mock für UI-Komponenten
+jest.mock('~/src/components/ui/text', () => ({
+    Text: jest.fn(({ children }) => children)
+}));
+
+jest.mock('~/src/components/ui/button', () => ({
+    Button: jest.fn(({ children, onPress }) => ({ type: 'button', children, onPress }))
+}));
+
 // Mock für Expo Constants
 const mockExpoConfig = {
     extra: {
@@ -83,9 +99,9 @@ jest.mock('expo-constants', () => ({
 
 // Mock für react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => ({
-    SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
-    SafeAreaView: 'SafeAreaView',
-    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 }),
+    SafeAreaProvider: jest.fn(({ children }) => children),
+    SafeAreaView: jest.fn(({ children }) => children),
+    useSafeAreaInsets: () => ({ top: 0, right: 0, bottom: 0, left: 0 })
 }));
 
 // Mock für React Navigation
@@ -134,19 +150,19 @@ jest.mock('@supabase/supabase-js', () => ({
 
 // Mock für @rn-primitives Komponenten
 jest.mock('@rn-primitives/alert-dialog', () => ({
-    AlertDialog: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogTrigger: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogContent: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogHeader: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogFooter: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogTitle: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogDescription: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogAction: ({ children }: { children: React.ReactNode }) => children,
-    AlertDialogCancel: ({ children }: { children: React.ReactNode }) => children,
+    AlertDialog: jest.fn(({ children }) => children),
+    AlertDialogTrigger: jest.fn(({ children }) => children),
+    AlertDialogContent: jest.fn(({ children }) => children),
+    AlertDialogHeader: jest.fn(({ children }) => children),
+    AlertDialogFooter: jest.fn(({ children }) => children),
+    AlertDialogTitle: jest.fn(({ children }) => children),
+    AlertDialogDescription: jest.fn(({ children }) => children),
+    AlertDialogAction: jest.fn(({ children }) => children),
+    AlertDialogCancel: jest.fn(({ children }) => children)
 }));
 
 jest.mock('@rn-primitives/slot', () => ({
-    Slot: ({ children }: { children: React.ReactNode }) => children,
+    Slot: jest.fn(({ children }) => children)
 }));
 
 // Mock für react-native-reanimated

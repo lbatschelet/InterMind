@@ -6,7 +6,15 @@ module.exports = function (api) {
       'nativewind/babel',
     ],
     plugins: [
-      'react-native-reanimated/plugin', // Plugin muss im Objekt enthalten sein
+      'react-native-reanimated/plugin',
+      '@babel/plugin-transform-flow-strip-types',
+      ['module-resolver', {
+        root: ['./'],
+        alias: {
+          '~/src': './src',
+          '~/assets': './assets'
+        }
+      }]
     ],
   };
-};
+}; 

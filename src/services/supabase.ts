@@ -37,14 +37,13 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
-import Constants from 'expo-constants';
 import { debugLog, isDebugEnabled } from '~/src/config/debug';
 import type { Question, QuestionType } from '~/src/types/Question';
 import type { LocationData } from './location';
 
 /** Required environment variables for Supabase connection */
-const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl as string;
-const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey as string;
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Supabase URL and Anon Key must be defined in environment variables');

@@ -3,8 +3,11 @@ const { hairlineWidth } = require('nativewind/theme');
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: 'class',
-  content: ["./App.{js,jsx,ts,tsx}", './components/**/*.{ts,tsx}', "./src/**/*.{js,jsx,ts,tsx}"],
-  presets: [require('nativewind/preset')],
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+    "./src/styles/**/*.{js,jsx,ts,tsx,css}"
+  ],
+  presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
@@ -61,5 +64,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [require("tailwindcss-animate")],
 };

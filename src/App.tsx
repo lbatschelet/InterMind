@@ -4,11 +4,11 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from "react-native-screens";
-import '~/global.css';
-import { setDebugMode } from './src/config/debug';
-import { DeviceIdProvider } from './src/contexts/DeviceIdContext';
-import { PORTAL_HOST_NAME } from './src/lib/constants';
-import AppNavigator from './src/navigation/AppNavigator';
+import '~/styles/global.css';
+import { setDebugMode } from './config/debug';
+import { DeviceIdProvider } from './contexts/DeviceIdContext';
+import { PORTAL_HOST_NAME } from './lib/constants';
+import AppNavigator from './navigation/AppNavigator';
 
 // Debug-Mode nur in Development aktivieren
 if (__DEV__) {

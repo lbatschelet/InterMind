@@ -16,12 +16,12 @@ const config = (() => {
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
     sourceExts: [...resolver.sourceExts, "svg"],
     alias: {
-      '~/src': path.resolve(__dirname, 'src'),
-      '~/assets': path.resolve(__dirname, 'assets')
+      '~/src': path.resolve(__dirname, '../src'),
+      '~/assets': path.resolve(__dirname, '../assets')
     }
   };
 
   return baseConfig;
 })();
 
-module.exports = withNativeWind(config, { input: './src/styles/global.css' });
+module.exports = withNativeWind(config, { input: '../src/styles/global.css' });
