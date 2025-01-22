@@ -1,8 +1,28 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["src/lib/utils/deviceId.ts"],
+  "entryPoints": [
+    "src/types/Question.ts",
+    "src/services/assessment.ts",
+    "src/components/questions/*.ts",
+    "src/services/*.ts"
+  ],
   "out": "docs",
   "skipErrorChecking": true,
   "excludeExternals": true,
-  "excludeNotDocumented": true
+  "excludeNotDocumented": true,
+  "plugin": ["typedoc-plugin-markdown"],
+  "readme": "README.md",
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "searchInComments": true,
+  "validation": {
+    "invalidLink": true,
+    "notDocumented": true
+  },
+  "visibilityFilters": {
+    "protected": true,
+    "private": false,
+    "inherited": true,
+    "external": false
+  }
 } 

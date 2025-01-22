@@ -1,3 +1,35 @@
+/**
+ * @packageDocumentation
+ * @module Screens/Question
+ * 
+ * @summary
+ * Handles the display and interaction of assessment questions.
+ * 
+ * @remarks
+ * Manages question navigation, answer submission, and progress tracking.
+ * 
+ * Core Features:
+ * - Dynamic question rendering based on type
+ * - Answer validation and storage
+ * - Smooth transitions between questions
+ * - Progress persistence via drafts
+ * - Auto-advance capability
+ * 
+ * State Management:
+ * - Questions array
+ * - Current answers
+ * - Answered questions tracking
+ * - Loading states
+ * - Animation controls
+ * 
+ * Data Flow:
+ * 1. Load questions from AssessmentService
+ * 2. Load existing draft if available
+ * 3. Handle user input with immediate UI updates
+ * 4. Save answers locally and to database
+ * 5. Handle navigation between questions
+ */
+
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
@@ -10,14 +42,31 @@ import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '~/src/services/assessment';
 import { Question } from '~/src/types/Question';
 
+/** @type {number} Screen width used for animations */
 const { width } = Dimensions.get('window');
 
+/** Navigation and route props for the Question screen */
 type QuestionScreenProps = NativeStackScreenProps<RootStackParamList, 'Question'>;
 
+/**
+ * Question Screen Component
+ * 
+ * @param route - Route parameters from React Navigation
+ * @param navigation - Navigation object for screen transitions
+ * 
+ * @remarks
+ * Renders the main question interface and handles all question-related
+ * interactions including navigation, answer submission, and progress tracking.
+ * 
+ * @example
+ * ```tsx
+ * <QuestionScreen route={route} navigation={navigation} />
+ * ```
+ */
 export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigation }) => {
     const { questionIndex, assessmentId } = route.params;
     
-    // Alle State-Hooks am Anfang
+    /** State management */
     const [questions, setQuestions] = useState<Question[]>([]);
     const [answers, setAnswers] = useState<Record<string, any>>({});
     const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
@@ -26,6 +75,14 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const [slideAnim] = useState(() => new Animated.Value(0));
     const [fadeAnim] = useState(() => new Animated.Value(1));
 
+    /**
+     * Controls animation between questions
+     * 
+     * @param direction - Direction of transition ('forward' | 'backward')
+     * 
+     * @remarks
+     * Uses spring animation for slide and fade effects
+     */
     const animateTransition = useCallback((direction: 'forward' | 'backward') => {
         // Reset animations
         slideAnim.setValue(direction === 'forward' ? width : -width);
@@ -51,7 +108,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         ]).start();
     }, [slideAnim, fadeAnim]);
 
-    // Fragen laden
+    /** Load questions */
     useEffect(() => {
         const loadQuestions = async () => {
             try {
@@ -59,14 +116,14 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
                 setQuestions(loadedQuestions);
                 setLoading(false);
             } catch (error) {
-                console.error('Fehler beim Laden der Fragen:', error);
+                console.error('Error loading questions:', error);
                 setLoading(false);
             }
         };
         loadQuestions();
     }, []);
 
-    // Draft laden
+    /** Load draft */
     useEffect(() => {
         const loadDraft = async () => {
             if (assessmentId) {
@@ -84,12 +141,12 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         loadDraft();
     }, [assessmentId]);
 
-    // Animation
+    /** Start animation */
     useEffect(() => {
         animateTransition('forward');
     }, [questionIndex, animateTransition]);
 
-    // Debounced Antwort speichern
+    /** Save debounced answer */
     useEffect(() => {
         const saveAnswer = async () => {
             if (debouncedValue !== null && assessmentId && questions[questionIndex]) {
@@ -103,23 +160,36 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         saveAnswer();
     }, [debouncedValue, assessmentId, questionIndex, questions]);
 
+    /** Loading state */
     if (loading || !questions.length || assessmentId === null) {
         return (
             <View className="flex-1 items-center justify-center">
-                <Text>Laden...</Text>
+                <Text>Loading...</Text>
             </View>
         );
     }
 
+    /** Navigation state */
     const question = questions[questionIndex];
     const isLastQuestion = questionIndex === questions.length - 1;
     const canGoBack = questionIndex > 0;
     const canGoForward = questionIndex < questions.length - 1;
     const showNextButton = answeredQuestions.has(question.id);
 
+    /**
+     * Navigate to next question
+     * 
+     * @remarks
+     * Saves current progress before navigation:
+     * 1. Saves draft locally
+     * 2. Saves answer to database
+     * 3. Navigates to next question or completes assessment
+     * 
+     * @returns Promise that resolves when navigation is complete
+     */
     const handleNext = async () => {
         if (assessmentId && question && answeredQuestions.has(question.id)) {
-            // Speichere Draft
+            // Save draft
             const stringAnswers: Record<string, string> = {};
             Object.entries(answers).forEach(([key, value]) => {
                 stringAnswers[key] = Array.isArray(value) 
@@ -128,7 +198,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
             });
             await AssessmentService.saveDraft(assessmentId, stringAnswers);
 
-            // Speichere in DB
+            // Save to database
             await AssessmentService.saveAnswerToDb(
                 assessmentId,
                 question.id,
@@ -146,9 +216,20 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         }
     };
 
+    /**
+     * Navigate to previous question
+     * 
+     * @remarks
+     * Saves current progress before navigation:
+     * 1. Saves draft locally
+     * 2. Saves answer to database
+     * 3. Navigates to previous question if possible
+     * 
+     * @returns Promise that resolves when navigation is complete
+     */
     const handleBack = async () => {
         if (assessmentId && question && answeredQuestions.has(question.id)) {
-            // Speichere Draft
+            // Save draft
             const stringAnswers: Record<string, string> = {};
             Object.entries(answers).forEach(([key, value]) => {
                 stringAnswers[key] = Array.isArray(value) 
@@ -157,7 +238,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
             });
             await AssessmentService.saveDraft(assessmentId, stringAnswers);
 
-            // Speichere in DB
+            // Save to database
             await AssessmentService.saveAnswerToDb(
                 assessmentId,
                 question.id,
@@ -173,9 +254,18 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         }
     };
 
+    /**
+     * Auto-advance to next question
+     * 
+     * @method
+     * 
+     * @remarks
+     * Used for questions with auto-advance enabled.
+     * Saves progress and automatically navigates forward.
+     */
     const handleAutoAdvance = async () => {
         if (canGoForward && assessmentId) {
-            // Speichere Draft
+            // Save draft
             const stringAnswers: Record<string, string> = {};
             Object.entries(answers).forEach(([key, value]) => {
                 stringAnswers[key] = Array.isArray(value) 
@@ -184,7 +274,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
             });
             await AssessmentService.saveDraft(assessmentId, stringAnswers);
 
-            // Speichere in DB
+            // Save to database
             await AssessmentService.saveAnswerToDb(
                 assessmentId,
                 question.id,
@@ -198,6 +288,12 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         }
     };
 
+    /**
+     * Handles assessment completion.
+     * Marks the assessment as complete and navigates back to home.
+     * 
+     * @async
+     */
     const handleComplete = async () => {
         if (assessmentId) {
             await AssessmentService.completeAssessment(assessmentId);
@@ -205,31 +301,38 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         }
     };
 
+    /**
+     * Handles answer submission for a question.
+     * Updates local state and triggers auto-advance if enabled.
+     * 
+     * @async
+     * @param {any} value - The answer value to be saved
+     */
     const handleAnswer = async (value: any) => {
         if (!question || !assessmentId) return;
 
-        // Aktualisiere den lokalen State sofort
+        // Update local state immediately
         setAnswers(prev => ({
             ...prev,
             [question.id]: value
         }));
         setAnsweredQuestions(prev => new Set(prev).add(question.id));
 
-        // Speichere die Antwort lokal
+        // Save answer locally
         await AssessmentService.saveAnswerLocally(
             assessmentId, 
             question.id, 
             value
         );
 
-        // Bei Text und Slider: Setze den debounced Wert für UI-Updates
+        // For text and slider: Set debounced value for UI updates
         if (question.type === 'text' || question.type === 'slider') {
             setDebouncedValue(value);
         }
 
-        // Auto-advance Logik
+        // Auto-advance logic
         if (question.autoAdvance && canGoForward) {
-            // Speichere in DB bevor wir weiternavigieren
+            // Save to database before navigating
             await AssessmentService.saveAnswerToDb(
                 assessmentId,
                 question.id,
@@ -239,6 +342,13 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         }
     };
 
+    /**
+     * Renders the appropriate question input component.
+     * Uses QuestionFactory to get the correct component based on question type.
+     * 
+     * @param {Question} question - The question to render
+     * @returns {JSX.Element | null} The rendered question component
+     */
     const renderQuestionInput = (question: Question) => {
         if (!question) return null;
         
@@ -271,7 +381,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
                     </View>
                 </View>
 
-                {/* Navigation Buttons - immer sichtbar */}
+                {/* Navigation Buttons - always visible */}
                 <View className="flex-row justify-between items-center w-full py-4">
                     <Button
                         variant="outline"

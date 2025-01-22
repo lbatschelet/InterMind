@@ -1,3 +1,28 @@
+/**
+ * @packageDocumentation
+ * @module Screens/Settings
+ * 
+ * @summary
+ * Provides user settings and data management functionality.
+ * 
+ * @remarks
+ * Core Features:
+ * - Display and copy device ID
+ * - Privacy policy access
+ * - About information
+ * - Data deletion with confirmation
+ * 
+ * Security:
+ * - Secure device ID handling
+ * - Data deletion verification
+ * - Confirmation dialogs for critical actions
+ * 
+ * State Management:
+ * - Dialog visibility states
+ * - Delete operation status tracking
+ * - Device ID context integration
+ */
+
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
 import React, { useState } from 'react';
@@ -21,27 +46,62 @@ import type { RootStackParamList } from '../navigation/AppNavigator';
 import { DeviceService } from '../services/device';
 import { supabase } from '../services/supabase';
 
+/** Navigation prop type for the Settings screen */
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
 
+/** Props for the Settings screen component */
 interface SettingsScreenProps {
+    /** Navigation object for screen transitions */
     navigation: SettingsScreenNavigationProp;
 }
 
+/**
+ * Settings Screen Component
+ * 
+ * @param navigation - Navigation object for screen transitions
+ * 
+ * @remarks
+ * Provides user settings and data management functionality including:
+ * - Device ID display and copying
+ * - Privacy policy and about information access
+ * - Data deletion with verification
+ * 
+ * @example
+ * ```tsx
+ * <SettingsScreen navigation={navigation} />
+ * ```
+ */
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
     const { deviceId } = useDeviceId();
     const [open, setOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleteStatus, setDeleteStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
+    /**
+     * Copy device ID to clipboard
+     * 
+     * @returns Promise that resolves when the ID is copied
+     */
     const copyToClipboard = async () => {
         await Clipboard.setStringAsync(deviceId || '');
     };
 
+    /**
+     * Display current device ID
+     * 
+     * @returns Promise that resolves when the ID is retrieved
+     */
     const handleShowUserId = async () => {
         const userId = await DeviceService.getCurrentDeviceId();
         console.log('User ID:', userId);
     };
 
+    /**
+     * Verify complete data deletion
+     * 
+     * @param deviceId - The device ID to verify
+     * @returns Promise that resolves to true if all data is deleted
+     */
     const verifyDeletion = async (deviceId: string): Promise<boolean> => {
         const { data: assessments } = await supabase
             .from('assessments')
@@ -51,25 +111,37 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
         return !assessments || assessments.length === 0;
     };
 
+    /**
+     * Handle data deletion process
+     * 
+     * @remarks
+     * Complete data deletion flow:
+     * 1. Retrieve current device ID
+     * 2. Delete all device data
+     * 3. Verify deletion success
+     * 4. Update UI status
+     * 
+     * @returns Promise that resolves when deletion is complete
+     */
     const handleDeleteData = async () => {
         try {
             const deviceId = await DeviceService.getCurrentDeviceId();
             if (deviceId) {
                 await DeviceService.deleteDeviceData();
                 
-                // Überprüfe, ob die Daten wirklich gelöscht wurden
+                // Verify data deletion
                 const isDeleted = await verifyDeletion(deviceId);
                 
                 if (isDeleted) {
                     setDeleteStatus('success');
-                    console.log('Alle Daten erfolgreich gelöscht');
+                    console.log('All data successfully deleted');
                 } else {
                     setDeleteStatus('error');
-                    console.error('Daten konnten nicht vollständig gelöscht werden');
+                    console.error('Data could not be completely deleted');
                 }
             }
         } catch (error) {
-            console.error('Fehler beim Löschen der Daten:', error);
+            console.error('Error deleting data:', error);
             setDeleteStatus('error');
         }
     };
@@ -137,16 +209,16 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                     <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                         <AlertDialogTrigger asChild>
                             <Button variant="destructive" className="w-full">
-                                <Text className="text-destructive-foreground">Alle Daten löschen</Text>
+                                <Text className="text-destructive-foreground">Delete All Data</Text>
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
                             {deleteStatus === 'idle' ? (
                                 <>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Daten wirklich löschen?</AlertDialogTitle>
+                                        <AlertDialogTitle>Delete All Data?</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            Diese Aktion kann nicht rückgängig gemacht werden. Alle deine Assessment-Daten werden permanent gelöscht.
+                                            This action cannot be undone. All your assessment data will be permanently deleted.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter className="space-y-2">
@@ -154,7 +226,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                                             setDeleteDialogOpen(false);
                                             setDeleteStatus('idle');
                                         }}>
-                                            <Text>Abbrechen</Text>
+                                            <Text>Cancel</Text>
                                         </AlertDialogCancel>
                                         <Button 
                                             className="w-full bg-destructive"
@@ -162,7 +234,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                                                 await handleDeleteData();
                                             }}
                                         >
-                                            <Text className="text-destructive-foreground">Ja, alle Daten löschen</Text>
+                                            <Text className="text-destructive-foreground">Yes, Delete All Data</Text>
                                         </Button>
                                     </AlertDialogFooter>
                                 </>
@@ -170,12 +242,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                                 <>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>
-                                            {deleteStatus === 'success' ? 'Daten gelöscht' : 'Fehler beim Löschen'}
+                                            {deleteStatus === 'success' ? 'Data Deleted' : 'Error Deleting Data'}
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
                                             {deleteStatus === 'success' 
-                                                ? 'Alle deine Daten wurden erfolgreich gelöscht.'
-                                                : 'Beim Löschen deiner Daten ist ein Fehler aufgetreten. Bitte versuche es später erneut.'}
+                                                ? 'All your data has been successfully deleted.'
+                                                : 'An error occurred while deleting your data. Please try again later.'}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -186,7 +258,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                                                 setDeleteStatus('idle');
                                             }}
                                         >
-                                            <Text>Schließen</Text>
+                                            <Text>Close</Text>
                                         </Button>
                                     </AlertDialogFooter>
                                 </>

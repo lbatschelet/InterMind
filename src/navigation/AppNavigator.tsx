@@ -1,4 +1,42 @@
-// src/navigation/AppNavigator.tsx
+/**
+ * Application Navigation Module
+ * ---------------------------
+ * Defines the navigation structure and screen hierarchy of the application.
+ * 
+ * @packageDocumentation
+ * @module Navigation/AppNavigator
+ * 
+ * @remarks
+ * Implements a stack-based navigation system with custom headers and
+ * transition animations.
+ * 
+ * Navigation Structure:
+ * - Home (root)
+ *   ├─ Question (assessment flow)
+ *   └─ Settings
+ * 
+ * Screen Features:
+ * Home:
+ * - Welcome screen with assessment start
+ * - Settings access
+ * - Custom branded header
+ * 
+ * Question:
+ * - Assessment progress flow
+ * - Cancel confirmation
+ * - Back navigation guard
+ * 
+ * Settings:
+ * - Configuration options
+ * - Simple back navigation
+ * 
+ * Design Patterns:
+ * - Type-safe navigation parameters
+ * - Custom header components
+ * - Consistent UI/UX patterns
+ * - Modal-based confirmations
+ */
+
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useState } from 'react';
@@ -15,30 +53,39 @@ import SettingsScreen from '../screens/SettingsScreen';
 import { AssessmentService } from '../services/assessment';
 
 /**
- * Type definitions for the root stack navigator parameters.
- * Defines the available screens and their respective props.
+ * Type definitions for the navigation stack parameters.
  */
 export type RootStackParamList = {
-    /** Home screen with no parameters */
+    /** Root screen, no parameters needed */
     Home: undefined;
-    /** Settings screen with no parameters */
+
+    /** Application settings screen */
     Settings: undefined;
-    /** Question screen requiring the current question index */
+
+    /** 
+     * Assessment question screen
+     * @param questionIndex - Zero-based index of current question
+     * @param assessmentId - UUID of current assessment session
+     */
     Question: { 
-        /** The index of the current question being displayed */
         questionIndex: number;
-        /** The ID of the current assessment */
         assessmentId: string;
     };
 };
 
+/** @const Stack navigator instance with typed parameters */
 const Stack = createStackNavigator<RootStackParamList>();
 
 /**
- * Header component for the Home screen.
- * Displays the app title and settings button.
+ * Home screen header component.
  * 
- * @param navigation - Navigation prop for screen navigation
+ * @param props.navigation - Navigation object for screen transitions
+ * 
+ * @remarks
+ * Displays:
+ * - Centered app title
+ * - Settings button (right-aligned)
+ * - Proper safe area handling
  */
 const HomeHeader = ({ navigation }: { navigation: any }) => (
     <SafeAreaView edges={['top']} className="bg-background">
@@ -63,17 +110,31 @@ const HomeHeader = ({ navigation }: { navigation: any }) => (
 );
 
 /**
- * Header component for the Question screen.
- * Includes a back button with confirmation dialog for canceling the assessment.
+ * Assessment question screen header.
  * 
- * @param navigation - Navigation prop for screen navigation
+ * @param props.navigation - Navigation object for screen transitions
+ * 
+ * @remarks
+ * Features:
+ * - Back button with cancel confirmation
+ * - Assessment title
+ * - Progress preservation warning
  */
 const AssessmentHeader = ({ navigation }: { navigation: any }) => {
+    /** Controls visibility of the cancel confirmation dialog */
     const [open, setOpen] = useState(false);
     
     /**
-     * Handles the cancellation of the current assessment.
-     * Deletes the assessment data and navigates back to home.
+     * Handles assessment cancellation.
+     * 
+     * @method
+     * 
+     * @remarks
+     * Flow:
+     * 1. Retrieves assessment ID from navigation state
+     * 2. Calls service to clean up assessment data
+     * 3. Closes confirmation dialog
+     * 4. Navigates back to home screen
      */
     const handleCancel = async () => {
         const state = navigation.getState();
@@ -129,10 +190,15 @@ const AssessmentHeader = ({ navigation }: { navigation: any }) => {
 };
 
 /**
- * Header component for the Settings screen.
- * Displays a back button and the settings title.
+ * Settings screen header component.
  * 
- * @param navigation - Navigation prop for screen navigation
+ * @param props.navigation - Navigation object for screen transitions
+ * 
+ * @remarks
+ * Features:
+ * - Back button for simple navigation
+ * - Settings title
+ * - Consistent styling with other headers
  */
 const SettingsHeader = ({ navigation }: { navigation: any }) => (
     <SafeAreaView edges={['top']} className="bg-background">
@@ -154,10 +220,16 @@ const SettingsHeader = ({ navigation }: { navigation: any }) => (
 );
 
 /**
- * Main navigation component for the app.
- * Sets up the stack navigator with all available screens and their respective headers.
+ * Root navigation component.
  * 
- * @returns The configured navigation container with all screens
+ * @returns Configured navigation structure
+ * 
+ * @remarks
+ * Configures the main navigation structure of the application:
+ * - Sets up the navigation container
+ * - Defines screen hierarchy
+ * - Configures screen-specific options
+ * - Assigns custom headers
  */
 const AppNavigator = () => {
     return (

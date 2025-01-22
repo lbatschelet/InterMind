@@ -1,3 +1,18 @@
+/**
+ * Slider Question Component
+ * ----------------------
+ * Implements a slider question type where users can select
+ * a value within a defined range using a slider control.
+ * 
+ * Features:
+ * - Continuous value selection
+ * - Min/Max range support
+ * - Step size configuration
+ * - Real-time value updates
+ * 
+ * @module Components/Questions
+ */
+
 import Slider from '@react-native-community/slider';
 import React from 'react';
 import { View } from 'react-native';
@@ -18,7 +33,7 @@ const SliderQuestionContent = React.memo(({
     onAutoAdvance 
 }: QuestionComponentProps) => {
     const config = question.options as SliderConfig;
-    
+
     return (
         <View className="space-y-4">
             <Text className="text-center text-lg text-primary">
@@ -49,26 +64,32 @@ const SliderQuestionContent = React.memo(({
 });
 
 /**
- * Slider question type implementation.
- * Handles numeric input through a slider interface.
+ * Slider question component.
+ * 
+ * Implements {@link QuestionComponent}
+ * 
+ * @remarks
+ * Renders a slider input with configurable range and step size.
+ * Supports labels and validation of min/max values.
  */
 export const SliderQuestion: QuestionComponent = {
     /**
      * Renders the slider question component
-     * @param props - Component props including question data and handlers
+     * @param {QuestionComponentProps} props - Component props including question data and handlers
+     * @returns {JSX.Element} Rendered question component
      */
     render: (props: QuestionComponentProps) => <SliderQuestionContent {...props} />,
 
     /**
      * Validates the slider value
-     * @param value - The selected numeric value
-     * @returns True if the value is a valid number
+     * @param {number} value - The selected numeric value
+     * @returns {boolean} True if the value is a valid number
      */
     validate: (value: number) => typeof value === 'number',
 
     /**
      * Provides the initial value for the slider
-     * @returns The default slider value (0)
+     * @returns {number} The default slider value (0)
      */
     getInitialValue: () => 0
 }; 

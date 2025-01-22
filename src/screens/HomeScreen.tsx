@@ -1,3 +1,29 @@
+/**
+ * @packageDocumentation
+ * @module Screens/Home
+ * 
+ * @summary
+ * Main entry point of the application serving as a landing page for users.
+ * 
+ * @remarks
+ * Provides a welcoming interface with a simple, focused call-to-action
+ * to start a new assessment. The screen is intentionally minimalistic
+ * to reduce cognitive load and guide users directly to the assessment process.
+ * 
+ * Features:
+ * - Displays a welcoming illustration
+ * - Single, prominent "Start Assessment" button
+ * - Handles location permissions and retrieval
+ * - Prevents double submissions during assessment creation
+ * 
+ * Flow:
+ * 1. User taps "Start Assessment"
+ * 2. Location permission is requested (if not already granted)
+ * 3. Location is retrieved with privacy-oriented settings
+ * 4. New assessment is created with location data
+ * 5. User is navigated to the first question
+ */
+
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Dimensions, StatusBar, View } from 'react-native';
@@ -9,37 +35,60 @@ import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '../services/assessment';
 import { LocationService } from '../services/location';
 
+/** Screen width for responsive display */
 const { width } = Dimensions.get('window');
 
+/** Navigation prop type for the Home screen */
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
+/** Props for the Home screen component */
 interface HomeScreenProps {
+    /** Navigation object from React Navigation */
     navigation: HomeScreenNavigationProp;
 }
 
 /**
- * Home screen component that displays the main entry point of the app.
- * Shows a welcome illustration and start assessment button.
+ * Home Screen Component
  * 
- * @component
+ * @param navigation - Navigation object for screen transitions
+ * 
+ * @remarks
+ * Main entry point of the application with the following features:
+ * - Display of a welcoming illustration
+ * - Start button for new assessment
+ * - Prevention of double submissions
+ * - Integration of location services
+ * 
+ * @example
+ * ```tsx
+ * <HomeScreen navigation={navigation} />
+ * ```
  */
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-    const [isCreating, setIsCreating] = useState(false);  // Prevent double creation
+    /** State to prevent double submissions */
+    const [isCreatingAssessment, setIsCreatingAssessment] = useState(false);
 
     /**
-     * Handles the start of a new assessment
-     * Gets location and creates a new assessment
+     * Starts a new assessment
+     * 
+     * @remarks
+     * Flow:
+     * 1. Prevents double submission
+     * 2. Retrieves user location with privacy settings
+     * 3. Creates new assessment with location data
+     * 4. Navigates to first question
+     * 
+     * Error handling is managed by the respective services
+     * 
+     * @returns Promise that resolves when the assessment is created and navigation occurs
      */
     const handleStartAssessment = async () => {
-        if (isCreating) return;  // Prevent double calls
+        if (isCreatingAssessment) return;
         
         try {
-            setIsCreating(true);
+            setIsCreatingAssessment(true);
             
-            // Get location first
             const location = await LocationService.getCurrentLocation();
-            
-            // Create assessment with location
             const assessment = await AssessmentService.createAssessment(location);
             
             if (assessment) {
@@ -48,10 +97,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     assessmentId: assessment.id
                 });
             }
-        } catch (error) {
-            // Fehler werden bereits im Service geloggt
         } finally {
-            setIsCreating(false);
+            setIsCreatingAssessment(false);
         }
     };
 
@@ -64,7 +111,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     translucent={true}
                 />
 
-                {/* Center SVG */}
+                {/* Centered SVG */}
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
                     <ADayAtThePark 
                         width={width * 0.8}

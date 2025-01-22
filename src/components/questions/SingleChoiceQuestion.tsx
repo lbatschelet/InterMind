@@ -1,3 +1,18 @@
+/**
+ * Single Choice Question Component
+ * ------------------------------
+ * Implements a single-choice question type where users can select
+ * exactly one option from a list of choices.
+ * 
+ * Features:
+ * - Radio button style selection
+ * - Auto-advance support
+ * - Immediate feedback
+ * - Accessible button controls
+ * 
+ * @module Components/Questions
+ */
+
 import React from 'react';
 import { View } from 'react-native';
 import { Button } from '~/src/components/ui/button';
@@ -31,7 +46,7 @@ const SingleChoiceQuestionContent = React.memo(({
     return (
         <View className="space-y-4">
             {options.map((option, index) => {
-                // Sicherstellen, dass option.value existiert und konvertierbar ist
+                // Ensure option.value exists and is convertible
                 const key = option.value != null ? option.value.toString() : index.toString();
                 
                 return (
@@ -52,26 +67,32 @@ const SingleChoiceQuestionContent = React.memo(({
 });
 
 /**
- * Single choice question implementation.
- * Handles selection of one option from multiple choices.
+ * Single choice question component.
+ * 
+ * Implements {@link QuestionComponent}
+ * 
+ * @remarks
+ * Renders a list of options where exactly one can be selected.
+ * Handles validation and auto-advance on selection.
  */
 export const SingleChoiceQuestion: QuestionComponent = {
     /**
      * Renders the single choice question component
-     * @param props - Component props including question data and handlers
+     * @param {QuestionComponentProps} props - Component properties
+     * @returns {JSX.Element} Rendered question component
      */
     render: (props: QuestionComponentProps) => <SingleChoiceQuestionContent {...props} />,
 
     /**
      * Validates the selected option
-     * @param value - The selected option index
-     * @returns True if a valid option is selected
+     * @param {number} value - The selected option index
+     * @returns {boolean} True if a valid option is selected
      */
     validate: (value: number) => typeof value === 'number' && value >= 0,
 
     /**
      * Provides the initial value
-     * @returns null as initial value
+     * @returns {null} null as initial value
      */
     getInitialValue: () => null
 }; 

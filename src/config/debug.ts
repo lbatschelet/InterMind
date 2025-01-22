@@ -1,15 +1,30 @@
 /**
- * Globale Debug-Konfiguration
- * Steuert welche Debug-Informationen in der App geloggt werden
+ * Global Debug Configuration
+ * ------------------------
+ * Provides a centralized system for managing debug logging across the application.
+ * Allows selective enabling of different debug categories for targeted debugging.
+ * 
+ * Features:
+ * - Granular control over debug categories
+ * - Type-safe configuration
+ * - Runtime configuration updates
+ * - Conditional logging
+ * 
+ * @module Config
+ */
+
+/**
+ * Debug configuration interface defining available debug categories
+ * @interface
  */
 export interface DebugConfig {
-    /** Aktiviert Session/RLS Debug-Logs */
+    /** Enables session and Row Level Security (RLS) debug logs */
     session?: boolean;
-    /** Aktiviert Datenbank-Operation Logs */
+    /** Enables database operation logs (queries, mutations, etc.) */
     database?: boolean;
-    /** Aktiviert Service-Operation Logs */
+    /** Enables service operation logs (API calls, business logic) */
     services?: boolean;
-    /** Aktiviert UI/State Debug-Logs */
+    /** Enables UI and state management debug logs */
     ui?: boolean;
 }
 
@@ -21,21 +36,38 @@ let debugConfig: DebugConfig = {
 };
 
 /**
- * Setzt die globale Debug-Konfiguration
+ * Updates the global debug configuration
+ * @param {Partial<DebugConfig>} config - Partial configuration to merge with existing settings
+ * 
+ * @example
+ * ```ts
+ * setDebugMode({ database: true, services: true });
+ * ```
  */
 export const setDebugMode = (config: Partial<DebugConfig>) => {
     debugConfig = { ...debugConfig, ...config };
 };
 
 /**
- * Prüft ob ein bestimmter Debug-Mode aktiv ist
+ * Checks if a specific debug mode is active
+ * @param {keyof DebugConfig} mode - The debug mode to check
+ * @returns {boolean} True if the specified mode is enabled
  */
 export const isDebugEnabled = (mode: keyof DebugConfig): boolean => {
     return !!debugConfig[mode];
 };
 
 /**
- * Debug-Log Funktion die nur loggt wenn der entsprechende Mode aktiv ist
+ * Conditionally logs debug information if the specified mode is active
+ * Prefixes each log with the mode name for easy filtering
+ * 
+ * @param {keyof DebugConfig} mode - The debug mode to check
+ * @param {...any[]} args - Arguments to log
+ * 
+ * @example
+ * ```ts
+ * debugLog('database', 'Query executed:', query);
+ * ```
  */
 export const debugLog = (mode: keyof DebugConfig, ...args: any[]) => {
     if (isDebugEnabled(mode)) {

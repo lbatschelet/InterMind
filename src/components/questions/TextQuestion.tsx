@@ -1,3 +1,18 @@
+/**
+ * Text Question Component
+ * --------------------
+ * Implements a text question type where users can enter
+ * free-form text responses.
+ * 
+ * Features:
+ * - Multi-line text input
+ * - Real-time validation
+ * - Pattern matching support
+ * - Keyboard handling
+ * 
+ * @module Components/Questions
+ */
+
 import React from 'react';
 import { Keyboard, Text, View } from 'react-native';
 import { TextArea } from '~/src/components/ui/textarea';
@@ -56,20 +71,26 @@ const TextQuestionContent = React.memo(({
 });
 
 /**
- * Text question type implementation.
- * Handles free-form text input with validation.
+ * Text question component.
+ * 
+ * Implements {@link QuestionComponent}
+ * 
+ * @remarks
+ * Renders a text input field with configurable validation.
+ * Supports pattern matching and length limits.
  */
 export const TextQuestion: QuestionComponent = {
     /**
      * Renders the text question component
-     * @param props - Component props including question data and handlers
+     * @param {QuestionComponentProps} props - Component props including question data and handlers
+     * @returns {JSX.Element} Rendered question component
      */
     render: (props: QuestionComponentProps) => <TextQuestionContent {...props} />,
 
     /**
      * Validates the text input
-     * @param value - The entered text
-     * @returns True if the text is non-empty after trimming
+     * @param {string} value - The entered text
+     * @returns {boolean} True if the text is non-empty after trimming
      */
     validate: (value: string) => {
         return typeof value === 'string' && value.trim().length > 0;
@@ -77,7 +98,7 @@ export const TextQuestion: QuestionComponent = {
 
     /**
      * Provides the initial value for the text input
-     * @returns An empty string as the default value
+     * @returns {string} An empty string as the default value
      */
     getInitialValue: () => ''
 }; 
