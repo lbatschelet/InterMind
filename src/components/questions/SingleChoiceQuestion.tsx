@@ -17,6 +17,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
+import { debugLog } from '~/src/config/debug';
 import type { QuestionOption, SingleChoiceQuestion as SingleChoiceQuestionType } from '~/src/types/questions';
 import type { QuestionComponent, QuestionComponentProps } from './QuestionComponent';
 
@@ -40,6 +41,12 @@ const SingleChoiceQuestionContent = React.memo(({
     onChange,
     onAutoAdvance 
 }: SingleChoiceProps) => {
+    debugLog('ui', 'SingleChoiceQuestion received:', {
+        questionType: question.type,
+        options: question.options,
+        value
+    });
+
     const handleOptionPress = (index: number) => {
         const isFirstSelection = value === null;
         onChange(index);
@@ -49,10 +56,15 @@ const SingleChoiceQuestionContent = React.memo(({
         }
     };
 
+    if (!Array.isArray(question.options)) {
+        debugLog('services', 'Options are not an array:', question.options);
+        return null;
+    }
+
     return (
         <View className="space-y-4">
             {question.options.map((option: QuestionOption, index: number) => {
-                // Ensure option.value exists and is convertible
+                debugLog('ui', 'Rendering option:', { index, option });
                 const key = option.value != null ? option.value.toString() : index.toString();
                 
                 return (
@@ -62,8 +74,8 @@ const SingleChoiceQuestionContent = React.memo(({
                         className={value === index ? "bg-accent" : ""}
                         onPress={() => handleOptionPress(index)}
                     >
-                        <Text className={`text-lg ${value === index ? "text-primary" : "text-primary"}`}>
-                            {option.label}
+                        <Text className="text-lg">
+                            {option.label || 'Keine Beschriftung'}
                         </Text>
                     </Button>
                 );

@@ -7,3 +7,13 @@ export interface BaseQuestion {
     category: string;
     created_at: string;
 } 
+
+import { MultipleChoiceQuestion, SingleChoiceQuestion } from './types/choice';
+import { SliderQuestion } from './types/slider';
+import { TextQuestion } from './types/text';
+
+export type AnyQuestion = 
+    | SingleChoiceQuestion 
+    | MultipleChoiceQuestion 
+    | SliderQuestion 
+    | TextQuestion; 

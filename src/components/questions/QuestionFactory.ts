@@ -8,6 +8,7 @@
  * @module Components/Questions
  */
 
+import { debugLog } from '~/src/config/debug';
 import { MultipleChoiceQuestion } from './MultipleChoiceQuestion';
 import { AnyQuestion, QuestionComponent, QuestionValueTypes } from './QuestionComponent';
 import { SingleChoiceQuestion } from './SingleChoiceQuestion';
@@ -43,6 +44,12 @@ export const QuestionFactory = {
      * @throws {Error} If the question type is not supported
      */
     getComponent: <Q extends AnyQuestion>(question: Q): QuestionComponent<Q, QuestionValueTypes[Q['type']]> => {
+        debugLog('ui', 'QuestionFactory received question:', {
+            type: question.type,
+            hasOptions: !!question.options,
+            optionsType: question.options ? typeof question.options : 'none'
+        });
+
         const components: QuestionComponents = {
             'single_choice': SingleChoiceQuestion,
             'multiple_choice': MultipleChoiceQuestion,
@@ -52,6 +59,7 @@ export const QuestionFactory = {
 
         const component = components[question.type];
         if (!component) {
+            debugLog('services', `Unknown question type: ${question.type}`);
             throw new Error(`Unknown question type: ${question.type}`);
         }
 

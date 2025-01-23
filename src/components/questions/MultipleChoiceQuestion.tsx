@@ -65,8 +65,8 @@ const MultipleChoiceQuestionContent = React.memo(({
                         className={isSelected ? "bg-accent" : ""}
                         onPress={() => handleOptionPress(index)}
                     >
-                        <Text className={`text-lg ${isSelected ? "text-primary" : "text-primary"}`}>
-                            {option.label}
+                        <Text className="text-lg">
+                            {option.label || 'Keine Beschriftung'}
                         </Text>
                     </Button>
                 );

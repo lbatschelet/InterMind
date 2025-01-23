@@ -37,11 +37,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { QuestionFactory } from '~/src/components/questions/QuestionFactory';
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
+import { debugLog } from '~/src/config/debug';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '~/src/services/assessment';
-import { Question } from '~/src/types/Question';
 import { AnswerRecord, AnswerValue, StringAnswerRecord } from '~/src/types/questions/answers';
-import { mapLegacyQuestion } from '~/src/types/questions/mappers';
+import { AnyQuestion } from '~/src/types/questions/base';
 
 /** @type {number} Screen width used for animations */
 const { width } = Dimensions.get('window');
@@ -68,7 +68,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const { questionIndex, assessmentId } = route.params;
     
     /** State management */
-    const [questions, setQuestions] = useState<Question[]>([]);
+    const [questions, setQuestions] = useState<AnyQuestion[]>([]);
     const [answers, setAnswers] = useState<AnswerRecord>({});
     const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
@@ -346,18 +346,24 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
      * Renders the appropriate question input component.
      * Uses QuestionFactory to get the correct component based on question type.
      * 
-     * @param {Question} question - The question to render
+     * @param {AnyQuestion} question - The question to render
      * @returns {JSX.Element | null} The rendered question component
      */
-    const renderQuestionInput = (question: Question) => {
+    const renderQuestionInput = (question: AnyQuestion) => {
         if (!question) return null;
         
-        const mappedQuestion = mapLegacyQuestion(question);
-        const component = QuestionFactory.getComponent(mappedQuestion);
+        debugLog('ui', 'Rendering question:', question);
+        const component = QuestionFactory.getComponent(question);
         const currentValue = answers[question.id] ?? component.getInitialValue();
         
+        debugLog('ui', 'Component props:', {
+            question,
+            value: currentValue,
+            hasAutoAdvance: !!question.autoAdvance
+        });
+        
         return component.render({
-            question: mappedQuestion,
+            question,
             value: currentValue,
             onChange: (value) => handleAnswer(value),
             onAutoAdvance: question.autoAdvance ? handleAutoAdvance : undefined

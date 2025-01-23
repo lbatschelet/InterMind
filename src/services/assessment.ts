@@ -32,13 +32,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { debugLog } from '~/src/config/debug';
 import { AnswerValue, StringAnswerRecord } from '~/src/types/questions/answers';
+import { AnyQuestion, QuestionType } from '~/src/types/questions/base';
+import { QuestionOption } from '~/src/types/questions/types/choice';
+import { SliderConfig } from '~/src/types/questions/types/slider';
 import { DeviceService } from './device';
 import { LocationData } from './location';
 import {
     Assessment,
     AssessmentAnswer,
-    Question,
-    QuestionType,
     ensureDeviceSession,
     mapDbToAssessment,
     supabase
@@ -46,6 +47,86 @@ import {
 
 /** @type {string} Key for storing assessment drafts in AsyncStorage */
 const STORAGE_KEY = 'assessment_drafts';
+
+interface DbQuestion {
+    id: string;
+    question: string;
+    type: QuestionType;
+    category: string;
+    created_at: string;
+    options: QuestionOption[] | SliderConfig;
+    validation?: {
+        min?: number;
+        max?: number;
+        pattern?: string;
+    };
+    imageUrl?: string;
+    description?: string;
+    autoAdvance?: boolean;
+    requiresConfirmation?: boolean;
+    required?: boolean;
+}
+
+const mapDbQuestion = (dbQuestion: DbQuestion): AnyQuestion => {
+    const baseQuestion = {
+        id: dbQuestion.id,
+        question: dbQuestion.question,
+        category: dbQuestion.category,
+        created_at: dbQuestion.created_at,
+        imageUrl: dbQuestion.imageUrl,
+        description: dbQuestion.description,
+        autoAdvance: dbQuestion.autoAdvance,
+        requiresConfirmation: dbQuestion.requiresConfirmation,
+        required: dbQuestion.required,
+        validation: dbQuestion.validation
+    };
+
+    // Konvertiere String-Arrays in QuestionOption-Arrays
+    const mapStringOptionsToQuestionOptions = (options: string[]): QuestionOption[] => {
+        return options.map((option, index) => ({
+            value: index,
+            label: option
+        }));
+    };
+
+    // Überprüfe und konvertiere die Optionen
+    const processOptions = (options: unknown): QuestionOption[] => {
+        if (Array.isArray(options)) {
+            if (options.length === 0) return [];
+            if (typeof options[0] === 'string') {
+                return mapStringOptionsToQuestionOptions(options as string[]);
+            }
+            if (typeof options[0] === 'object' && options[0] !== null && 'value' in options[0]) {
+                return options as QuestionOption[];
+            }
+        }
+        return [];
+    };
+
+    switch (dbQuestion.type) {
+        case 'single_choice':
+        case 'multiple_choice':
+            return {
+                ...baseQuestion,
+                type: dbQuestion.type,
+                options: processOptions(dbQuestion.options)
+            };
+        case 'slider':
+            return {
+                ...baseQuestion,
+                type: 'slider' as const,
+                options: dbQuestion.options as SliderConfig
+            };
+        case 'text':
+            return {
+                ...baseQuestion,
+                type: 'text' as const,
+                options: undefined
+            };
+        default:
+            throw new Error(`Unknown question type: ${dbQuestion.type}`);
+    }
+};
 
 /**
  * Represents a locally stored draft of an assessment.
@@ -117,8 +198,7 @@ export const AssessmentService = {
      * console.log(`Loaded ${questions.length} questions`);
      * ```
      */
-    getQuestions: async (): Promise<Question[]> => {
-        debugLog('database', 'Loading questions from database');
+    getQuestions: async (): Promise<AnyQuestion[]> => {
         const { data, error } = await supabase
             .from('questions')
             .select('*')
@@ -129,17 +209,17 @@ export const AssessmentService = {
             return [];
         }
 
-        debugLog('services', `${data.length} questions loaded`);
+        debugLog('database', 'Raw questions from DB:', data);
         
-        return data.map(question => ({
-            ...question,
-            options: question.type === 'slider' 
-                ? question.options
-                : (question.options as string[])?.map((label, index) => ({
-                    value: index,
-                    label
-                })) || []
+        // Ensure options are properly parsed if they're stored as a string
+        const parsedData = data.map(q => ({
+            ...q,
+            options: typeof q.options === 'string' ? JSON.parse(q.options) : q.options
         }));
+        
+        const mappedQuestions = parsedData.map(mapDbQuestion);
+        debugLog('database', 'Mapped questions:', mappedQuestions);
+        return mappedQuestions;
     },
 
     /**
