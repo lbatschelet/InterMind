@@ -1,4 +1,4 @@
-# SerenCity
+# InterMind
 
 A modern assessment and survey application focused on user experience and data security.
 
@@ -26,7 +26,7 @@ A modern assessment and survey application focused on user experience and data s
    ```
 3. Start development server:
    ```bash
-   npm start
+   npx expo start
    ```
 
 ## Documentation

@@ -7,7 +7,7 @@
     "entryPointStrategy": "expand",
     "out": "docs",
     "readme": "README.md",
-    "name": "SerenCity API Documentation",
+    "name": "InterMind API Documentation",
     "includeVersion": true,
     "categorizeByGroup": true,
     "searchInComments": true,
@@ -19,7 +19,7 @@
         "external": false
     },
     "navigationLinks": {
-        "GitHub": "https://github.com/lbatschelet/SerenCity"
+        "GitHub": "https://github.com/lbatschelet/InterMind"
     },
     "sort": ["source-order"],
     "validation": {

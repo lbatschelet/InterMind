@@ -93,7 +93,7 @@ const HomeHeader = ({ navigation }: { navigation: any }) => (
             <View className="flex-row items-center justify-between">
                 <View className="flex-1" />
                 <Text style={{ fontSize: 36 }} className="text-primary font-bold">
-                    SerenCity
+                    InterMind
                 </Text>
                 <View className="flex-1 items-end">
                     <Button 

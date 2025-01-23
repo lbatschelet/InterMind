@@ -7,8 +7,8 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
     ...config,
-    name: 'SerenCity',
-    slug: 'serencity',
+    name: 'InterMind',
+    slug: 'intermind',
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
@@ -23,14 +23,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     ios: {
         supportsTablet: true,
-        bundleIdentifier: 'com.serencity.app'
+        bundleIdentifier: 'com.intermind.app'
     },
     android: {
         adaptiveIcon: {
             foregroundImage: './assets/adaptive-icon.png',
             backgroundColor: '#ffffff'
         },
-        package: 'com.serencity.app'
+        package: 'com.intermind.app'
     },
     web: {
         favicon: './assets/favicon.png'
