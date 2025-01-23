@@ -8,12 +8,18 @@
  * @module Components/Questions
  */
 
-import { QuestionType } from '~/src/types/Question';
 import { MultipleChoiceQuestion } from './MultipleChoiceQuestion';
-import { QuestionComponent } from './QuestionComponent';
+import { AnyQuestion, QuestionComponent, QuestionValueTypes } from './QuestionComponent';
 import { SingleChoiceQuestion } from './SingleChoiceQuestion';
 import { SliderQuestion } from './SliderQuestion';
 import { TextQuestion } from './TextQuestion';
+
+type QuestionComponents = {
+    'single_choice': typeof SingleChoiceQuestion;
+    'multiple_choice': typeof MultipleChoiceQuestion;
+    'slider': typeof SliderQuestion;
+    'text': typeof TextQuestion;
+};
 
 /**
  * Question Factory
@@ -30,24 +36,25 @@ import { TextQuestion } from './TextQuestion';
  */
 export const QuestionFactory = {
     /**
-     * Returns the appropriate question component for a given question type.
+     * Returns the appropriate question component for a given question.
      * 
-     * @param {QuestionType} type - The type of question to create
+     * @param {AnyQuestion} question - The question to get a component for
      * @returns {QuestionComponent} The corresponding question component
      * @throws {Error} If the question type is not supported
      */
-    getComponent: (type: QuestionType): QuestionComponent => {
-        switch (type) {
-            case 'single_choice':
-                return SingleChoiceQuestion;
-            case 'multiple_choice':
-                return MultipleChoiceQuestion;
-            case 'slider':
-                return SliderQuestion;
-            case 'text':
-                return TextQuestion;
-            default:
-                throw new Error(`Unknown question type: ${type}`);
+    getComponent: <Q extends AnyQuestion>(question: Q): QuestionComponent<Q, QuestionValueTypes[Q['type']]> => {
+        const components: QuestionComponents = {
+            'single_choice': SingleChoiceQuestion,
+            'multiple_choice': MultipleChoiceQuestion,
+            'slider': SliderQuestion,
+            'text': TextQuestion
+        };
+
+        const component = components[question.type];
+        if (!component) {
+            throw new Error(`Unknown question type: ${question.type}`);
         }
+
+        return component as unknown as QuestionComponent<Q, QuestionValueTypes[Q['type']]>;
     }
 }; 

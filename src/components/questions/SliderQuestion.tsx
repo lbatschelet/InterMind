@@ -2,13 +2,13 @@
  * Slider Question Component
  * ----------------------
  * Implements a slider question type where users can select
- * a value within a defined range using a slider control.
+ * a numeric value within a defined range.
  * 
  * Features:
- * - Continuous value selection
- * - Min/Max range support
- * - Step size configuration
- * - Real-time value updates
+ * - Range-based input
+ * - Min/max validation
+ * - Step size control
+ * - Custom labels
  * 
  * @module Components/Questions
  */
@@ -17,51 +17,73 @@ import Slider from '@react-native-community/slider';
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from '~/src/components/ui/text';
-import type { SliderConfig } from '~/src/types/Question';
+import type { SliderQuestion as SliderQuestionType } from '~/src/types/questions';
 import type { QuestionComponent, QuestionComponentProps } from './QuestionComponent';
 
+type SliderValue = number | null;
+
+interface SliderQuestionProps extends Omit<QuestionComponentProps<SliderQuestionType, SliderValue>, 'question' | 'value' | 'onChange'> {
+    question: SliderQuestionType;
+    value: SliderValue;
+    onChange: (value: SliderValue) => void;
+}
+
 /**
- * Component for rendering slider-based questions.
- * Allows users to select a value within a specified range.
+ * Component for rendering slider questions.
  * 
  * @component
  */
 const SliderQuestionContent = React.memo(({ 
     question, 
-    value = 0, 
+    value, 
     onChange,
     onAutoAdvance 
-}: QuestionComponentProps) => {
-    const config = question.options as SliderConfig;
+}: SliderQuestionProps) => {
+    const { min, max, step, labels } = question.options;
+    
+    const handleValueChange = (newValue: number) => {
+        onChange(newValue);
+        
+        // Auto-advance wenn der Wert innerhalb der Validierungsgrenzen liegt
+        if (question.autoAdvance && onAutoAdvance) {
+            const isValid = (!question.validation?.min || newValue >= question.validation.min) &&
+                          (!question.validation?.max || newValue <= question.validation.max);
+            if (isValid) {
+                onAutoAdvance();
+            }
+        }
+    };
 
     return (
-        <View className="space-y-4">
-            <Text className="text-center text-lg text-primary">
-                {value}
-            </Text>
+        <View className="space-y-6">
+            <View className="flex-row justify-between">
+                <Text className="text-sm text-gray-500">
+                    {labels?.min ?? min}
+                </Text>
+                <Text className="text-sm text-gray-500">
+                    {labels?.max ?? max}
+                </Text>
+            </View>
+            
             <Slider
-                style={{ width: '100%', height: 40 }}
-                value={value}
-                onValueChange={onChange}
-                minimumValue={config.min}
-                maximumValue={config.max}
-                step={config.step}
+                value={value ?? min}
+                onValueChange={handleValueChange}
+                minimumValue={min}
+                maximumValue={max}
+                step={step}
                 minimumTrackTintColor="#2563eb"
-                maximumTrackTintColor="#94a3b8"
+                maximumTrackTintColor="#e5e7eb"
+                thumbTintColor="#2563eb"
             />
-            {config.labels && (
-                <View className="flex-row justify-between px-2">
-                    {config.labels.min && (
-                        <Text className="text-sm text-gray-500">{config.labels.min}</Text>
-                    )}
-                    {config.labels.max && (
-                        <Text className="text-sm text-gray-500">{config.labels.max}</Text>
-                    )}
-                </View>
-            )}
+            
+            <Text className="text-center text-lg">
+                {value !== null ? value : 'Wählen Sie einen Wert'}
+            </Text>
         </View>
     );
 });
+
+SliderQuestionContent.displayName = 'SliderQuestionContent';
 
 /**
  * Slider question component.
@@ -69,27 +91,47 @@ const SliderQuestionContent = React.memo(({
  * Implements {@link QuestionComponent}
  * 
  * @remarks
- * Renders a slider input with configurable range and step size.
- * Supports labels and validation of min/max values.
+ * Renders a slider input for numeric range selection.
+ * Handles min/max validation and step size.
  */
-export const SliderQuestion: QuestionComponent = {
+export const SliderQuestion: QuestionComponent<SliderQuestionType, SliderValue> = {
     /**
      * Renders the slider question component
-     * @param {QuestionComponentProps} props - Component props including question data and handlers
+     * @param {QuestionComponentProps<SliderQuestionType, SliderValue>} props - Component properties
      * @returns {JSX.Element} Rendered question component
      */
-    render: (props: QuestionComponentProps) => <SliderQuestionContent {...props} />,
+    render: (props: QuestionComponentProps<SliderQuestionType, SliderValue>) => {
+        if (props.question.type !== 'slider') {
+            throw new Error('SliderQuestion can only render slider questions');
+        }
+        return <SliderQuestionContent {...props} />;
+    },
 
     /**
      * Validates the slider value
-     * @param {number} value - The selected numeric value
-     * @returns {boolean} True if the value is a valid number
+     * @param {SliderValue} value - The selected numeric value
+     * @param {SliderQuestionType} question - The question being validated
+     * @returns {boolean} True if value is within valid range
      */
-    validate: (value: number) => typeof value === 'number',
+    validate: (value: SliderValue, question?: SliderQuestionType): boolean => {
+        if (value === null) return false;
+        if (typeof value !== 'number') return false;
+        
+        // Prüfe min/max Validierung falls vorhanden
+        if (question?.validation?.min !== undefined && value < question.validation.min) return false;
+        if (question?.validation?.max !== undefined && value > question.validation.max) return false;
+        
+        // Prüfe ob der Wert innerhalb der Slider-Grenzen liegt
+        if (question?.options) {
+            if (value < question.options.min || value > question.options.max) return false;
+        }
+        
+        return true;
+    },
 
     /**
-     * Provides the initial value for the slider
-     * @returns {number} The default slider value (0)
+     * Provides the initial value
+     * @returns {SliderValue} null as initial value
      */
-    getInitialValue: () => 0
+    getInitialValue: () => null
 }; 

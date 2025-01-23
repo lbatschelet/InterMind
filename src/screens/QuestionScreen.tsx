@@ -34,28 +34,20 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { QuestionComponentProps } from '~/src/components/questions/QuestionComponent';
 import { QuestionFactory } from '~/src/components/questions/QuestionFactory';
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '~/src/services/assessment';
 import { Question } from '~/src/types/Question';
+import { AnswerRecord, AnswerValue, StringAnswerRecord } from '~/src/types/questions/answers';
+import { mapLegacyQuestion } from '~/src/types/questions/mappers';
 
 /** @type {number} Screen width used for animations */
 const { width } = Dimensions.get('window');
 
 /** Navigation and route props for the Question screen */
 type QuestionScreenProps = NativeStackScreenProps<RootStackParamList, 'Question'>;
-
-/** Definiere einen Union-Typ für mögliche Antworttypen */
-type AnswerValue = string | number | number[];
-
-/** 
- * Record type für die Antworten mit dem korrekten Typ
- * @typedef {Record<string, AnswerValue>} AnswerRecord
- */
-type AnswerRecord = Record<string, AnswerValue>;
 
 /**
  * Question Screen Component
@@ -198,11 +190,11 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const handleNext = async () => {
         if (assessmentId && question && answeredQuestions.has(question.id)) {
             // Save draft
-            const stringAnswers: Record<string, string> = {};
+            const stringAnswers: StringAnswerRecord = {};
             Object.entries(answers).forEach(([key, value]) => {
                 stringAnswers[key] = Array.isArray(value) 
                     ? value.join(',') 
-                    : String(value);
+                    : String(value ?? '');
             });
             await AssessmentService.saveDraft(assessmentId, stringAnswers);
 
@@ -360,15 +352,16 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const renderQuestionInput = (question: Question) => {
         if (!question) return null;
         
-        const component = QuestionFactory.getComponent(question.type);
-        const currentValue = answers[question.id];
+        const mappedQuestion = mapLegacyQuestion(question);
+        const component = QuestionFactory.getComponent(mappedQuestion);
+        const currentValue = answers[question.id] ?? component.getInitialValue();
         
         return component.render({
-            question,
+            question: mappedQuestion,
             value: currentValue,
             onChange: (value) => handleAnswer(value),
             onAutoAdvance: question.autoAdvance ? handleAutoAdvance : undefined
-        } as QuestionComponentProps);
+        });
     };
 
     return (

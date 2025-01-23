@@ -31,6 +31,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { debugLog } from '~/src/config/debug';
+import { AnswerValue, StringAnswerRecord } from '~/src/types/questions/answers';
 import { DeviceService } from './device';
 import { LocationData } from './location';
 import {
@@ -51,13 +52,13 @@ const STORAGE_KEY = 'assessment_drafts';
  * 
  * @typedef {Object} AssessmentDraft
  * @property {string} assessmentId Unique identifier of the assessment
- * @property {Record<string, string>} answers Map of question IDs to their string-formatted answers
+ * @property {StringAnswerRecord} answers Map of question IDs to their string-formatted answers
  * @property {number} lastUpdated Unix timestamp of the last update
  * @property {boolean} completed Whether the assessment has been completed
  */
 export interface AssessmentDraft {
     assessmentId: string;
-    answers: Record<string, string>;
+    answers: StringAnswerRecord;
     lastUpdated: number;
     completed: boolean;
 }
@@ -77,7 +78,7 @@ export interface AssessmentDraft {
  * normalizeAnswerValue("text")     // → "text"
  * ```
  */
-const normalizeAnswerValue = (value: string | number | number[] | unknown): string | number | number[] => {
+const normalizeAnswerValue = (value: unknown): AnswerValue => {
     if (Array.isArray(value)) {
         const numbers = value.map(Number);
         return numbers.length === 1 ? numbers[0] : numbers.sort((a, b) => a - b);
@@ -92,7 +93,11 @@ const normalizeAnswerValue = (value: string | number | number[] | unknown): stri
         return isNaN(num) ? value : num;
     }
     
-    return value as string | number | number[];
+    if (typeof value === 'number') {
+        return value;
+    }
+    
+    return null;
 };
 
 /**
@@ -199,7 +204,7 @@ export const AssessmentService = {
     saveAnswerLocally: async (
         assessmentId: string,
         questionId: string,
-        answerValue: number | number[] | string,
+        answerValue: AnswerValue,
     ): Promise<void> => {
         try {
             const draft = await AssessmentService.loadDraft(assessmentId) || {
@@ -211,7 +216,7 @@ export const AssessmentService = {
 
             const stringValue = Array.isArray(answerValue) 
                 ? answerValue.join(',')
-                : String(answerValue);
+                : String(answerValue ?? '');
 
             draft.answers[questionId] = stringValue;
             draft.lastUpdated = Date.now();
