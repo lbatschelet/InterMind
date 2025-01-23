@@ -48,6 +48,15 @@ const { width } = Dimensions.get('window');
 /** Navigation and route props for the Question screen */
 type QuestionScreenProps = NativeStackScreenProps<RootStackParamList, 'Question'>;
 
+/** Definiere einen Union-Typ für mögliche Antworttypen */
+type AnswerValue = string | number | number[];
+
+/** 
+ * Record type für die Antworten mit dem korrekten Typ
+ * @typedef {Record<string, AnswerValue>} AnswerRecord
+ */
+type AnswerRecord = Record<string, AnswerValue>;
+
 /**
  * Question Screen Component
  * 
@@ -68,10 +77,10 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     
     /** State management */
     const [questions, setQuestions] = useState<Question[]>([]);
-    const [answers, setAnswers] = useState<Record<string, any>>({});
+    const [answers, setAnswers] = useState<AnswerRecord>({});
     const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
-    const [debouncedValue, setDebouncedValue] = useState<any>(null);
+    const [debouncedValue, setDebouncedValue] = useState<AnswerValue | null>(null);
     const [slideAnim] = useState(() => new Animated.Value(0));
     const [fadeAnim] = useState(() => new Animated.Value(1));
 
@@ -129,7 +138,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
             if (assessmentId) {
                 const draft = await AssessmentService.loadDraft(assessmentId);
                 if (draft && !draft.completed) {
-                    const numericAnswers: Record<string, any> = {};
+                    const numericAnswers: AnswerRecord = {};
                     Object.entries(draft.answers).forEach(([key, value]) => {
                         numericAnswers[key] = value;
                     });
@@ -174,7 +183,6 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const isLastQuestion = questionIndex === questions.length - 1;
     const canGoBack = questionIndex > 0;
     const canGoForward = questionIndex < questions.length - 1;
-    const showNextButton = answeredQuestions.has(question.id);
 
     /**
      * Navigate to next question
@@ -306,9 +314,9 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
      * Updates local state and triggers auto-advance if enabled.
      * 
      * @async
-     * @param {any} value - The answer value to be saved
+     * @param {AnswerValue} value - The answer value to be saved
      */
-    const handleAnswer = async (value: any) => {
+    const handleAnswer = async (value: AnswerValue) => {
         if (!question || !assessmentId) return;
 
         // Update local state immediately
