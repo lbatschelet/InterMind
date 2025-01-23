@@ -77,7 +77,7 @@ export interface AssessmentDraft {
  * normalizeAnswerValue("text")     // → "text"
  * ```
  */
-const normalizeAnswerValue = (value: any): any => {
+const normalizeAnswerValue = (value: string | number | number[] | unknown): string | number | number[] => {
     if (Array.isArray(value)) {
         const numbers = value.map(Number);
         return numbers.length === 1 ? numbers[0] : numbers.sort((a, b) => a - b);
@@ -92,7 +92,7 @@ const normalizeAnswerValue = (value: any): any => {
         return isNaN(num) ? value : num;
     }
     
-    return value;
+    return value as string | number | number[];
 };
 
 /**
