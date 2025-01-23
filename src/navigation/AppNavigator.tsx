@@ -38,7 +38,7 @@
  */
 
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator, StackHeaderProps } from '@react-navigation/stack';
 import React, { useState } from 'react';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -87,7 +87,7 @@ const Stack = createStackNavigator<RootStackParamList>();
  * - Settings button (right-aligned)
  * - Proper safe area handling
  */
-const HomeHeader = ({ navigation }: { navigation: any }) => (
+const HomeHeader = (props: StackHeaderProps) => (
     <SafeAreaView edges={['top']} className="bg-background">
         <View className="px-4 pt-2">
             <View className="flex-row items-center justify-between">
@@ -98,7 +98,7 @@ const HomeHeader = ({ navigation }: { navigation: any }) => (
                 <View className="flex-1 items-end">
                     <Button 
                         variant="ghost" 
-                        onPress={() => navigation.navigate('Settings')}
+                        onPress={() => props.navigation.navigate('Settings')}
                         className="h-10 w-10 rounded-full"
                     >
                         <Settings className="text-primary" size={24} />
@@ -120,7 +120,7 @@ const HomeHeader = ({ navigation }: { navigation: any }) => (
  * - Assessment title
  * - Progress preservation warning
  */
-const AssessmentHeader = ({ navigation }: { navigation: any }) => {
+const AssessmentHeader = (props: StackHeaderProps) => {
     /** Controls visibility of the cancel confirmation dialog */
     const [open, setOpen] = useState(false);
     
@@ -137,14 +137,17 @@ const AssessmentHeader = ({ navigation }: { navigation: any }) => {
      * 4. Navigates back to home screen
      */
     const handleCancel = async () => {
-        const state = navigation.getState();
-        const assessmentId = state.routes[state.index].params?.assessmentId;
+        const state = props.navigation.getState();
+        const currentRoute = state.routes[state.index];
+        const assessmentId = currentRoute.params && 'assessmentId' in currentRoute.params 
+            ? (currentRoute.params as { assessmentId: string }).assessmentId 
+            : undefined;
         
         if (assessmentId) {
             await AssessmentService.cancelAssessment(assessmentId);
         }
         setOpen(false);
-        navigation.navigate('Home');
+        props.navigation.navigate('Home');
     };
     
     return (
@@ -200,14 +203,14 @@ const AssessmentHeader = ({ navigation }: { navigation: any }) => {
  * - Settings title
  * - Consistent styling with other headers
  */
-const SettingsHeader = ({ navigation }: { navigation: any }) => (
+const SettingsHeader = (props: StackHeaderProps) => (
     <SafeAreaView edges={['top']} className="bg-background">
         <View className="px-4 pt-2">
             <View className="flex-row items-center">
                 <Button 
                     variant="ghost" 
                     className="h-10 w-10 rounded-full"
-                    onPress={() => navigation.goBack()}
+                    onPress={() => props.navigation.goBack()}
                 >
                     <ArrowLeft className="text-primary" size={24} />
                 </Button>
