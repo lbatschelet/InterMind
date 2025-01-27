@@ -29,9 +29,9 @@ export interface DebugConfig {
 }
 
 let debugConfig: DebugConfig = {
-    session: false,
-    database: false,
-    services: false,
+    session: true,
+    database: true,
+    services: true,
     ui: false
 };
 

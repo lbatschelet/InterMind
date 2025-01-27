@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "SerenCity",
-    "slug": "SerenCity",
-    "version": "1.0.0",
+    "name": "InterMind",
+    "slug": "intermind",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -14,17 +14,23 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.SerenCity"
+      "bundleIdentifier": "com.baetsch.intermind"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.SerenCity"
+      "package": "com.baetsch.intermind"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6320b27a-a582-4d67-9d73-c3e3bc96bc9a"
+      }
+    },
+    "owner": "seraphine33"
   }
 }

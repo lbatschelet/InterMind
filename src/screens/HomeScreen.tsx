@@ -25,7 +25,7 @@
  */
 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Dimensions, StatusBar, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import ADayAtThePark from '~/assets/a-day-at-the-park.svg';

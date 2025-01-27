@@ -34,13 +34,14 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { QuestionComponentProps } from '~/src/components/questions/QuestionComponent';
 import { QuestionFactory } from '~/src/components/questions/QuestionFactory';
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
+import { debugLog } from '~/src/config/debug';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '~/src/services/assessment';
-import { Question } from '~/src/types/Question';
+import { AnswerRecord, AnswerValue, StringAnswerRecord } from '~/src/types/questions/answers';
+import { AnyQuestion } from '~/src/types/questions/base';
 
 /** @type {number} Screen width used for animations */
 const { width } = Dimensions.get('window');
@@ -67,11 +68,11 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const { questionIndex, assessmentId } = route.params;
     
     /** State management */
-    const [questions, setQuestions] = useState<Question[]>([]);
-    const [answers, setAnswers] = useState<Record<string, any>>({});
+    const [questions, setQuestions] = useState<AnyQuestion[]>([]);
+    const [answers, setAnswers] = useState<AnswerRecord>({});
     const [answeredQuestions, setAnsweredQuestions] = useState<Set<string>>(new Set());
     const [loading, setLoading] = useState(true);
-    const [debouncedValue, setDebouncedValue] = useState<any>(null);
+    const [debouncedValue, setDebouncedValue] = useState<AnswerValue | null>(null);
     const [slideAnim] = useState(() => new Animated.Value(0));
     const [fadeAnim] = useState(() => new Animated.Value(1));
 
@@ -129,7 +130,7 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
             if (assessmentId) {
                 const draft = await AssessmentService.loadDraft(assessmentId);
                 if (draft && !draft.completed) {
-                    const numericAnswers: Record<string, any> = {};
+                    const numericAnswers: AnswerRecord = {};
                     Object.entries(draft.answers).forEach(([key, value]) => {
                         numericAnswers[key] = value;
                     });
@@ -174,7 +175,6 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const isLastQuestion = questionIndex === questions.length - 1;
     const canGoBack = questionIndex > 0;
     const canGoForward = questionIndex < questions.length - 1;
-    const showNextButton = answeredQuestions.has(question.id);
 
     /**
      * Navigate to next question
@@ -190,11 +190,11 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const handleNext = async () => {
         if (assessmentId && question && answeredQuestions.has(question.id)) {
             // Save draft
-            const stringAnswers: Record<string, string> = {};
+            const stringAnswers: StringAnswerRecord = {};
             Object.entries(answers).forEach(([key, value]) => {
                 stringAnswers[key] = Array.isArray(value) 
                     ? value.join(',') 
-                    : String(value);
+                    : String(value ?? '');
             });
             await AssessmentService.saveDraft(assessmentId, stringAnswers);
 
@@ -306,9 +306,9 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
      * Updates local state and triggers auto-advance if enabled.
      * 
      * @async
-     * @param {any} value - The answer value to be saved
+     * @param {AnswerValue} value - The answer value to be saved
      */
-    const handleAnswer = async (value: any) => {
+    const handleAnswer = async (value: AnswerValue) => {
         if (!question || !assessmentId) return;
 
         // Update local state immediately
@@ -346,21 +346,28 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
      * Renders the appropriate question input component.
      * Uses QuestionFactory to get the correct component based on question type.
      * 
-     * @param {Question} question - The question to render
+     * @param {AnyQuestion} question - The question to render
      * @returns {JSX.Element | null} The rendered question component
      */
-    const renderQuestionInput = (question: Question) => {
+    const renderQuestionInput = (question: AnyQuestion) => {
         if (!question) return null;
         
-        const component = QuestionFactory.getComponent(question.type);
-        const currentValue = answers[question.id];
+        debugLog('ui', 'Rendering question:', question);
+        const component = QuestionFactory.getComponent(question);
+        const currentValue = answers[question.id] ?? component.getInitialValue();
+        
+        debugLog('ui', 'Component props:', {
+            question,
+            value: currentValue,
+            hasAutoAdvance: !!question.autoAdvance
+        });
         
         return component.render({
             question,
             value: currentValue,
             onChange: (value) => handleAnswer(value),
             onAutoAdvance: question.autoAdvance ? handleAutoAdvance : undefined
-        } as QuestionComponentProps);
+        });
     };
 
     return (

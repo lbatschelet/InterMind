@@ -17,8 +17,17 @@ import React from 'react';
 import { View } from 'react-native';
 import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
-import type { QuestionOption } from '~/src/types/Question';
+import { debugLog } from '~/src/config/debug';
+import type { QuestionOption, SingleChoiceQuestion as SingleChoiceQuestionType } from '~/src/types/questions';
 import type { QuestionComponent, QuestionComponentProps } from './QuestionComponent';
+
+type SingleChoiceValue = number | null;
+
+interface SingleChoiceProps extends Omit<QuestionComponentProps<SingleChoiceQuestionType, SingleChoiceValue>, 'question' | 'value' | 'onChange'> {
+    question: SingleChoiceQuestionType;
+    value: SingleChoiceValue;
+    onChange: (value: SingleChoiceValue) => void;
+}
 
 /**
  * Component for rendering single choice questions.
@@ -31,11 +40,15 @@ const SingleChoiceQuestionContent = React.memo(({
     value, 
     onChange,
     onAutoAdvance 
-}: QuestionComponentProps) => {
-    const options = question.options as QuestionOption[];
-    
+}: SingleChoiceProps) => {
+    debugLog('ui', 'SingleChoiceQuestion received:', {
+        questionType: question.type,
+        options: question.options,
+        value
+    });
+
     const handleOptionPress = (index: number) => {
-        const isFirstSelection = value === undefined || value === null;
+        const isFirstSelection = value === null;
         onChange(index);
         
         if (isFirstSelection && question.autoAdvance && onAutoAdvance) {
@@ -43,10 +56,15 @@ const SingleChoiceQuestionContent = React.memo(({
         }
     };
 
+    if (!Array.isArray(question.options)) {
+        debugLog('services', 'Options are not an array:', question.options);
+        return null;
+    }
+
     return (
         <View className="space-y-4">
-            {options.map((option, index) => {
-                // Ensure option.value exists and is convertible
+            {question.options.map((option: QuestionOption, index: number) => {
+                debugLog('ui', 'Rendering option:', { index, option });
                 const key = option.value != null ? option.value.toString() : index.toString();
                 
                 return (
@@ -56,8 +74,8 @@ const SingleChoiceQuestionContent = React.memo(({
                         className={value === index ? "bg-accent" : ""}
                         onPress={() => handleOptionPress(index)}
                     >
-                        <Text className={`text-lg ${value === index ? "text-primary" : "text-primary"}`}>
-                            {option.label}
+                        <Text className="text-lg">
+                            {option.label || 'Keine Beschriftung'}
                         </Text>
                     </Button>
                 );
@@ -65,6 +83,8 @@ const SingleChoiceQuestionContent = React.memo(({
         </View>
     );
 });
+
+SingleChoiceQuestionContent.displayName = 'SingleChoiceQuestionContent';
 
 /**
  * Single choice question component.
@@ -75,24 +95,33 @@ const SingleChoiceQuestionContent = React.memo(({
  * Renders a list of options where exactly one can be selected.
  * Handles validation and auto-advance on selection.
  */
-export const SingleChoiceQuestion: QuestionComponent = {
+export const SingleChoiceQuestion: QuestionComponent<SingleChoiceQuestionType, SingleChoiceValue> = {
     /**
      * Renders the single choice question component
-     * @param {QuestionComponentProps} props - Component properties
+     * @param {QuestionComponentProps<SingleChoiceQuestionType, SingleChoiceValue>} props - Component properties
      * @returns {JSX.Element} Rendered question component
      */
-    render: (props: QuestionComponentProps) => <SingleChoiceQuestionContent {...props} />,
+    render: (props: QuestionComponentProps<SingleChoiceQuestionType, SingleChoiceValue>) => {
+        if (props.question.type !== 'single_choice') {
+            throw new Error('SingleChoiceQuestion can only render single choice questions');
+        }
+        return <SingleChoiceQuestionContent {...props} />;
+    },
 
     /**
      * Validates the selected option
-     * @param {number} value - The selected option index
+     * @param {SingleChoiceValue} value - The selected option index
      * @returns {boolean} True if a valid option is selected
      */
-    validate: (value: number) => typeof value === 'number' && value >= 0,
+    validate: (value: SingleChoiceValue): boolean => {
+        if (value === null) return false;
+        if (typeof value !== 'number' || value < 0) return false;
+        return true;
+    },
 
     /**
      * Provides the initial value
-     * @returns {null} null as initial value
+     * @returns {SingleChoiceValue} null as initial value
      */
     getInitialValue: () => null
 }; 

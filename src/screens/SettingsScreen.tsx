@@ -23,7 +23,6 @@
  * - Device ID context integration
  */
 
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Clipboard from 'expo-clipboard';
 import React, { useState } from 'react';
 import { View } from 'react-native';
@@ -42,23 +41,11 @@ import { Button } from '~/src/components/ui/button';
 import { Text } from '~/src/components/ui/text';
 import { useDeviceId } from '../contexts/DeviceIdContext';
 import { PORTAL_HOST_NAME } from '../lib/constants';
-import type { RootStackParamList } from '../navigation/AppNavigator';
 import { DeviceService } from '../services/device';
 import { supabase } from '../services/supabase';
 
-/** Navigation prop type for the Settings screen */
-type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;
-
-/** Props for the Settings screen component */
-interface SettingsScreenProps {
-    /** Navigation object for screen transitions */
-    navigation: SettingsScreenNavigationProp;
-}
-
 /**
  * Settings Screen Component
- * 
- * @param navigation - Navigation object for screen transitions
  * 
  * @remarks
  * Provides user settings and data management functionality including:
@@ -68,10 +55,10 @@ interface SettingsScreenProps {
  * 
  * @example
  * ```tsx
- * <SettingsScreen navigation={navigation} />
+ * <SettingsScreen />
  * ```
  */
-const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
+const SettingsScreen: React.FC = () => {
     const { deviceId } = useDeviceId();
     const [open, setOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -84,16 +71,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
      */
     const copyToClipboard = async () => {
         await Clipboard.setStringAsync(deviceId || '');
-    };
-
-    /**
-     * Display current device ID
-     * 
-     * @returns Promise that resolves when the ID is retrieved
-     */
-    const handleShowUserId = async () => {
-        const userId = await DeviceService.getCurrentDeviceId();
-        console.log('User ID:', userId);
     };
 
     /**
@@ -189,7 +166,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                     <Button 
                         variant="outline" 
                         className="w-full justify-between py-6"
-                        onPress={() => {/* TODO */}}
+                        onPress={() => {
+                            // Implementierung für Privacy Policy Navigation
+                        }}
                     >
                         <Text className="text-primary text-lg">
                             Privacy Policy
@@ -199,7 +178,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
                     <Button 
                         variant="outline" 
                         className="w-full justify-between py-6"
-                        onPress={() => {/* TODO */}}
+                        onPress={() => {
+                            // Implementierung für About Navigation
+                        }}
                     >
                         <Text className="text-primary text-lg">
                             About

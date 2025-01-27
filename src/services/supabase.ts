@@ -260,8 +260,8 @@ export interface AssessmentAnswer {
     /** Reference to answered question */
     question_id: string;
     
-    /** Answer value (type varies by question type) */
-    answer_value: any;
+    /** Answer value (string, number, or array of numbers) */
+    answer_value: string | number | number[];
     
     /** Type of question answered */
     question_type: QuestionType;
