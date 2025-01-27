@@ -1,0 +1,4 @@
+{
+  "NSLocationWhenInUseUsageDescription": "Diese App bittet um Zugriff auf Ihren Standort, um besser zu verstehen, wie Wohlbefinden an verschiedenen Orten erlebt wird. Ihr Standort wird mit reduzierter Genauigkeit gespeichert, um Ihre Privatsphäre zu schützen.",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "Diese App bittet um Zugriff auf Ihren Standort, um besser zu verstehen, wie Wohlbefinden an verschiedenen Orten erlebt wird. Ihr Standort wird mit reduzierter Genauigkeit gespeichert, um Ihre Privatsphäre zu schützen."
+} 

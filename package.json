@@ -54,11 +54,15 @@
     "expo-clipboard": "~7.0.1",
     "expo-constants": "^17.0.4",
     "expo-crypto": "~14.0.2",
+    "expo-dev-client": "~5.0.10",
     "expo-device": "~7.0.1",
     "expo-location": "~18.0.5",
     "expo-navigation-bar": "~4.0.7",
     "expo-status-bar": "~2.0.1",
     "lucide-react-native": "^0.469.0",
+    "metro": "^0.81.0",
+    "metro-config": "^0.81.0",
+    "metro-resolver": "^0.81.0",
     "nativewind": "^4.1.23",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -101,5 +105,21 @@
     "typescript": "^5.3.3",
     "typescript-eslint": "^8.21.0"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "lucide-react-native",
+          "@rn-primitives/*",
+          "@testing-library/jest-native",
+          "class-variance-authority",
+          "tailwindcss",
+          "tailwindcss-animate",
+          "uuid"
+        ],
+        "listUnknownPackages": false
+      }
+    }
+  }
 }
