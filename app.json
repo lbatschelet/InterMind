@@ -12,16 +12,38 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "locales": {
+      "en": "./src/locales/ios/en.json",
+      "de": "./src/locales/ios/de.json",
+      "fr": "./src/locales/ios/fr.json",
+      "it": "./src/locales/ios/it.json",
+      "es": "./src/locales/ios/es.json",
+      "pt": "./src/locales/ios/pt.json",
+      "tr": "./src/locales/ios/tr.json",
+      "ar": "./src/locales/ios/ar.json",
+      "ru": "./src/locales/ios/ru.json",
+      "zh": "./src/locales/ios/zh.json",
+      "hi": "./src/locales/ios/hi.json",
+      "ja": "./src/locales/ios/ja.json"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "ch.intermind.app"
+      "bundleIdentifier": "ch.intermind.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "ch.intermind.app"
+      "package": "ch.intermind.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

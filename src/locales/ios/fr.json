@@ -1,0 +1,4 @@
+{
+  "NSLocationWhenInUseUsageDescription": "Cette application demande l'accès à votre localisation pour mieux comprendre comment le bien-être est vécu dans différents endroits. Votre position est enregistrée avec une précision réduite pour protéger votre vie privée.",
+  "NSLocationAlwaysAndWhenInUseUsageDescription": "Cette application demande l'accès à votre localisation pour mieux comprendre comment le bien-être est vécu dans différents endroits. Votre position est enregistrée avec une précision réduite pour protéger votre vie privée."
+} 
