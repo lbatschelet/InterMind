@@ -14,14 +14,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.baetsch.intermind"
+      "bundleIdentifier": "ch.intermind.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.baetsch.intermind"
+      "package": "ch.intermind.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
