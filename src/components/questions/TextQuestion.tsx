@@ -14,7 +14,7 @@
  */
 
 import React from 'react';
-import { View } from 'react-native';
+import { Keyboard } from 'react-native';
 import { Input } from '~/src/components/ui/input';
 import type { TextQuestion as TextQuestionType } from '~/src/types/questions';
 import type { QuestionComponent, QuestionComponentProps } from './QuestionComponent';
@@ -41,26 +41,30 @@ const TextQuestionContent = React.memo(({
     const handleTextChange = (text: string) => {
         onChange(text || null);
         
-        // Auto-advance wenn der Text dem Pattern entspricht
         if (question.autoAdvance && onAutoAdvance && question.validation?.pattern) {
             const regex = new RegExp(question.validation.pattern);
             if (regex.test(text)) {
                 onAutoAdvance();
+                Keyboard.dismiss();
             }
         }
     };
 
     return (
-        <View className="space-y-4">
-            <Input
-                value={value || ''}
-                onChangeText={handleTextChange}
-                placeholder="Ihre Antwort..."
-                multiline={true}
-                numberOfLines={3}
-                className="p-4 bg-background"
-            />
-        </View>
+        <Input
+            value={value || ''}
+            onChangeText={handleTextChange}
+            placeholder="Your answer..."
+            multiline={false}
+            returnKeyType="done"
+            blurOnSubmit={true}
+            onSubmitEditing={() => Keyboard.dismiss()}
+            className="p-2 bg-background h-12"
+            style={{
+                textAlign: 'left',
+                textAlignVertical: 'center'
+            }}
+        />
     );
 });
 
