@@ -24,7 +24,7 @@
  */
 
 import * as Clipboard from 'expo-clipboard';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -63,6 +63,21 @@ const SettingsScreen: React.FC = () => {
     const [open, setOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deleteStatus, setDeleteStatus] = useState<'idle' | 'success' | 'error'>('idle');
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const initDeviceId = async () => {
+            try {
+                if (!deviceId) {
+                    await DeviceService.getCurrentDeviceId();
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        
+        initDeviceId();
+    }, [deviceId]);
 
     /**
      * Copy device ID to clipboard
@@ -129,8 +144,14 @@ const SettingsScreen: React.FC = () => {
                 <View className="p-4 space-y-4">
                     <AlertDialog open={open} onOpenChange={setOpen}>
                         <AlertDialogTrigger asChild>
-                            <Button variant="outline" className="w-full justify-between py-6">
-                                <Text className="text-primary text-lg">Show User ID</Text>
+                            <Button 
+                                variant="outline" 
+                                className="w-full justify-between py-6"
+                                disabled={isLoading}
+                            >
+                                <Text className="text-primary text-lg">
+                                    {isLoading ? "Loading..." : "Show User ID"}
+                                </Text>
                             </Button>
                         </AlertDialogTrigger>
                         <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
@@ -142,7 +163,7 @@ const SettingsScreen: React.FC = () => {
                             </AlertDialogHeader>
                             <View className="p-4 bg-muted rounded-lg">
                                 <Text className="text-primary text-lg font-mono text-center">
-                                    {deviceId}
+                                    {deviceId || 'Loading...'}
                                 </Text>
                             </View>
                             <AlertDialogFooter className="space-y-2">
