@@ -32,6 +32,9 @@
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy."
+      },
+      "entitlements": {
+        "aps-environment": "production"
       }
     },
     "android": {
@@ -42,7 +45,8 @@
       "package": "ch.intermind.app",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
       ]
     },
     "web": {
