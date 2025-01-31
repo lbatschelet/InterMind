@@ -32,7 +32,7 @@
 
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Animated, Dimensions, View } from 'react-native';
+import { Animated, Dimensions, Keyboard, TouchableWithoutFeedback, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QuestionFactory } from '~/src/components/questions/QuestionFactory';
 import { Button } from '~/src/components/ui/button';
@@ -372,44 +372,46 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
 
     return (
         <SafeAreaView edges={['bottom']} className="flex-1 bg-background">
-            <Animated.View 
-                className="flex-1 px-4"
-                style={{
-                    transform: [{ translateX: slideAnim }],
-                    opacity: fadeAnim
-                }}
-            >
-                <View className="flex-1 justify-center items-center">
-                    <View className="w-full max-w-md">
-                        <Text className="text-2xl font-bold mb-8 text-center">
-                            {question.question}
-                        </Text>
-                        {renderQuestionInput(question)}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                <Animated.View 
+                    className="flex-1 px-4"
+                    style={{
+                        transform: [{ translateX: slideAnim }],
+                        opacity: fadeAnim
+                    }}
+                >
+                    <View className="flex-1 justify-center items-center">
+                        <View className="w-full max-w-md">
+                            <Text className="text-2xl font-bold mb-8 text-center">
+                                {question.question}
+                            </Text>
+                            {renderQuestionInput(question)}
+                        </View>
                     </View>
-                </View>
 
-                {/* Navigation Buttons - always visible */}
-                <View className="flex-row justify-between items-center w-full py-4">
-                    <Button
-                        variant="outline"
-                        onPress={handleBack}
-                        disabled={!canGoBack}
-                        className={!canGoBack ? "opacity-50" : ""}
-                    >
-                        <Text>Back</Text>
-                    </Button>
+                    {/* Navigation Buttons - always visible */}
+                    <View className="flex-row justify-between items-center w-full py-4">
+                        <Button
+                            variant="outline"
+                            onPress={handleBack}
+                            disabled={!canGoBack}
+                            className={!canGoBack ? "opacity-50" : ""}
+                        >
+                            <Text>Back</Text>
+                        </Button>
 
-                    <Button
-                        variant="default"
-                        className="bg-accent"
-                        onPress={handleNext}
-                    >
-                        <Text className="text-primary">
-                            {isLastQuestion ? "Complete" : "Next"}
-                        </Text>
-                    </Button>
-                </View>
-            </Animated.View>
+                        <Button
+                            variant="default"
+                            className="bg-accent"
+                            onPress={handleNext}
+                        >
+                            <Text className="text-primary">
+                                {isLastQuestion ? "Complete" : "Next"}
+                            </Text>
+                        </Button>
+                    </View>
+                </Animated.View>
+            </TouchableWithoutFeedback>
         </SafeAreaView>
     );
 };
