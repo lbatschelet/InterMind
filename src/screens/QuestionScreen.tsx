@@ -40,7 +40,7 @@ import { Text } from '~/src/components/ui/text';
 import { debugLog } from '~/src/config/debug';
 import { RootStackParamList } from '~/src/navigation/AppNavigator';
 import { AssessmentService } from '~/src/services/assessment';
-import { AnswerRecord, AnswerValue, StringAnswerRecord } from '~/src/types/questions/answers';
+import { AnswerRecord, AnswerValue } from '~/src/types/questions/answers';
 import { AnyQuestion } from '~/src/types/questions/base';
 
 /** @type {number} Screen width used for animations */
@@ -177,133 +177,37 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
     const canGoForward = questionIndex < questions.length - 1;
 
     /**
-     * Navigate to next question
-     * 
-     * @remarks
-     * Saves current progress before navigation:
-     * 1. Saves draft locally
-     * 2. Saves answer to database
-     * 3. Navigates to next question or completes assessment
-     * 
-     * @returns Promise that resolves when navigation is complete
-     */
-    const handleNext = async () => {
-        if (assessmentId && question && answeredQuestions.has(question.id)) {
-            // Save draft
-            const stringAnswers: StringAnswerRecord = {};
-            Object.entries(answers).forEach(([key, value]) => {
-                stringAnswers[key] = Array.isArray(value) 
-                    ? value.join(',') 
-                    : String(value ?? '');
-            });
-            await AssessmentService.saveDraft(assessmentId, stringAnswers);
-
-            // Save to database
-            await AssessmentService.saveAnswerToDb(
-                assessmentId,
-                question.id,
-                question.type
-            );
-        }
-
-        if (isLastQuestion) {
-            handleComplete();
-        } else {
-            navigation.navigate('Question', { 
-                questionIndex: questionIndex + 1,
-                assessmentId 
-            });
-        }
-    };
-
-    /**
-     * Navigate to previous question
-     * 
-     * @remarks
-     * Saves current progress before navigation:
-     * 1. Saves draft locally
-     * 2. Saves answer to database
-     * 3. Navigates to previous question if possible
-     * 
-     * @returns Promise that resolves when navigation is complete
-     */
-    const handleBack = async () => {
-        if (assessmentId && question && answeredQuestions.has(question.id)) {
-            // Save draft
-            const stringAnswers: Record<string, string> = {};
-            Object.entries(answers).forEach(([key, value]) => {
-                stringAnswers[key] = Array.isArray(value) 
-                    ? value.join(',') 
-                    : String(value);
-            });
-            await AssessmentService.saveDraft(assessmentId, stringAnswers);
-
-            // Save to database
-            await AssessmentService.saveAnswerToDb(
-                assessmentId,
-                question.id,
-                question.type
-            );
-        }
-
-        if (canGoBack) {
-            navigation.navigate('Question', { 
-                questionIndex: questionIndex - 1,
-                assessmentId 
-            });
-        }
-    };
-
-    /**
      * Auto-advance to next question
      * 
      * @method
      * 
      * @remarks
      * Used for questions with auto-advance enabled.
-     * Saves progress and automatically navigates forward.
+     * Navigates immediately and saves in the background.
      */
-    const handleAutoAdvance = async () => {
-        if (canGoForward && assessmentId) {
-            // Save draft
-            const stringAnswers: Record<string, string> = {};
-            Object.entries(answers).forEach(([key, value]) => {
-                stringAnswers[key] = Array.isArray(value) 
-                    ? value.join(',') 
-                    : String(value);
-            });
-            await AssessmentService.saveDraft(assessmentId, stringAnswers);
-
-            // Save to database
-            await AssessmentService.saveAnswerToDb(
-                assessmentId,
-                question.id,
-                question.type
-            );
-
+    const handleAutoAdvance = () => {
+        if (canGoForward && assessmentId && question) {
+            // Navigate immediately for better UX
             navigation.navigate('Question', { 
                 questionIndex: questionIndex + 1,
                 assessmentId 
             });
-        }
-    };
 
-    /**
-     * Handles assessment completion.
-     * Marks the assessment as complete and navigates back to home.
-     * 
-     * @async
-     */
-    const handleComplete = async () => {
-        if (assessmentId) {
-            await AssessmentService.completeAssessment(assessmentId);
-            navigation.navigate('Home');
+            // Save to database in the background
+            AssessmentService.saveAnswerToDb(
+                assessmentId,
+                question.id,
+                question.type
+            ).catch(error => {
+                debugLog('ui', 'Error during background save:', error);
+                // Hier könnten wir einen Toast/Notification anzeigen wenn die Speicherung fehlschlägt
+            });
         }
     };
 
     /**
      * Handles answer submission for a question.
-     * Updates local state and triggers auto-advance if enabled.
+     * Updates local state immediately.
      * 
      * @async
      * @param {AnswerValue} value - The answer value to be saved
@@ -329,16 +233,82 @@ export const QuestionScreen: React.FC<QuestionScreenProps> = ({ route, navigatio
         if (question.type === 'text' || question.type === 'slider') {
             setDebouncedValue(value);
         }
+    };
 
-        // Auto-advance logic
-        if (question.autoAdvance && canGoForward) {
-            // Save to database before navigating
-            await AssessmentService.saveAnswerToDb(
+    /**
+     * Navigate to next question
+     * 
+     * @remarks
+     * Navigates immediately and saves in background
+     * 
+     * @returns Promise that resolves when navigation is complete
+     */
+    const handleNext = () => {
+        if (assessmentId && question && answeredQuestions.has(question.id)) {
+            if (isLastQuestion) {
+                handleComplete();
+                return;
+            }
+
+            // Navigate immediately
+            navigation.navigate('Question', { 
+                questionIndex: questionIndex + 1,
+                assessmentId 
+            });
+
+            // Save in background
+            AssessmentService.saveAnswerToDb(
                 assessmentId,
                 question.id,
                 question.type
-            );
-            handleAutoAdvance();
+            ).catch(error => {
+                debugLog('ui', 'Error during background save:', error);
+            });
+        } else {
+            // Wenn keine Antwort ausgewählt wurde
+            navigation.navigate('Question', { 
+                questionIndex: questionIndex + 1,
+                assessmentId 
+            });
+        }
+    };
+
+    /**
+     * Navigate to previous question
+     * 
+     * @remarks
+     * Navigates immediately and saves in background if needed
+     */
+    const handleBack = () => {
+        if (assessmentId && question && answeredQuestions.has(question.id)) {
+            // Save in background if there's an answer
+            AssessmentService.saveAnswerToDb(
+                assessmentId,
+                question.id,
+                question.type
+            ).catch(error => {
+                debugLog('ui', 'Error during background save:', error);
+            });
+        }
+
+        if (canGoBack) {
+            navigation.navigate('Question', { 
+                questionIndex: questionIndex - 1,
+                assessmentId 
+            });
+        }
+    };
+
+    /**
+     * Handles assessment completion.
+     * Marks the assessment as complete and navigates back to home.
+     * 
+     * @async
+     */
+    const handleComplete = async () => {
+        if (assessmentId) {
+            await AssessmentService.completeAssessment(assessmentId);
+            navigation.navigate('Home');
         }
     };
 

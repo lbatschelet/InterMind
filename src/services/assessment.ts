@@ -62,7 +62,7 @@ interface DbQuestion {
     };
     imageUrl?: string;
     description?: string;
-    autoAdvance?: boolean;
+    auto_advance?: boolean;
     requiresConfirmation?: boolean;
     required?: boolean;
 }
@@ -75,7 +75,7 @@ const mapDbQuestion = (dbQuestion: DbQuestion): AnyQuestion => {
         created_at: dbQuestion.created_at,
         imageUrl: dbQuestion.imageUrl,
         description: dbQuestion.description,
-        autoAdvance: dbQuestion.autoAdvance,
+        autoAdvance: dbQuestion.auto_advance,
         requiresConfirmation: dbQuestion.requiresConfirmation,
         required: dbQuestion.required,
         validation: dbQuestion.validation
