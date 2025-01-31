@@ -1,73 +1,77 @@
--- Beispielfragen einfügen
-INSERT INTO "public"."questions" 
-("question", "type", "options", "category") VALUES
--- Single Choice Fragen
+INSERT INTO "public"."questions" (question, type, options, category, auto_advance) VALUES
+-- Single Choice Questions
 (
-    'Wie fühlst du dich heute?',
+    'How are you feeling today?',
     'single_choice',
     '[
-        "Sehr gut",
-        "Gut",
+        "Very good",
+        "Good",
         "Neutral",
-        "Nicht so gut",
-        "Schlecht"
+        "Not so good",
+        "Bad"
     ]'::jsonb,
-    'mood'
+    'mood',
+    true
 ),
 (
-    'Wie war dein Schlaf letzte Nacht?',
+    'How did you sleep last night?',
     'single_choice',
     '[
-        "Ausgezeichnet",
-        "Gut",
-        "Mittelmäßig",
-        "Schlecht",
-        "Sehr schlecht"
+        "Excellent",
+        "Good",
+        "Average",
+        "Poor",
+        "Very poor"
     ]'::jsonb,
-    'sleep'
+    'sleep',
+    true
 ),
 
--- Multiple Choice Frage
+-- Multiple Choice Question
 (
-    'Welche Aktivitäten haben dir heute geholfen?',
+    'Which activities helped you today?',
     'multiple_choice',
     '[
-        "Sport",
+        "Exercise",
         "Meditation",
-        "Spaziergang",
-        "Gespräch mit Freunden",
-        "Musik hören",
-        "Lesen"
+        "Walking",
+        "Talking with friends",
+        "Listening to music",
+        "Reading"
     ]'::jsonb,
-    'activities'
+    'activities',
+    false
 ),
 
--- Slider Fragen
+-- Slider Questions
 (
-    'Wie gestresst fühlst du dich auf einer Skala?',
+    'How stressed do you feel on a scale?',
     'slider',
     '{
         "min": 0,
         "max": 10,
         "step": 1
     }'::jsonb,
-    'stress'
+    'stress',
+    false
 ),
 (
-    'Wie würdest du deine Energie einschätzen?',
+    'How would you rate your energy level?',
     'slider',
     '{
         "min": 0,
         "max": 100,
         "step": 5
     }'::jsonb,
-    'energy'
+    'energy',
+    false
 ),
 
--- Text Frage
+-- Text Question
 (
-    'Was beschäftigt dich heute am meisten?',
+    'What is on your mind today?',
     'text',
-    null,
-    'thoughts'
+    NULL,
+    'thoughts',
+    false
 );
