@@ -1,4 +1,4 @@
-import { Question } from '~/src/types/Question';
+import { Question } from '~/src/types/question';
 
 export const mockQuestions: Question[] = [
     {

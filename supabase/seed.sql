@@ -1,77 +1,15 @@
-INSERT INTO "public"."questions" (question, type, options, category, auto_advance) VALUES
--- Single Choice Questions
-(
-    'How are you feeling today?',
-    'single_choice',
-    '[
-        "Very good",
-        "Good",
-        "Neutral",
-        "Not so good",
-        "Bad"
-    ]'::jsonb,
-    'mood',
-    true
-),
-(
-    'How did you sleep last night?',
-    'single_choice',
-    '[
-        "Excellent",
-        "Good",
-        "Average",
-        "Poor",
-        "Very poor"
-    ]'::jsonb,
-    'sleep',
-    true
-),
+-- ==========================
+-- Insert Sample Questions (One Per Type)
+-- ==========================
 
--- Multiple Choice Question
-(
-    'Which activities helped you today?',
-    'multiple_choice',
-    '[
-        "Exercise",
-        "Meditation",
-        "Walking",
-        "Talking with friends",
-        "Listening to music",
-        "Reading"
-    ]'::jsonb,
-    'activities',
-    false
-),
+INSERT INTO questions (type, text, options) VALUES
+  ('single_choice', 'What is your favorite color?', 
+   '[{"value": "red", "label": "Red"}, {"value": "blue", "label": "Blue"}, {"value": "green", "label": "Green"}]'),
+  
+  ('multiple_choice', 'Which activities do you enjoy?', 
+   '[{"value": "reading", "label": "Reading"}, {"value": "sports", "label": "Sports"}, {"value": "music", "label": "Music"}]'),
+  
+  ('slider', 'How do you feel today?', 
+   '{"values": ["Unwell", "Neutral", "Very Well"]}'), -- ✅ Uses labeled steps
 
--- Slider Questions
-(
-    'How stressed do you feel on a scale?',
-    'slider',
-    '{
-        "min": 0,
-        "max": 10,
-        "step": 1
-    }'::jsonb,
-    'stress',
-    false
-),
-(
-    'How would you rate your energy level?',
-    'slider',
-    '{
-        "min": 0,
-        "max": 100,
-        "step": 5
-    }'::jsonb,
-    'energy',
-    false
-),
-
--- Text Question
-(
-    'What is on your mind today?',
-    'text',
-    NULL,
-    'thoughts',
-    false
-);
+  ('text', 'Describe your mood in a few words.', NULL);

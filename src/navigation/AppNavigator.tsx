@@ -48,30 +48,19 @@ import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import { Settings } from '~/src/lib/icons/Settings';
 import { PORTAL_HOST_NAME } from '../lib/constants';
 import HomeScreen from '../screens/HomeScreen';
-import QuestionScreen from '../screens/QuestionScreen';
 import SettingsScreen from '../screens/SettingsScreen';
-import { AssessmentService } from '../services/assessment';
+import SurveyScreen from '../screens/SurveyScreen';
 
 /**
  * Type definitions for the navigation stack parameters.
  */
 export type RootStackParamList = {
-    /** Root screen, no parameters needed */
     Home: undefined;
-
-    /** Application settings screen */
     Settings: undefined;
-
-    /** 
-     * Assessment question screen
-     * @param questionIndex - Zero-based index of current question
-     * @param assessmentId - UUID of current assessment session
-     */
-    Question: { 
-        questionIndex: number;
-        assessmentId: string;
-    };
-};
+    Question: { questionIndex: number; assessmentId: string };
+    SurveyScreen: undefined;
+  };
+  
 
 /** @const Stack navigator instance with typed parameters */
 const Stack = createStackNavigator<RootStackParamList>();
@@ -120,77 +109,8 @@ const HomeHeader = (props: StackHeaderProps) => (
  * - Assessment title
  * - Progress preservation warning
  */
-const AssessmentHeader = (props: StackHeaderProps) => {
-    /** Controls visibility of the cancel confirmation dialog */
-    const [open, setOpen] = useState(false);
-    
-    /**
-     * Handles assessment cancellation.
-     * 
-     * @method
-     * 
-     * @remarks
-     * Flow:
-     * 1. Retrieves assessment ID from navigation state
-     * 2. Calls service to clean up assessment data
-     * 3. Closes confirmation dialog
-     * 4. Navigates back to home screen
-     */
-    const handleCancel = async () => {
-        const state = props.navigation.getState();
-        const currentRoute = state.routes[state.index];
-        const assessmentId = currentRoute.params && 'assessmentId' in currentRoute.params 
-            ? (currentRoute.params as { assessmentId: string }).assessmentId 
-            : undefined;
-        
-        if (assessmentId) {
-            await AssessmentService.cancelAssessment(assessmentId);
-        }
-        setOpen(false);
-        props.navigation.navigate('Home');
-    };
-    
-    return (
-        <SafeAreaView edges={['top']} className="bg-background">
-            <View className="px-4 pt-2">
-                <View className="flex-row items-center">
-                    <AlertDialog open={open} onOpenChange={setOpen}>
-                        <AlertDialogTrigger asChild>
-                            <Button 
-                                variant="ghost" 
-                                className="h-10 w-10 rounded-full"
-                            >
-                                <ArrowLeft className="text-primary" size={24} />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Cancel Assessment?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Do you really want to cancel the assessment? Your progress will be lost.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter className="space-y-2">
-                                <AlertDialogCancel className="w-full">
-                                    <Text>Continue</Text>
-                                </AlertDialogCancel>
-                                <AlertDialogAction 
-                                    className="w-full"
-                                    onPress={handleCancel}
-                                >
-                                    <Text>Cancel</Text>
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                    <Text className="text-xl font-bold text-primary ml-2">
-                        Assessment
-                    </Text>
-                </View>
-            </View>
-        </SafeAreaView>
-    );
-};
+
+
 
 /**
  * Settings screen header component.
@@ -240,25 +160,18 @@ const AppNavigator = () => {
             <Stack.Navigator>
                 <Stack.Screen 
                     name="Home" 
-                    component={HomeScreen}
-                    options={{
-                        header: HomeHeader
-                    }}
-                />
-                <Stack.Screen 
-                    name="Question" 
-                    component={QuestionScreen}
-                    options={{
-                        header: AssessmentHeader,
-                        animation: 'none'
-                    }}
+                    component={HomeScreen} 
+                    options={{ header: HomeHeader }}
                 />
                 <Stack.Screen 
                     name="Settings" 
-                    component={SettingsScreen}
-                    options={{
-                        header: SettingsHeader
-                    }}
+                    component={SettingsScreen} 
+                    options={{ header: SettingsHeader }}
+                />
+                <Stack.Screen 
+                    name="SurveyScreen" 
+                    component={SurveyScreen} 
+                    options={{ headerShown: false }} 
                 />
             </Stack.Navigator>
         </NavigationContainer>
