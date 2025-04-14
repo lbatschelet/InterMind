@@ -1,7 +1,13 @@
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS assessments;
+DROP TABLE IF EXISTS assessment_answers;
+DROP TABLE IF EXISTS assessment_questions;
+
+
 -- ==========================
 -- 1️⃣ CREATE ENUM FOR QUESTION TYPES
 -- ==========================
-CREATE TYPE question_type_enum AS ENUM ('single_choice', 'multiple_choice', 'slider', 'text');
+CREATE TYPE question_type_enum AS ENUM ('single_choice', 'multiple_choice', 'slider', 'text', 'info_screen');
 
 -- ==========================
 -- 2️⃣ CREATE TABLES
@@ -19,8 +25,11 @@ CREATE TABLE surveys (
 CREATE TABLE questions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     type question_type_enum NOT NULL,
+    title TEXT,
     text TEXT NOT NULL,
-    options JSONB DEFAULT NULL
+    options JSONB DEFAULT NULL,
+    category TEXT,
+    sequence_number INTEGER DEFAULT 9999
 );
 
 -- Table: responses (stores user answers)

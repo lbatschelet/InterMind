@@ -16,6 +16,7 @@
  * 
  * @remarks
  * Each question type has a specific structure to ensure correctness.
+ * The showOnce flag indicates if the question should only be shown once across all surveys.
  */
 export type Question =
   | {
@@ -23,25 +24,47 @@ export type Question =
       type: "single_choice";
       text: string;
       options: { value: string; label: string }[];
+      category?: string; // Kategorie der Frage (z.B. "demographic", "mood", etc.)
       autoAdvance?: boolean;
+      showOnce?: boolean; // If true, question is only shown once per device
+      sequence_number?: number; // Für die Sortierung der Fragen
     }
   | {
       id: string;
       type: "multiple_choice";
       text: string;
       options: { value: string; label: string }[];
+      category?: string; // Kategorie der Frage (z.B. "demographic", "mood", etc.)
+      showOnce?: boolean; // If true, question is only shown once per device
+      sequence_number?: number; // Für die Sortierung der Fragen
     }
   | {
       id: string;
       type: "slider";
       text: string;
       options: { values: string[] };
+      category?: string; // Kategorie der Frage (z.B. "demographic", "mood", etc.)
+      showOnce?: boolean; // If true, question is only shown once per device
+      sequence_number?: number; // Für die Sortierung der Fragen
     }
   | {
       id: string;
       type: "text";
       text: string;
       options: null;
+      category?: string; // Kategorie der Frage (z.B. "demographic", "mood", etc.)
+      showOnce?: boolean; // If true, question is only shown once per device
+      sequence_number?: number; // Für die Sortierung der Fragen
+    }
+  | {
+      id: string;
+      type: "info_screen"; // For non-question screens that present information
+      title: string; // The title/heading of the information screen
+      text: string; // The main content text
+      buttonText?: string; // Optional custom button text (default: "Continue")
+      category?: string; // Can be used to associate with specific section (e.g., "demographic_intro")
+      showOnce?: boolean; // If true, this info screen is only shown once per device
+      sequence_number?: number; // Für die Sortierung der Fragen
     };
 
 /**
@@ -57,6 +80,8 @@ export type QuestionComponentProps<T extends Question["type"]> = T extends "mult
   ? { question: Extract<Question, { type: "slider" }>; onNext: (value: number) => void }
   : T extends "text"
   ? { question: Extract<Question, { type: "text" }>; onNext: (value: string) => void }
+  : T extends "info_screen"
+  ? { question: Extract<Question, { type: "info_screen" }>; onNext: () => void }
   : { question: Extract<Question, { type: "single_choice" }>; onNext: (value: string) => void };
 
 

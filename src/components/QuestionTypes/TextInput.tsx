@@ -10,8 +10,9 @@
  * - The response is submitted with the "Next" button in SurveyScreen.
  */
 
-import React, { useState } from "react";
-import { TextInput, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View } from "react-native";
+import { Input } from "~/src/components/ui/input";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
 
@@ -25,9 +26,28 @@ const log = createLogger("TextInputQuestion");
  * @param {QuestionComponentProps<"text">} props - Component props.
  * @param {object} props.question - The question data.
  * @param {function} props.onNext - Function to submit the entered text.
+ * @param {string} props.initialValue - Optional initial text for previously answered questions.
  */
-const TextInputQuestion: React.FC<QuestionComponentProps<"text">> = ({ question, onNext }) => {
-  const [text, setText] = useState("");
+const TextInputQuestion: React.FC<QuestionComponentProps<"text"> & {
+  initialValue?: string;
+}> = ({ 
+  question, 
+  onNext,
+  initialValue
+}) => {
+  // Initialize with previous answer if available
+  const [text, setText] = useState(initialValue || "");
+
+  // Submit the initial value if one exists
+  useEffect(() => {
+    if (initialValue) {
+      log.debug("Restoring previous text input", { 
+        questionId: question.id, 
+        text: initialValue 
+      });
+      onNext(initialValue);
+    }
+  }, [initialValue, onNext, question.id]);
 
   // Update parent with current text whenever it changes
   const handleTextChange = (newText: string) => {
@@ -39,11 +59,14 @@ const TextInputQuestion: React.FC<QuestionComponentProps<"text">> = ({ question,
   return (
     <View className="space-y-4">
       {/* Text Input */}
-      <TextInput
-        className="border p-2 rounded-md"
+      <Input
         placeholder="Enter your response..."
         value={text}
         onChangeText={handleTextChange}
+        multiline={true}
+        numberOfLines={4}
+        className="min-h-[100px] text-base p-3"
+        textAlignVertical="top"
       />
     </View>
   );

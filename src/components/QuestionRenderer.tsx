@@ -2,6 +2,7 @@ import React from "react";
 import { Text } from "react-native";
 import { createLogger } from "~/src/utils/logger";
 import { Question } from "../types/question";
+import InfoScreen from "./QuestionTypes/InfoScreen";
 import MultipleChoice from "./QuestionTypes/MultipleChoice";
 import SingleChoice from "./QuestionTypes/SingleChoice";
 import { SliderQuestion } from "./QuestionTypes/Slider";
@@ -13,17 +14,20 @@ const log = createLogger("QuestionRenderer");
  * Renders the appropriate UI component for a given question.
  * - Dynamically selects the correct question type.
  * - Ensures type safety for `onNext` responses.
+ * - Can restore previous answers when navigating back.
  */
 const QuestionRenderer = ({ 
   question, 
   onNext,
-  onAutoAdvance  // Zusätzlicher Callback für Auto-Advance
+  onAutoAdvance,
+  initialValue
 }: { 
   question: Question;
-  onNext: (response: string | string[] | number) => void;
-  onAutoAdvance?: () => void;  // Optional für Abwärtskompatibilität
+  onNext: (response: string | string[] | number | void) => void;
+  onAutoAdvance?: () => void;
+  initialValue?: unknown;
 }) => {
-  log.debug("Rendering question", question);
+  log.debug("Rendering question", { question, hasInitialValue: !!initialValue });
 
   switch (question.type) {
     case "single_choice":
@@ -31,16 +35,35 @@ const QuestionRenderer = ({
         question={question} 
         onNext={onNext as (value: string) => void} 
         onAutoAdvance={onAutoAdvance}
+        initialValue={initialValue as string}
       />;
 
     case "multiple_choice":
-      return <MultipleChoice question={question} onNext={onNext as (value: string[]) => void} />;
+      return <MultipleChoice 
+        question={question} 
+        onNext={onNext as (value: string[]) => void}
+        initialValue={initialValue as string[]}
+      />;
 
     case "slider":
-      return <SliderQuestion question={question} onNext={onNext as (value: number) => void} />;
+      return <SliderQuestion 
+        question={question} 
+        onNext={onNext as (value: number) => void}
+        initialValue={initialValue as number}
+      />;
 
     case "text":
-      return <TextInputQuestion question={question} onNext={onNext as (value: string) => void} />;
+      return <TextInputQuestion 
+        question={question} 
+        onNext={onNext as (value: string) => void}
+        initialValue={initialValue as string}
+      />;
+      
+    case "info_screen":
+      return <InfoScreen
+        question={question}
+        onNext={() => onNext()} // Info screens don't return a value
+      />;
 
     default:
       log.error("Unknown question type", question);

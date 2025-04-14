@@ -11,7 +11,7 @@
  * - The actual navigation is handled by `SurveyScreen.tsx`.
  */
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
@@ -28,17 +28,56 @@ const log = createLogger("SingleChoice");
  * @param {object} props.question - The question data.
  * @param {function} props.onNext - Function to submit the selected answer.
  * @param {function} props.onAutoAdvance - Optional callback to trigger navigation.
+ * @param {string} props.initialValue - Optional initial value for previously answered questions.
  */
-const SingleChoice: React.FC<QuestionComponentProps<"single_choice"> & { onAutoAdvance?: () => void }> = ({ 
+const SingleChoice: React.FC<QuestionComponentProps<"single_choice"> & { 
+  onAutoAdvance?: () => void;
+  initialValue?: string;
+}> = ({ 
   question, 
   onNext,
-  onAutoAdvance
+  onAutoAdvance,
+  initialValue
 }) => {
-  // Track the selected option
-  const [selected, setSelected] = useState<string | null>(null);
+  // Track current question ID to prevent value leakage between questions
+  const questionIdRef = useRef<string>(question.id);
+  
+  // Track the selected option, initialized with previous answer if available
+  const [selected, setSelected] = useState<string | null>(
+    initialValue && questionIdRef.current === question.id ? initialValue : null
+  );
 
   // Ensures AutoAdvance only triggers **once**
   const autoAdvanceTriggered = useRef(false);
+
+  // Handle question changes and restore previous answers if needed
+  useEffect(() => {
+    // Reset state when question changes
+    if (questionIdRef.current !== question.id) {
+      log.debug("Question changed, resetting state", {
+        oldQuestionId: questionIdRef.current,
+        newQuestionId: question.id
+      });
+      
+      // Update question reference
+      questionIdRef.current = question.id;
+      
+      // Reset selection for new question
+      setSelected(initialValue || null);
+      
+      // Reset auto-advance flag for new question
+      autoAdvanceTriggered.current = false;
+      
+      // Submit the initial value if one exists for this specific question
+      if (initialValue) {
+        log.debug("Using existing value for new question", { 
+          questionId: question.id, 
+          value: initialValue 
+        });
+        onNext(initialValue);
+      }
+    }
+  }, [question.id, initialValue, onNext]);
 
   /**
    * Handles option selection.

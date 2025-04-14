@@ -1,7 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import { Animated, Keyboard, TouchableWithoutFeedback, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import QuestionRenderer from "../components/QuestionRenderer";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 import { Button } from "../components/ui/button";
 import { Text } from "../components/ui/text";
 import ResponseService from "../services/ResponseService";
@@ -17,15 +27,24 @@ const log = createLogger("SurveyScreen");
  * - Loads questions dynamically from `SurveyService`.
  * - Manages navigation between questions.
  * - Submits responses to the database.
+ * - Provides smooth transitions between questions.
  */
 const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string) => void; goBack: () => void } }) => {
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
 
   // Store current response for each question
   const responseCache = useRef<Record<string, unknown>>({});
+  
+  // Track which questions have already been answered at least once
+  const answeredQuestions = useRef<Set<string>>(new Set());
+
+  // Animation values
+  const slideAnim = useRef(new Animated.Value(0)).current;
 
   /**
    * Initializes the survey session and loads questions.
@@ -64,11 +83,48 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
   };
 
   /**
+   * Determines if autoAdvance should be allowed for the current question.
+   * Only allows autoAdvance if the question hasn't been answered before.
+   */
+  const shouldAllowAutoAdvance = (questionId: string): boolean => {
+    const hasBeenAnswered = answeredQuestions.current.has(questionId);
+    return !hasBeenAnswered;
+  };
+
+  /**
+   * Animates transitions between questions.
+   * @param direction - Direction of transition ('forward' or 'backward')
+   * @param nextIndex - The index of the next question to display
+   */
+  const animateTransition = (direction: "forward" | "backward", nextIndex: number) => {
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    
+    // Set initial position based on direction (smaller value for subtler animation)
+    slideAnim.setValue(direction === "forward" ? 150 : -150);
+    
+    // Update index immediately
+    setCurrentIndex(nextIndex);
+    
+    // Very fast animation
+    Animated.timing(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      duration: 150,  // Fast animation
+    }).start(() => {
+      setIsAnimating(false);
+    });
+  };
+
+  /**
    * Handles moving to the next question and submitting the current response.
    * - If it's the last question, submits the survey.
    * - Otherwise, advances to the next question.
    */
   const handleNext = async () => {
+    if (isAnimating) return;
+    
     if (!surveyId) {
       log.error("Survey ID is missing, cannot submit response");
       return;
@@ -87,6 +143,9 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
       
       log.debug("Submitting response", { questionId, response });
       await ResponseService.submitResponse(surveyId, questionId, response);
+      
+      // Mark this question as having been answered
+      answeredQuestions.current.add(questionId);
 
       if (currentIndex + 1 < questions.length) {
         log.debug("Moving to next question", { 
@@ -95,8 +154,8 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
           nextQuestion: questions[currentIndex + 1].text
         });
         
-        // Simply update the index - no animation
-        setCurrentIndex(currentIndex + 1);
+        const nextIndex = currentIndex + 1;
+        animateTransition("forward", nextIndex);
       } else {
         log.info("Survey completed");
         handleComplete();
@@ -108,21 +167,42 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
 
   /**
    * Auto-advance callback for single-choice questions.
+   * Only triggers if the question hasn't been answered before.
    */
   const handleAutoAdvance = () => {
-    log.debug("Auto-advance triggered");
-    handleNext();
+    const questionId = questions[currentIndex]?.id;
+    if (!questionId) return;
+    
+    // Check if this question should allow auto-advance
+    if (shouldAllowAutoAdvance(questionId)) {
+      log.debug("Auto-advance triggered for first-time answer", { questionId });
+      handleNext();
+    } else {
+      log.debug("Auto-advance skipped for previously answered question", { questionId });
+    }
   };
 
   /**
    * Handles moving back to the previous question.
-   * - If it's the first question, exits the survey.
+   * - If it's the first question, shows exit confirmation if answers exist.
    * - Otherwise, moves back to the previous question.
    */
   const handleBack = () => {
+    if (isAnimating) return;
+    
     if (currentIndex === 0) {
-      log.info("Exiting survey");
-      navigation.goBack();
+      // On first question, check if we have any answers
+      const hasAnswers = answeredQuestions.current.size > 0;
+      
+      if (hasAnswers) {
+        // Show confirmation dialog if answers exist
+        log.debug("Showing exit confirmation dialog");
+        setShowExitDialog(true);
+      } else {
+        // Exit directly if no answers
+        log.info("Exiting survey with no answers");
+        navigation.goBack();
+      }
     } else {
       log.debug("Moving to previous question", {
         from: currentIndex,
@@ -130,9 +210,26 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
         prevQuestion: questions[currentIndex - 1].text
       });
       
-      // Simply update the index - no animation
-      setCurrentIndex(currentIndex - 1);
+      const prevIndex = currentIndex - 1;
+      animateTransition("backward", prevIndex);
     }
+  };
+
+  /**
+   * Confirms exit from the survey.
+   */
+  const confirmExit = () => {
+    log.info("User confirmed exit from survey");
+    setShowExitDialog(false);
+    navigation.goBack();
+  };
+
+  /**
+   * Cancels exit from the survey.
+   */
+  const cancelExit = () => {
+    log.debug("User canceled exit from survey");
+    setShowExitDialog(false);
   };
 
   /**
@@ -141,7 +238,14 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
   const handleComplete = async () => {
     if (surveyId) {
       log.info("Completing survey", { surveyId });
-      await SurveyService.completeSurvey(surveyId);
+      
+      // Convert the set of answered question IDs to an array of Question objects
+      const allAnsweredQuestions = Array.from(answeredQuestions.current).map(qId => 
+        questions.find(q => q.id === qId)
+      ).filter(Boolean) as Question[];
+      
+      log.debug("Submitting answered questions to service", { count: allAnsweredQuestions.length });
+      await SurveyService.completeSurvey(surveyId, allAnsweredQuestions);
     }
     navigation.navigate("Home");
   };
@@ -150,39 +254,108 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
   if (questions.length === 0) return <Text>No questions available.</Text>;
 
   const currentQuestion = questions[currentIndex];
+  const questionId = currentQuestion.id;
+  const previousResponse = responseCache.current[questionId];
+  const isPreviouslyAnswered = answeredQuestions.current.has(questionId);
 
-  log.debug("Current question", { index: currentIndex, type: currentQuestion.type });
+  log.debug("Current question state", { 
+    index: currentIndex, 
+    type: currentQuestion.type,
+    previouslyAnswered: isPreviouslyAnswered,
+    hasPreviousResponse: !!previousResponse
+  });
 
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-background">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View className="flex-1 px-4">
-          <View className="flex-1 justify-center items-center">
-            <View className="w-full max-w-md">
-              <Text className="text-2xl font-bold mb-8 text-center">{currentQuestion.text}</Text>
-              <QuestionRenderer 
-                question={currentQuestion} 
-                onNext={handleResponseUpdate} 
-                onAutoAdvance={handleAutoAdvance}
-              />
+          {/* Question Content - Only this part is animated */}
+          <Animated.View 
+            className="flex-1 justify-center"
+            style={{ transform: [{ translateX: slideAnim }] }}
+          >
+            <View className="items-center">
+              <View className="w-full max-w-md">
+                <Text className="text-2xl font-bold mb-8 text-center">
+                  {currentQuestion.type === "info_screen" ? currentQuestion.title : currentQuestion.text}
+                </Text>
+                <QuestionRenderer 
+                  question={currentQuestion} 
+                  onNext={handleResponseUpdate} 
+                  onAutoAdvance={handleAutoAdvance}
+                  initialValue={previousResponse}
+                />
+              </View>
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Navigation Buttons */}
+          {/* Navigation Buttons - Not animated */}
           <View className="flex-row justify-between items-center w-full py-4">
-            <Button variant="outline" onPress={handleBack} className={currentIndex === 0 ? "opacity-50" : ""}>
-              <Text>Back</Text>
-            </Button>
+            {currentQuestion.type !== "info_screen" ? (
+              <>
+                <Button 
+                  variant="outline" 
+                  onPress={handleBack} 
+                  className={currentIndex === 0 ? "opacity-50" : ""}
+                  disabled={isAnimating}
+                >
+                  <Text>Back</Text>
+                </Button>
 
-            {/* Next/Submit Button for all question types */}
-            <Button variant="default" className="bg-accent" onPress={handleNext}>
-              <Text className="text-primary">
-                {currentIndex === questions.length - 1 ? "Submit" : "Next"}
-              </Text>
-            </Button>
+                {/* Next/Submit Button for all question types */}
+                <Button 
+                  variant="default" 
+                  className="bg-accent" 
+                  onPress={handleNext}
+                  disabled={isAnimating}
+                >
+                  <Text className="text-primary">
+                    {currentIndex === questions.length - 1 ? "Submit" : "Next"}
+                  </Text>
+                </Button>
+              </>
+            ) : (
+              <View className="w-full">
+                <Button 
+                  variant="default" 
+                  className="bg-accent w-full" 
+                  onPress={() => {
+                    // Für Info-Screens müssen wir manually onNext aufrufen und dann zur nächsten Frage gehen
+                    handleResponseUpdate(undefined);
+                    handleNext();
+                  }}
+                  disabled={isAnimating}
+                >
+                  <Text className="text-primary">
+                    {currentQuestion.type === "info_screen" && currentQuestion.buttonText || "I understand"}
+                  </Text>
+                </Button>
+              </View>
+            )}
           </View>
         </View>
       </TouchableWithoutFeedback>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent portalHost="root-portal">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Exit Survey?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your progress will be saved, but you will exit the survey.
+              Are you sure you want to exit?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onPress={cancelExit}>
+              <Text>Continue Survey</Text>
+            </AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive" onPress={confirmExit}>
+              <Text className="text-destructive-foreground">Exit Survey</Text>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SafeAreaView>
   );
 };

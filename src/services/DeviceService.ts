@@ -1,5 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createLogger } from "~/src/utils/logger";
+import { supabase } from "../lib/supabase";
+import AnsweredQuestionsService from "./AnsweredQuestionsService";
+
 const log = createLogger("DeviceService");
 
 const DEVICE_ID_KEY = "device_id";
@@ -42,6 +45,43 @@ class DeviceService {
     } catch (error) {
       log.error("Error retrieving device ID", error);
       throw new Error("Failed to retrieve device ID");
+    }
+  }
+
+  /**
+   * Deletes all device data from the database and resets local storage.
+   * This will also reset all answered questions so they will be shown again.
+   */
+  static async deleteDeviceData(): Promise<boolean> {
+    try {
+      // Get current device ID
+      const deviceId = await this.getDeviceId();
+      log.info(`Deleting all data for device: ${deviceId}`);
+
+      // Delete all device data from database
+      const { error } = await supabase
+        .from("surveys")
+        .delete()
+        .eq("device_id", deviceId);
+
+      if (error) {
+        log.error("Error deleting device data from database", error);
+        return false;
+      }
+
+      // Reset answered questions in AsyncStorage
+      await AnsweredQuestionsService.resetAnsweredQuestions();
+      log.info("Reset answered questions after data deletion");
+
+      // Generate a new device ID
+      const newDeviceId = generateReadableId();
+      await AsyncStorage.setItem(DEVICE_ID_KEY, newDeviceId);
+      log.info(`Generated new device ID after data deletion: ${newDeviceId}`);
+
+      return true;
+    } catch (error) {
+      log.error("Failed to delete device data", error);
+      return false;
     }
   }
 }
