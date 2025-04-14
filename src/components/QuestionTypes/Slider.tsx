@@ -8,12 +8,12 @@
  * @remarks
  * - Uses a continuous scale (0.0 → 1.0).
  * - Displays only labels, no numbers.
- * - The user must confirm the selection using the "Next" button.
+ * - The user must confirm the selection using the "Next" button in SurveyScreen.
  */
 
-import React, { useState } from "react";
-import { View, Text } from "react-native";
 import Slider from "@react-native-community/slider";
+import React, { useState } from "react";
+import { Text, View } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
 
@@ -42,18 +42,22 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider">> = ({ que
   // Track user selection (default to center position)
   const [selectedValue, setSelectedValue] = useState<number>(0.5);
 
+  // Update parent component with current value
+  const handleValueChange = (value: number) => {
+    setSelectedValue(value);
+    log.debug("Slider value updated", { questionId: question.id, value });
+    onNext(value);
+  };
+
   return (
     <View className="space-y-6">
-      {/* Question text */}
-      <Text className="text-lg font-medium text-center">{question.text}</Text>
-
-      {/* Slider TODO: Link color to theme */}
+      {/* Slider component */}
       <Slider
         minimumValue={0}
         maximumValue={1}
         step={undefined}
         value={selectedValue}
-        onValueChange={(val: number) => setSelectedValue(val)} // Only updates local state
+        onValueChange={handleValueChange}
         minimumTrackTintColor="#2196F3"
         maximumTrackTintColor="#BDBDBD"
         thumbTintColor="#2196F3"

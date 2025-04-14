@@ -11,21 +11,21 @@ import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
 } from "~/src/components/ui/alert-dialog";
 import { Button } from "~/src/components/ui/button";
 import { Text } from "~/src/components/ui/text";
+import { createLogger } from "~/src/utils/logger";
 import { PORTAL_HOST_NAME } from "../lib/constants";
 import { DeviceService } from "../services/DeviceService";
-import { deleteAllSurveys } from "../services/SurveyService";
-import { createLogger } from "~/src/utils/logger";
+import SurveyService from "../services/SurveyService";
 const log = createLogger("SettingsScreen");
 
 /**
@@ -80,7 +80,7 @@ const SettingsScreen: React.FC = () => {
 
       log.info("Deleting all data for device", { deviceId: currentDeviceId });
 
-      const surveysDeleted = await deleteAllSurveys(currentDeviceId);
+      const surveysDeleted = await SurveyService.deleteAllSurveys();
 
       if (surveysDeleted) {
         log.info("All data successfully deleted.");

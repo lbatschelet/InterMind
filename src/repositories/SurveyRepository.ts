@@ -1,5 +1,5 @@
-import { supabase } from "../lib/supabase";
 import { createLogger } from "~/src/utils/logger";
+import { supabase } from "../lib/supabase";
 
 const log = createLogger("SurveyRepository");
 
@@ -40,7 +40,54 @@ export class SurveyRepository {
       throw new Error("Failed to fetch questions.");
     }
 
-    return data;
+    // Debugging: Struktur der Daten ausgeben
+    log.debug("Raw questions data from DB:", data);
+    
+    // Transformiere die Fragen in das erwartete Format
+    const formattedQuestions = data.map(question => {
+      let options;
+      let autoAdvance;
+      
+      try {
+        // Versuche, options zu parsen, falls es ein JSON-String ist
+        const parsedOptions = typeof question.options === 'string' 
+          ? JSON.parse(question.options) 
+          : question.options;
+          
+        // Für Single-Choice Questions mit neuer Struktur
+        if (question.type === 'single_choice' && parsedOptions && typeof parsedOptions === 'object' && 'options' in parsedOptions) {
+          autoAdvance = parsedOptions.autoAdvance;
+          options = parsedOptions.options;
+        } else {
+          options = parsedOptions;
+        }
+      } catch (e) {
+        log.error("Error parsing options for question", { id: question.id, error: e });
+        options = question.options; // Behalte original, wenn das Parsen fehlschlägt
+      }
+      
+      // Basisdaten für alle Fragetypen
+      const baseQuestion = {
+        id: question.id,
+        type: question.type,
+        text: question.text,
+        options: options
+      };
+      
+      // Spezielle Felder für bestimmte Fragetypen hinzufügen
+      if (question.type === 'single_choice' && autoAdvance !== undefined) {
+        return {
+          ...baseQuestion,
+          autoAdvance
+        };
+      }
+      
+      return baseQuestion;
+    });
+    
+    log.debug("Formatted questions:", formattedQuestions);
+    
+    return formattedQuestions;
   }
 
   /**

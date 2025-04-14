@@ -7,15 +7,15 @@
  * 
  * @remarks
  * - Allows users to select **multiple** options.
- * - Requires manual confirmation via the "Next" button in `SurveyScreen.tsx`.
+ * - Updates the parent component only when options change.
  */
 
 import React, { useState } from "react";
 import { View } from "react-native";
-import { Button } from "../ui/button";
-import { Text } from "../ui/text";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
+import { Button } from "../ui/button";
+import { Text } from "../ui/text";
 
 const log = createLogger("MultipleChoice");
 
@@ -36,11 +36,15 @@ const MultipleChoice: React.FC<QuestionComponentProps<"multiple_choice">> = ({ q
    * @param {string} option - The option to toggle.
    */
   const handleSelect = (option: string) => {
-    setSelectedOptions((prev) =>
-      prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option]
-    );
-
-    log.debug("User toggled option", { questionId: question.id, option });
+    const newSelection = selectedOptions.includes(option)
+      ? selectedOptions.filter(o => o !== option)
+      : [...selectedOptions, option];
+    
+    setSelectedOptions(newSelection);
+    log.debug("Selection updated", { questionId: question.id, selectedOptions: newSelection });
+    
+    // Send updated selection to parent component
+    onNext(newSelection);
   };
 
   return (

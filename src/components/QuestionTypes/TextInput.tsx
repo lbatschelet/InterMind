@@ -7,16 +7,15 @@
  * 
  * @remarks
  * - Users enter a free-text response.
- * - The response is submitted only after confirming with the "Next" button.
+ * - The response is submitted with the "Next" button in SurveyScreen.
  */
 
 import React, { useState } from "react";
-import { View, TextInput } from "react-native";
-import { Button } from "../ui/button";
-import { Text } from "../ui/text";
+import { TextInput, View } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
 
+// Logger for debugging purposes
 const log = createLogger("TextInputQuestion");
 
 /**
@@ -30,21 +29,22 @@ const log = createLogger("TextInputQuestion");
 const TextInputQuestion: React.FC<QuestionComponentProps<"text">> = ({ question, onNext }) => {
   const [text, setText] = useState("");
 
+  // Update parent with current text whenever it changes
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+    log.debug("Text updated", { questionId: question.id, text: newText });
+    onNext(newText);
+  };
+
   return (
     <View className="space-y-4">
-      {/* Question text */}
-      <Text className="text-lg font-medium text-center">{question.text}</Text>
-
       {/* Text Input */}
       <TextInput
         className="border p-2 rounded-md"
         placeholder="Enter your response..."
         value={text}
-        onChangeText={setText} // Updates local state only
+        onChangeText={handleTextChange}
       />
-
-      {/* Next Button */}
-      <Button onPress={() => onNext(text)}>Next</Button>
     </View>
   );
 };

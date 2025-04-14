@@ -7,6 +7,7 @@ DROP POLICY IF EXISTS "device_can_read_own_assessments" ON public.assessments;
 DROP POLICY IF EXISTS "device_can_create_assessments" ON public.assessments;
 DROP POLICY IF EXISTS "device_can_read_own_answers" ON public.assessment_answers;
 DROP POLICY IF EXISTS "device_can_create_answers" ON public.assessment_answers;
+DROP POLICY IF EXISTS "Allow device to insert surveys" ON surveys;
 
 -- 1. Questions: Public readable
 CREATE POLICY "questions_public_readable"
@@ -48,6 +49,12 @@ WITH CHECK (
     )
 );
 
+-- Erstelle neue Policy die weniger restriktiv ist
+CREATE POLICY "Allow device to insert surveys" 
+ON surveys 
+FOR INSERT 
+WITH CHECK (TRUE);
+
 -- Helper zum Debuggen der Session
 DROP FUNCTION IF EXISTS debug_session();
 
@@ -59,6 +66,16 @@ RETURNS TABLE (
 BEGIN
     RETURN QUERY SELECT 
         current_setting('app.device_id'::text, true),
+        current_user::text;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Testen, ob Request-Header korrekt funktionieren
+CREATE OR REPLACE FUNCTION public.test_headers()
+RETURNS TABLE(device_id text, username text) AS $$
+BEGIN
+    RETURN QUERY SELECT 
+        current_setting('request.headers', true)::jsonb->>'X-Device-ID',
         current_user::text;
 END;
 $$ LANGUAGE plpgsql;

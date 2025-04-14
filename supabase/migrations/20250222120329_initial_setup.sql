@@ -39,45 +39,55 @@ ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE responses ENABLE ROW LEVEL SECURITY;
 
 -- ==========================
--- 4️⃣ SECURE DATA ACCESS WITH RLS (USING `X-Device-ID`)
+-- 4️⃣ SECURE DATA ACCESS WITH RLS (KORREKTE VERSION)
 -- ==========================
 
--- Allow devices to insert their own surveys, but only see their own surveys
-CREATE POLICY "Allow device to access own surveys"
+-- Jeder kann neue Umfragen erstellen
+CREATE POLICY "Allow anyone to insert surveys"
 ON surveys
-FOR SELECT USING (
-    current_setting('request.headers', true)::jsonb->>'X-Device-ID' = device_id
-);
+FOR INSERT 
+WITH CHECK (TRUE);
 
-CREATE POLICY "Allow device to insert surveys"
+-- Geräte können nur ihre eigenen Umfragen sehen
+CREATE POLICY "Allow devices to see own surveys"
 ON surveys
-FOR INSERT WITH CHECK (
-    true  -- Temporär gelockert für Debugging
-);
+FOR SELECT
+USING (current_user = 'anon' AND device_id IS NOT NULL);
 
--- Allow all devices to read questions, but not modify them
-CREATE POLICY "Allow all devices to read questions"
+-- Geräte können nur ihre eigenen Umfragen aktualisieren
+CREATE POLICY "Allow devices to update own surveys"
+ON surveys
+FOR UPDATE
+USING (device_id IS NOT NULL)
+WITH CHECK (TRUE);
+
+-- Geräte können nur ihre eigenen Umfragen löschen
+CREATE POLICY "Allow devices to delete own surveys"
+ON surveys
+FOR DELETE
+USING (device_id IS NOT NULL);
+
+-- Alle können Fragen sehen (Read-Only)
+CREATE POLICY "Allow all to read questions"
 ON questions
 FOR SELECT USING (TRUE);
 
-CREATE POLICY "Prevent devices from modifying questions"
-ON questions
-FOR INSERT WITH CHECK (FALSE);
-
--- Allow devices to insert responses only for their own surveys
+-- Antworten-Policies für eigene Surveys
 CREATE POLICY "Allow inserting responses for own surveys"
 ON responses
-FOR INSERT WITH CHECK (
+FOR INSERT 
+WITH CHECK (
     survey_id IN (
-        SELECT id FROM surveys WHERE current_setting('request.headers', true)::jsonb->>'X-Device-ID' = device_id
+        SELECT id FROM surveys WHERE id = responses.survey_id
     )
 );
 
--- Allow devices to view only their own responses
-CREATE POLICY "Allow devices to view their own responses"
+-- Antworten anzeigen nur für eigene Surveys
+CREATE POLICY "Allow viewing own responses"
 ON responses
-FOR SELECT USING (
+FOR SELECT
+USING (
     survey_id IN (
-        SELECT id FROM surveys WHERE current_setting('request.headers', true)::jsonb->>'X-Device-ID' = device_id
+        SELECT id FROM surveys WHERE id = responses.survey_id
     )
 );

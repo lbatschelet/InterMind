@@ -1,11 +1,11 @@
 import React from "react";
 import { Text } from "react-native";
-import SingleChoice from "./QuestionTypes/SingleChoice";
+import { createLogger } from "~/src/utils/logger";
+import { Question } from "../types/question";
 import MultipleChoice from "./QuestionTypes/MultipleChoice";
+import SingleChoice from "./QuestionTypes/SingleChoice";
 import { SliderQuestion } from "./QuestionTypes/Slider";
 import TextInputQuestion from "./QuestionTypes/TextInput";
-import { Question, QuestionComponentProps } from "../types/question";
-import { createLogger } from "~/src/utils/logger";
 
 const log = createLogger("QuestionRenderer");
 
@@ -14,15 +14,24 @@ const log = createLogger("QuestionRenderer");
  * - Dynamically selects the correct question type.
  * - Ensures type safety for `onNext` responses.
  */
-const QuestionRenderer = ({ question, onNext }: { 
+const QuestionRenderer = ({ 
+  question, 
+  onNext,
+  onAutoAdvance  // Zusätzlicher Callback für Auto-Advance
+}: { 
   question: Question;
   onNext: (response: string | string[] | number) => void;
+  onAutoAdvance?: () => void;  // Optional für Abwärtskompatibilität
 }) => {
   log.debug("Rendering question", question);
 
   switch (question.type) {
     case "single_choice":
-      return <SingleChoice question={question} onNext={onNext as (value: string) => void} />;
+      return <SingleChoice 
+        question={question} 
+        onNext={onNext as (value: string) => void} 
+        onAutoAdvance={onAutoAdvance}
+      />;
 
     case "multiple_choice":
       return <MultipleChoice question={question} onNext={onNext as (value: string[]) => void} />;
@@ -38,7 +47,5 @@ const QuestionRenderer = ({ question, onNext }: {
       return <Text>Error: Unknown question type</Text>;
   }
 };
-
-
 
 export default QuestionRenderer;

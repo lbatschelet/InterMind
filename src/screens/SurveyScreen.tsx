@@ -1,30 +1,31 @@
-import React, { useEffect, useState } from "react";
-import { View, Animated, Keyboard, TouchableWithoutFeedback } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Keyboard, TouchableWithoutFeedback, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import SurveyService from "../services/SurveyService";
-import ResponseService from "../services/ResponseService";
 import QuestionRenderer from "../components/QuestionRenderer";
 import { Button } from "../components/ui/button";
 import { Text } from "../components/ui/text";
-import { log } from "../utils/logger";
+import ResponseService from "../services/ResponseService";
+import SurveyService from "../services/SurveyService";
 import { Question } from "../types/question";
+import { createLogger } from "../utils/logger";
+
+// Initialize logger for this module
+const log = createLogger("SurveyScreen");
 
 /**
  * SurveyScreen handles the full survey flow.
  * - Loads questions dynamically from `SurveyService`.
  * - Manages navigation between questions.
  * - Submits responses to the database.
- * - Uses smooth animations for transitions.
  */
-const SurveyScreen = ({ navigation }: { navigation: any }) => {
+const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string) => void; goBack: () => void } }) => {
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Animation for transitions
-  const slideAnim = new Animated.Value(0);
-  const fadeAnim = new Animated.Value(1);
+  // Store current response for each question
+  const responseCache = useRef<Record<string, unknown>>({});
 
   /**
    * Initializes the survey session and loads questions.
@@ -38,9 +39,9 @@ const SurveyScreen = ({ navigation }: { navigation: any }) => {
         const { surveyId, questions } = await SurveyService.startSurvey();
     
         setSurveyId(surveyId);
-        setQuestions(questions.questions); // ✅ Extract only the questions array
+        setQuestions(questions);
     
-        log.info("Survey initialized", { surveyId, questions: questions.questions });
+        log.info("Survey initialized", { surveyId, questionCount: questions.length });
       } catch (error) {
         log.error("Failed to initialize survey", error);
       } finally {
@@ -51,24 +52,50 @@ const SurveyScreen = ({ navigation }: { navigation: any }) => {
   }, []);
 
   /**
-   * Handles moving to the next question.
+   * Callback for receiving responses from question components.
+   * This updates the response cache without navigating.
+   */
+  const handleResponseUpdate = (response: unknown) => {
+    if (!questions[currentIndex]) return;
+    
+    const questionId = questions[currentIndex].id;
+    responseCache.current[questionId] = response;
+    log.debug("Response updated for question", { questionId, response });
+  };
+
+  /**
+   * Handles moving to the next question and submitting the current response.
    * - If it's the last question, submits the survey.
    * - Otherwise, advances to the next question.
    */
-  const handleNext = async (response: any) => {
+  const handleNext = async () => {
     if (!surveyId) {
       log.error("Survey ID is missing, cannot submit response");
       return;
     }
 
-    const currentQuestion = questions[currentIndex];
+    if (!questions[currentIndex]) {
+      log.error("No current question found");
+      return;
+    }
 
+    const questionId = questions[currentIndex].id;
+    
     try {
-      log.debug("Submitting response", { questionId: currentQuestion.id, response });
-      await ResponseService.submitResponse(surveyId, currentQuestion.id, response);
+      // Get response from cache or use empty object
+      const response = responseCache.current[questionId] || {};
+      
+      log.debug("Submitting response", { questionId, response });
+      await ResponseService.submitResponse(surveyId, questionId, response);
 
       if (currentIndex + 1 < questions.length) {
-        animateTransition("forward");
+        log.debug("Moving to next question", { 
+          from: currentIndex,
+          to: currentIndex + 1,
+          nextQuestion: questions[currentIndex + 1].text
+        });
+        
+        // Simply update the index - no animation
         setCurrentIndex(currentIndex + 1);
       } else {
         log.info("Survey completed");
@@ -77,6 +104,14 @@ const SurveyScreen = ({ navigation }: { navigation: any }) => {
     } catch (error) {
       log.error("Error submitting response", error);
     }
+  };
+
+  /**
+   * Auto-advance callback for single-choice questions.
+   */
+  const handleAutoAdvance = () => {
+    log.debug("Auto-advance triggered");
+    handleNext();
   };
 
   /**
@@ -89,36 +124,15 @@ const SurveyScreen = ({ navigation }: { navigation: any }) => {
       log.info("Exiting survey");
       navigation.goBack();
     } else {
-      animateTransition("backward");
+      log.debug("Moving to previous question", {
+        from: currentIndex,
+        to: currentIndex - 1,
+        prevQuestion: questions[currentIndex - 1].text
+      });
+      
+      // Simply update the index - no animation
       setCurrentIndex(currentIndex - 1);
     }
-  };
-
-  /**
-   * Animates transitions between questions.
-   * @param direction - Direction of transition ('forward' or 'backward')
-   */
-  const animateTransition = (direction: "forward" | "backward") => {
-    slideAnim.setValue(direction === "forward" ? 100 : -100);
-    fadeAnim.setValue(0);
-
-    Animated.parallel([
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 50,
-        friction: 7,
-        velocity: direction === "forward" ? 2 : -2,
-      }),
-      Animated.sequence([
-        Animated.delay(100),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]),
-    ]).start();
   };
 
   /**
@@ -137,17 +151,20 @@ const SurveyScreen = ({ navigation }: { navigation: any }) => {
 
   const currentQuestion = questions[currentIndex];
 
+  log.debug("Current question", { index: currentIndex, type: currentQuestion.type });
+
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-background">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <Animated.View
-          className="flex-1 px-4"
-          style={{ transform: [{ translateX: slideAnim }], opacity: fadeAnim }}
-        >
+        <View className="flex-1 px-4">
           <View className="flex-1 justify-center items-center">
             <View className="w-full max-w-md">
               <Text className="text-2xl font-bold mb-8 text-center">{currentQuestion.text}</Text>
-              <QuestionRenderer question={currentQuestion} onNext={handleNext} />
+              <QuestionRenderer 
+                question={currentQuestion} 
+                onNext={handleResponseUpdate} 
+                onAutoAdvance={handleAutoAdvance}
+              />
             </View>
           </View>
 
@@ -157,13 +174,14 @@ const SurveyScreen = ({ navigation }: { navigation: any }) => {
               <Text>Back</Text>
             </Button>
 
-            <Button variant="default" className="bg-accent" onPress={() => handleNext(null)}>
+            {/* Next/Submit Button for all question types */}
+            <Button variant="default" className="bg-accent" onPress={handleNext}>
               <Text className="text-primary">
                 {currentIndex === questions.length - 1 ? "Submit" : "Next"}
               </Text>
             </Button>
           </View>
-        </Animated.View>
+        </View>
       </TouchableWithoutFeedback>
     </SafeAreaView>
   );

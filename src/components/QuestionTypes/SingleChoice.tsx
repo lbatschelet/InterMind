@@ -11,12 +11,12 @@
  * - The actual navigation is handled by `SurveyScreen.tsx`.
  */
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useState } from "react";
 import { View } from "react-native";
-import { Button } from "../ui/button";
-import { Text } from "../ui/text";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
+import { Button } from "../ui/button";
+import { Text } from "../ui/text";
 
 const log = createLogger("SingleChoice");
 
@@ -27,8 +27,13 @@ const log = createLogger("SingleChoice");
  * @param {QuestionComponentProps<"single_choice">} props - Component props.
  * @param {object} props.question - The question data.
  * @param {function} props.onNext - Function to submit the selected answer.
+ * @param {function} props.onAutoAdvance - Optional callback to trigger navigation.
  */
-const SingleChoice: React.FC<QuestionComponentProps<"single_choice">> = ({ question, onNext }) => {
+const SingleChoice: React.FC<QuestionComponentProps<"single_choice"> & { onAutoAdvance?: () => void }> = ({ 
+  question, 
+  onNext,
+  onAutoAdvance
+}) => {
   // Track the selected option
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -43,11 +48,14 @@ const SingleChoice: React.FC<QuestionComponentProps<"single_choice">> = ({ quest
     setSelected(value);
     log.debug("User selected an option", { questionId: question.id, value });
 
+    // Always submit the response
+    onNext(value);
+
     // AutoAdvance: Only trigger if enabled and it's the first time
-    if (question.autoAdvance && !autoAdvanceTriggered.current) {
+    if (question.autoAdvance && !autoAdvanceTriggered.current && onAutoAdvance) {
       log.debug("AutoAdvance activated, navigating forward", { questionId: question.id });
       autoAdvanceTriggered.current = true; // Mark that AutoAdvance has been triggered
-      onNext(value);
+      onAutoAdvance(); // Trigger navigation through the callback
     }
   };
 
