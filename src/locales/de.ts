@@ -1,5 +1,6 @@
 export default {
   general: {
+    agree: "Ich stimme zu",
     continue: "Weiter",
     cancel: "Abbrechen",
     close: "Schließen",

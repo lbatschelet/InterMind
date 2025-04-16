@@ -8,7 +8,8 @@ const log = createLogger("SurveyRepository");
 // Cache für Fragen, um wiederholte DB-Abfragen zu vermeiden
 const questionsCache: Record<LanguageCode, { data: Question[], timestamp: number }> = {
   en: { data: [], timestamp: 0 },
-  de: { data: [], timestamp: 0 }
+  de: { data: [], timestamp: 0 },
+  fr: { data: [], timestamp: 0 }
 };
 const CACHE_TTL = 5 * 60 * 1000; // 5 Minuten Cache
 

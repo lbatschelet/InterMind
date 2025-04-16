@@ -271,6 +271,17 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
   const previousResponse = responseCache.current[questionId];
   const isPreviouslyAnswered = answeredQuestions.current.has(questionId);
 
+  // Debug-Logs für Button-Text
+  if (currentQuestion.type === 'info_screen' && currentQuestion.buttonText) {
+    log.debug("Button Text Debug", { 
+      buttonText: currentQuestion.buttonText, 
+      type: typeof currentQuestion.buttonText,
+      isString: typeof currentQuestion.buttonText === 'string',
+      startsWithGeneral: typeof currentQuestion.buttonText === 'string' && currentQuestion.buttonText.startsWith('general.'),
+      translation: typeof currentQuestion.buttonText === 'string' && currentQuestion.buttonText.startsWith('general.') ? t(currentQuestion.buttonText) : 'n/a'
+    });
+  }
+
   log.debug("Current question state", { 
     index: currentIndex, 
     type: currentQuestion.type,
@@ -379,7 +390,13 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                 {currentIndex === questions.length - 1 
                   ? t('survey.submit')
                   : currentQuestion.type === "info_screen" && currentQuestion.buttonText 
-                    ? currentQuestion.buttonText 
+                    ? (typeof currentQuestion.buttonText === 'string')
+                      ? (currentQuestion.buttonText.startsWith('survey.') || currentQuestion.buttonText.startsWith('general.'))
+                        ? t(currentQuestion.buttonText) 
+                        : currentQuestion.buttonText
+                      : (typeof currentQuestion.buttonText === 'object' && currentQuestion.buttonText)
+                        ? currentQuestion.buttonText[language] || t('survey.next')
+                        : t('survey.next')
                     : t('survey.next')}
               </Text>
             </Button>

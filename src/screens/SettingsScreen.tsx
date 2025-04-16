@@ -119,7 +119,9 @@ const SettingsScreen: React.FC = () => {
                 className="w-full justify-between py-6"
               >
                 <Text className="text-primary text-lg flex-shrink">{t('settings.language')}</Text>
-                <Text className="text-muted-foreground ml-2">{language === 'de' ? 'Deutsch' : 'English'}</Text>
+                <Text className="text-muted-foreground ml-2">
+                  {languageNames[language]}
+                </Text>
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent portalHost={PORTAL_HOST_NAME}>

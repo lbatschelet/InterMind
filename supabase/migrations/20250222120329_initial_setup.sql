@@ -26,7 +26,8 @@ CREATE TABLE languages (
 -- Insert supported languages
 INSERT INTO languages (code, name, native_name) VALUES
     ('en', 'English', 'English'),
-    ('de', 'German', 'Deutsch');
+    ('de', 'German', 'Deutsch'),
+    ('fr', 'French', 'Français');
 
 -- Table: surveys (tracks each survey session)
 CREATE TABLE surveys (
