@@ -31,21 +31,18 @@
  */
 
 import React, { useEffect } from "react";
-import { Dimensions, ScrollView, Text, View, StyleSheet } from "react-native";
+import { Dimensions, Text, View, StyleSheet } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import QuestionImage from "../QuestionImage";
+import Markdown from 'react-native-markdown-display';
 
 // Konstante Werte für Layout-Abstände und Größen
 const LAYOUT = {
-  PADDING_HORIZONTAL: 16,
-  PADDING_TOP: 8,
   IMAGE_HEIGHT_PERCENT: 0.2,    // 20% der Bildschirmhöhe für Bilder
-  PLACEHOLDER_HEIGHT_PERCENT: 0.05, // 5% der Bildschirmhöhe für Platzhalter
   TITLE_FONT_SIZE: 28,
   TITLE_MARGIN_BOTTOM: 24,
   TEXT_FONT_SIZE: 16,
-  TEXT_LINE_HEIGHT: 24,
-  BOTTOM_PADDING: 200  // Großes Padding unten für Scroll hinter Buttons
+  TEXT_LINE_HEIGHT: 24
 };
 
 /**
@@ -73,45 +70,25 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
   
   return (
     <View style={styles.container}>
-      {/* Reservierter Platz für das Bild - entweder mit Bild oder als leerer Platzhalter */}
-      <View style={styles.imageContainer}>
-        {question.imageSource ? (
+      {/* Bild immer zuerst, wenn vorhanden */}
+      {question.imageSource && (
+        <View style={styles.imageContainer}>
           <QuestionImage 
             imageSource={question.imageSource} 
             imageHeight={screenHeight * LAYOUT.IMAGE_HEIGHT_PERCENT}
           />
-        ) : (
-          // Leerer Platzhalter mit geringerer Höhe, wenn kein Bild vorhanden ist
-          <View style={{ height: screenHeight * LAYOUT.PLACEHOLDER_HEIGHT_PERCENT }} />
-        )}
-      </View>
+        </View>
+      )}
       
-      {/* Scrollbarer Bereich - nimmt den übrigen Platz ein */}
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={true}
-        indicatorStyle="black"
-        persistentScrollbar={true}
-        contentContainerStyle={styles.scrollContent}
-        bounces={true}
-        alwaysBounceVertical={true}
-        decelerationRate="normal"
-        scrollEventThrottle={16}
-        keyboardShouldPersistTaps="handled"
-        overScrollMode="always"
-        scrollToOverflowEnabled={true}
-        directionalLockEnabled={true}
-      >
-        {/* Titel innerhalb der ScrollView */}
-        <Text style={styles.title}>
-          {question.title}
-        </Text>
-        
-        {/* Text direkt nach dem Titel */}
-        <Text style={styles.text}>
-          {question.text}
-        </Text>
-      </ScrollView>
+      {/* Titel nach dem Bild */}
+      <Text style={styles.title}>
+        {question.title}
+      </Text>
+      
+      {/* Markdown-formatierter Text */}
+      <Markdown style={markdownStyles}>
+        {question.text}
+      </Markdown>
     </View>
   );
 };
@@ -119,37 +96,119 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
 // Styles für bessere Lesbarkeit ausgelagert
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     width: '100%',
-    paddingHorizontal: LAYOUT.PADDING_HORIZONTAL,
-    paddingTop: LAYOUT.PADDING_TOP,
-    overflow: 'hidden'
-  },
-  imageContainer: {
-    alignItems: 'center',
-    marginBottom: 16,
-    width: '100%'
-  },
-  scrollView: {
-    flex: 1,
-    width: '100%',
-    height: '100%'
-  },
-  scrollContent: {
-    paddingBottom: LAYOUT.BOTTOM_PADDING,
-    flexGrow: 1,
-    width: '100%'
+    marginVertical: 8  // Mehr vertikaler Abstand
   },
   title: {
     fontSize: LAYOUT.TITLE_FONT_SIZE,
     fontWeight: 'bold',
+    marginTop: 20,
     marginBottom: LAYOUT.TITLE_MARGIN_BOTTOM,
     textAlign: 'left'
   },
-  text: {
-    fontSize: LAYOUT.TEXT_FONT_SIZE,
-    lineHeight: LAYOUT.TEXT_LINE_HEIGHT
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: 20,  // Etwas mehr Abstand nach unten
+    width: '100%'
   }
+});
+
+// Spezielle Styles für Markdown-Elemente
+const markdownStyles = StyleSheet.create({
+  // Basis-Textstil
+  body: {
+    fontSize: LAYOUT.TEXT_FONT_SIZE,
+    lineHeight: LAYOUT.TEXT_LINE_HEIGHT,
+    color: '#000',
+    marginBottom: 0, // Kein zusätzliches Padding unten, da der SurveyScreen bereits Padding hat
+  },
+  // Überschriften
+  heading1: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  heading2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  heading3: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  // Listen
+  bullet_list: {
+    marginVertical: 12,
+  },
+  ordered_list: {
+    marginVertical: 12,
+  },
+  // Listenpunkte
+  list_item: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  // Text innerhalb von Listenpunkten
+  bullet_list_content: {
+    flex: 1, // Erlaubt Textumbruch
+  },
+  ordered_list_content: {
+    flex: 1, // Erlaubt Textumbruch
+  },
+  // Hervorhebungen
+  strong: {
+    fontWeight: 'bold',
+  },
+  em: {
+    fontStyle: 'italic',
+  },
+  // Links
+  link: {
+    color: '#2196F3', // Standardmäßige Link-Farbe
+    textDecorationLine: 'underline',
+  },
+  // Blockzitate
+  blockquote: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#CCCCCC',
+    paddingLeft: 8,
+    marginLeft: 8,
+    marginVertical: 8,
+    fontStyle: 'italic',
+  },
+  // Code-Blöcke
+  code_block: {
+    backgroundColor: '#F5F5F5',
+    padding: 8,
+    borderRadius: 4,
+    fontFamily: 'monospace',
+    marginVertical: 8,
+  },
+  // Inlinie-Code
+  code_inline: {
+    backgroundColor: '#F5F5F5',
+    fontFamily: 'monospace',
+    padding: 2,
+    borderRadius: 2,
+  },
+  // Horizontale Linien
+  hr: {
+    backgroundColor: '#CCCCCC',
+    height: 1,
+    marginVertical: 12,
+  },
+  // Bilder - angepasst an volle Breite mit responsiver Höhe
+  image: {
+    width: '100%',
+    resizeMode: 'contain',
+    marginVertical: 16,
+    alignSelf: 'center',
+  },
 });
 
 export default InfoScreen; 

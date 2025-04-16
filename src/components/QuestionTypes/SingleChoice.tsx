@@ -99,16 +99,19 @@ const SingleChoice: React.FC<QuestionComponentProps<"single_choice"> & {
   };
 
   return (
-    <View className="space-y-4">
-      {question.options.map(({ value, label }) => (
-        <Button
-          key={value}
-          variant={selected === value ? "default" : "outline"}
-          onPress={() => handleSelect(value)}
-        >
-          <Text>{label}</Text>
-        </Button>
-      ))}
+    <View className="w-full">
+      <View className="space-y-6 w-full">
+        {question.options.map(({ value, label }) => (
+          <Button
+            key={value}
+            variant={selected === value ? "default" : "outline"}
+            onPress={() => handleSelect(value)}
+            className="py-3"
+          >
+            <Text>{label}</Text>
+          </Button>
+        ))}
+      </View>
     </View>
   );
 };

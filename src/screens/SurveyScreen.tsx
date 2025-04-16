@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Keyboard, TouchableWithoutFeedback, View, Dimensions } from "react-native";
+import { Animated, Keyboard, TouchableWithoutFeedback, View, Dimensions, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import QuestionRenderer from "../components/QuestionRenderer";
 import {
@@ -267,58 +267,80 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
   });
 
   return (
-    <SafeAreaView edges={["bottom"]} className="flex-1 bg-background">
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View className="flex-1 px-4">
+    <SafeAreaView edges={["top", "bottom"]} className="flex-1 bg-background">
+      <View className="flex-1">
+        <View className="flex-1">
           {/* Question Content - Only this part is animated */}
           <Animated.View 
-            className="flex-1 justify-center"
+            className="flex-1"
             style={{ transform: [{ translateX: slideAnim }] }}
           >
-            {/* Optimierte Struktur mit weniger Verschachtelung */}
-            {currentQuestion.type !== "info_screen" ? (
-              <View className="items-center">
-                <View className="w-full max-w-md">
-                  {/* Reguläre Fragetypen: Bild über dem Fragentext */}
-                  {currentQuestion.imageSource && (
-                    <View className="mb-6">
-                      <QuestionImage imageSource={currentQuestion.imageSource} />
-                    </View>
-                  )}
-                  
-                  <Text className="text-2xl font-bold mb-8 text-center">
-                    {currentQuestion.text}
-                  </Text>
-                  
-                  <QuestionRenderer 
-                    question={currentQuestion} 
-                    onNext={handleResponseUpdate} 
-                    onAutoAdvance={handleAutoAdvance}
-                    initialValue={previousResponse}
-                  />
+            <View className="flex-1 px-6">
+              {/* Optimierte Verteilung mit flexiblem Abstand */}
+              <View className="flex-1 flex-col justify-between">
+                {/* Oberhalb der Frage und Antworten: flexibler Abstand */}
+                <View className="flex-grow" />
+                
+                {/* Mittlerer Bereich: Frage */}
+                <View>
+                  <ScrollView
+                    className="w-full"
+                    contentContainerStyle={{
+                      paddingVertical: 8, 
+                    }}
+                    showsVerticalScrollIndicator={true}
+                    bounces={true}
+                    alwaysBounceVertical={true}
+                    scrollEventThrottle={16}
+                    decelerationRate="normal"
+                  >
+                    {currentQuestion.type === "info_screen" ? (
+                      <QuestionRenderer 
+                        question={currentQuestion} 
+                        onNext={handleResponseUpdate} 
+                        onAutoAdvance={handleAutoAdvance}
+                        initialValue={previousResponse}
+                      />
+                    ) : (
+                      <View className="items-center">
+                        {/* Bild zuerst, wenn vorhanden */}
+                        {currentQuestion.imageSource && (
+                          <View className="w-full items-center mb-4">
+                            <QuestionImage imageSource={currentQuestion.imageSource} />
+                          </View>
+                        )}
+                        
+                        <Text className="text-2xl font-bold text-center">
+                          {currentQuestion.text}
+                        </Text>
+                      </View>
+                    )}
+                  </ScrollView>
                 </View>
+                
+                {/* Minimaler Abstand zwischen Frage und Antworten */}
+                <View className="h-4" />
+                
+                {/* Antwortmöglichkeiten (nur für Nicht-InfoScreen-Typen) */}
+                {currentQuestion.type !== "info_screen" && (
+                  <View className="w-full">
+                    <QuestionRenderer 
+                      question={currentQuestion} 
+                      onNext={handleResponseUpdate} 
+                      onAutoAdvance={handleAutoAdvance}
+                      initialValue={previousResponse}
+                    />
+                  </View>
+                )}
+                
+                {/* Unterhalb der Antworten: flexibler Abstand */}
+                <View className="flex-grow" />
               </View>
-            ) : (
-              /* InfoScreen bekommt ein eigenes Layout mit mehr Platz */
-              <View 
-                className="flex-1 pt-20"
-                style={{ 
-                  height: Dimensions.get('window').height - 150, // Feste Höhe abzüglich Platz für Buttons unten
-                  overflow: 'visible' // Erlaubt Überlauf für Kinder-Komponenten
-                }}
-              >
-                <QuestionRenderer 
-                  question={currentQuestion} 
-                  onNext={handleResponseUpdate} 
-                  onAutoAdvance={handleAutoAdvance}
-                  initialValue={previousResponse}
-                />
-              </View>
-            )}
+            </View>
           </Animated.View>
 
           {/* Navigation Buttons - Not animated */}
-          <View className="flex-row justify-between items-center w-full py-4">
+          <View className="flex-row justify-between items-center w-full py-4 px-6">
             <Button 
               variant="outline" 
               onPress={handleBack} 
@@ -351,7 +373,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
             </Button>
           </View>
         </View>
-      </TouchableWithoutFeedback>
+      </View>
 
       {/* Exit Confirmation Dialog */}
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>

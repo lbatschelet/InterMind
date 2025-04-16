@@ -12,17 +12,41 @@ You''ll receive brief surveys a few times a day, taking only a few minutes to an
   INSERT INTO questions (type, title, text, options, category, sequence_number, image_source) VALUES
   
   ('info_screen',
-   'About Your Data',
-   'Before we begin, we''d like to collect some basic demographic information, such as your age or gender identity. These questions help us understand how different groups experience their surroundings.
+   'Consent to Participate',
+   'Before we begin, we ask for your consent to take part in a research study.
 
-If you''d prefer not to answer any question, you can always select "Prefer not to say." Also, you can delete all your personal data at any time in the app settings. This ensures you remain in full control of your information.
+As part of this study, we will ask you some questions—first about yourself (e.g. age, gender identity), and then about your feelings and your surrounding environment at different moments in your day. Your responses help us understand how different people experience urban spaces and how these experiences relate to wellbeing.
 
-Your data is:
-• Completely anonymized
-• Not shared with third parties
-• Stored securely
-• Can be deleted at any time',
-   '{"buttonText": "I understand", "showOnce": true}',
+**Participation is voluntary**. You can skip any question by selecting “Prefer not to say.” You can also delete all your data at any time via the app settings.
+
+## What Data Will Be Collected?
+
+- **Demographic data**, such as your age and gender identity  
+- **Survey responses** about your emotions, thoughts, and surroundings  
+- **Location data** via GPS (if you choose to allow it)
+
+We do **not** collect your name, phone number, email address, or any other identifying information. Your responses are **completely anonymous** and **cannot be linked to you**.
+
+## How Will Your Data Be Used?
+
+Your data will be:
+
+- Used for **academic research** on wellbeing and urban space
+- Stored securely on a **password-protected server**
+- **Not shared** with third parties
+- **Anonymized** and **non-identifiable**
+- Deletable by you at any time through the app
+
+## Your Consent
+
+By tapping **“I Agree”**, you confirm that:
+
+- You understand the purpose of this study
+- You agree to participate voluntarily
+- You can withdraw at any time by deleting your data in the app settings
+
+Please read our [Privacy Policy](#) for more details.',
+   '{"buttonText": "I Agree", "showOnce": true}',
    'demographic',
    10,
    'contract');
