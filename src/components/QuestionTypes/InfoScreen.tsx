@@ -31,10 +31,8 @@
  */
 
 import React from "react";
-import { ScrollView, View } from "react-native";
-import Markdown from 'react-native-markdown-display';
+import { Dimensions, ScrollView, Text, View } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
-import { Text } from "../ui/text";
 
 /**
  * Information screen component.
@@ -46,35 +44,40 @@ import { Text } from "../ui/text";
 const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({ 
   question
 }) => {
-  // Check if text contains markdown formatting
-  const hasMarkdown = /[*#_\-`]/.test(question.text);
-
+  // Berechne eine bessere Höhe für die ScrollView
+  const screenHeight = Dimensions.get('window').height;
+  // Bildschirmhöhe für den scrollbaren Bereich, mit Spielraum für Button und Titel
+  const scrollViewHeight = screenHeight * 0.6;
+  
   return (
-    <View className="space-y-2 max-h-96">
-      <ScrollView 
-        className="flex-1" 
-        showsVerticalScrollIndicator={true}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      >
-        {hasMarkdown ? (
-          <Markdown style={{
-            body: { fontSize: 16, lineHeight: 24 },
-            heading1: { fontSize: 24, fontWeight: 'bold', marginVertical: 10 },
-            heading2: { fontSize: 20, fontWeight: 'bold', marginVertical: 8 },
-            heading3: { fontSize: 18, fontWeight: 'bold', marginVertical: 6 },
-            bullet_list: { marginVertical: 8 },
-            ordered_list: { marginVertical: 8 },
-            paragraph: { marginVertical: 6 },
-            strong: { fontWeight: 'bold' },
-            em: { fontStyle: 'italic' },
-            link: { color: '#0077CC', textDecorationLine: 'underline' }
-          }}>
+    <View style={{ paddingHorizontal: 16, paddingTop: 100, paddingBottom: 20 }}>
+      {/* Title */}
+      <Text style={{ 
+        fontSize: 28, 
+        fontWeight: 'bold', 
+        marginBottom: 24, 
+        textAlign: 'left' 
+      }}>
+        {question.title}
+      </Text>
+      
+      {/* Content - Scrollbare Textdarstellung */}
+      <View style={{ 
+          height: scrollViewHeight, 
+          borderWidth: 0,
+          marginBottom: 20
+        }}>
+        <ScrollView 
+          showsVerticalScrollIndicator={true}
+          indicatorStyle="black"
+          persistentScrollbar={true}
+          contentContainerStyle={{ paddingBottom: 30 }}
+        >
+          <Text style={{ fontSize: 16, lineHeight: 24 }}>
             {question.text}
-          </Markdown>
-        ) : (
-          <Text className="text-base">{question.text}</Text>
-        )}
-      </ScrollView>
+          </Text>
+        </ScrollView>
+      </View>
     </View>
   );
 };

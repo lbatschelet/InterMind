@@ -88,6 +88,19 @@ export class SurveyRepository {
       let options;
       let autoAdvance;
       let showOnce = false; // Standard: Die Frage wird nicht nur einmal angezeigt
+      let buttonText; // Für Info-Screens
+      
+      // Debug für info_screen-Typen
+      if (question.type === 'info_screen') {
+        log.debug("Original Info Screen Question:", {
+          id: question.id,
+          type: question.type,
+          title: question.title,
+          textLength: question.text?.length || 0,
+          text: question.text?.substring(0, 50) + '...',
+          options: question.options
+        });
+      }
       
       try {
         // Versuche, options zu parsen, falls es ein JSON-String ist
@@ -111,8 +124,13 @@ export class SurveyRepository {
             showOnce = !!parsedOptions.showOnce;
           }
           
-          // Keep all options
-          options = parsedOptions;
+          // Extract buttonText if exists
+          if ('buttonText' in parsedOptions) {
+            buttonText = parsedOptions.buttonText;
+          }
+          
+          // Debug für Info-Screen Optionen
+          log.debug("Parsed Info Screen Options:", parsedOptions);
         }
         else {
           options = parsedOptions;
@@ -128,21 +146,35 @@ export class SurveyRepository {
         type: question.type,
         title: question.title, // Für Info-Screens relevant
         text: question.text,
-        options: options,
         category: question.category, // Kategorie aus Datenbank übernehmen
         sequence_number: question.sequence_number, // Sequenznummer für Sortierung
         showOnce: showOnce // showOnce-Flag setzen
       };
       
-      // Spezielle Felder für bestimmte Fragetypen hinzufügen
-      if (question.type === 'single_choice' && autoAdvance !== undefined) {
+      // Spezielle Felder je nach Fragetyp hinzufügen
+      if (question.type === 'info_screen') {
+        // Extra Debug für Info-Screen-Texte
+        log.debug("Formatted Info Screen Text (first 100 chars):", 
+          baseQuestion.text?.substring(0, 100).replace(/\n/g, "\\n"));
+        
+        // Füge buttonText für InfoScreen-Fragen hinzu
         return {
           ...baseQuestion,
+          buttonText: buttonText || "Continue" // Standardwert, falls nicht gesetzt
+        };
+      } else if (question.type === 'single_choice' && autoAdvance !== undefined) {
+        return {
+          ...baseQuestion,
+          options, // Füge die Optionen hinzu
           autoAdvance
         };
+      } else {
+        // Für alle anderen Fragetypen
+        return {
+          ...baseQuestion,
+          options // Füge die Optionen hinzu
+        };
       }
-      
-      return baseQuestion;
     });
     
     log.debug("Questions formatted", { count: formattedQuestions.length });

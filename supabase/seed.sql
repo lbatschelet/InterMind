@@ -22,36 +22,8 @@ Your data is:
 • Can be deleted at any time',
    '{"buttonText": "I understand", "showOnce": true}',
    'demographic',
-   10),
+   10);
    
-  ('info_screen',
-   'How Intersectionality Works',
-   '## Understanding Intersectionality
-
-**Intersectionality** helps us understand how different aspects of our identities combine to affect our experiences. 
-
-### Key Concepts
-
-The app explores how these factors interact:
-
-- **Gender identity** - How you identify regardless of biological sex
-- **Age** - Different generations may experience spaces differently
-- **Ethnicity/Cultural background** - Cultural factors shape perceptions
-- **Socioeconomic status** - Financial circumstances affect access and comfort
-- **Sexual orientation** - How this shapes your experiences in public spaces
-
-### Why This Matters
-
-When we understand intersectionality, we can:
-
-1. Design more inclusive spaces
-2. Address barriers faced by specific groups
-3. Create solutions that work for *everyone*
-
-Your participation helps build this understanding. Thank you for contributing to this research!',
-   '{"buttonText": "Got it", "showOnce": true}',
-   'educational',
-   15);
 
 INSERT INTO questions (type, title, text, options, category, sequence_number) VALUES
   -- Altersgruppen Frage

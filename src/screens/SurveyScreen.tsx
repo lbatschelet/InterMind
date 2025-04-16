@@ -3,14 +3,14 @@ import { Animated, Keyboard, TouchableWithoutFeedback, View } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import QuestionRenderer from "../components/QuestionRenderer";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from "../components/ui/alert-dialog";
 import { Button } from "../components/ui/button";
 import { Text } from "../components/ui/text";
@@ -276,9 +276,13 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
           >
             <View className="items-center">
               <View className="w-full max-w-md">
-                <Text className="text-2xl font-bold mb-8 text-center">
-                  {currentQuestion.type === "info_screen" ? currentQuestion.title : currentQuestion.text}
-                </Text>
+                {/* Nur für Nicht-InfoScreen-Typen anzeigen */}
+                {currentQuestion.type !== "info_screen" && (
+                  <Text className="text-2xl font-bold mb-8 text-center">
+                    {currentQuestion.text}
+                  </Text>
+                )}
+                {/* Info-Screens verwalten ihre eigene Darstellung inkl. Titel */}
                 <QuestionRenderer 
                   question={currentQuestion} 
                   onNext={handleResponseUpdate} 
