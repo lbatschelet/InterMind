@@ -93,6 +93,9 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider"> & {
       : 0.5
   );
 
+  // Flag to track whether we've already sent the initial value
+  const initialValueSentRef = useRef<boolean>(initialValue !== undefined);
+
   // Update the question ID ref and reset value if question changes
   useEffect(() => {
     if (questionIdRef.current !== question.id) {
@@ -102,6 +105,7 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider"> & {
       });
       
       questionIdRef.current = question.id;
+      initialValueSentRef.current = initialValue !== undefined;
       
       // Use initialValue for this specific question or default to center
       setSelectedValue(initialValue !== undefined ? initialValue : 0.5);
@@ -117,6 +121,18 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider"> & {
     }
   }, [question.id, initialValue, onNext]);
 
+  // Submit default value (0.5) if no initial value was provided
+  useEffect(() => {
+    // If we haven't sent any value yet for this question, send the default
+    if (!initialValueSentRef.current) {
+      log.debug("Submitting default value (0.5) for slider question", { 
+        questionId: question.id
+      });
+      onNext(selectedValue);
+      initialValueSentRef.current = true;
+    }
+  }, [question.id, selectedValue, onNext]);
+
   // Update parent component with current value
   const handleValueChange = (value: number) => {
     setSelectedValue(value);
@@ -124,6 +140,8 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider"> & {
     
     // Send updated value to parent component
     onNext(value);
+    // Mark that we've sent a value
+    initialValueSentRef.current = true;
   };
 
   return (

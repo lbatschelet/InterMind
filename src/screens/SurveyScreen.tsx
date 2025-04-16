@@ -14,6 +14,7 @@ import {
 } from "../components/ui/alert-dialog";
 import { Button } from "../components/ui/button";
 import { Text } from "../components/ui/text";
+import { useLanguage } from "../contexts/LanguageContext";
 import ResponseService from "../services/ResponseService";
 import SurveyService from "../services/SurveyService";
 import { Question } from "../types/question";
@@ -31,6 +32,7 @@ const log = createLogger("SurveyScreen");
  * - Provides smooth transitions between questions.
  */
 const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string) => void; goBack: () => void } }) => {
+  const { language, t } = useLanguage();
   const [surveyId, setSurveyId] = useState<string | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,10 +55,10 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
   useEffect(() => {
     const initializeSurvey = async () => {
       try {
-        log.info("Initializing survey session...");
+        log.info("Initializing survey session...", { language });
         setIsLoading(true);
     
-        const { surveyId, questions } = await SurveyService.startSurvey();
+        const { surveyId, questions } = await SurveyService.startSurvey(false, language);
     
         setSurveyId(surveyId);
         setQuestions(questions);
@@ -69,7 +71,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
       }
     };    
     initializeSurvey();
-  }, []);
+  }, [language]);
 
   /**
    * Callback for receiving responses from question components.
@@ -137,12 +139,22 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
     }
 
     const questionId = questions[currentIndex].id;
+    const currentQuestion = questions[currentIndex];
     
     try {
-      // Get response from cache or use empty object
-      const response = responseCache.current[questionId] || {};
+      // Get response from cache or use a default value based on question type
+      let response = responseCache.current[questionId];
       
-      log.debug("Submitting response", { questionId, response });
+      // Für Slider-Fragen: Wenn keine Antwort im Cache ist, setze den Standardwert (0.5)
+      if (currentQuestion.type === 'slider' && response === undefined) {
+        response = 0.5;
+        log.debug("Using default value (0.5) for slider question", { questionId });
+      } else if (response === undefined) {
+        // Für andere Fragetypen: leeres Objekt wenn keine Antwort
+        response = {};
+      }
+      
+      log.debug("Submitting response", { questionId, response, type: currentQuestion.type });
       await ResponseService.submitResponse(surveyId, questionId, response);
       
       // Mark this question as having been answered
@@ -347,7 +359,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
               className={currentIndex === 0 ? "opacity-50" : ""}
               disabled={isAnimating}
             >
-              <Text>Back</Text>
+              <Text>{t('survey.back')}</Text>
             </Button>
 
             {/* Next/Submit Button for all question types */}
@@ -365,10 +377,10 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
             >
               <Text className="text-primary">
                 {currentIndex === questions.length - 1 
-                  ? "Submit" 
+                  ? t('survey.submit')
                   : currentQuestion.type === "info_screen" && currentQuestion.buttonText 
                     ? currentQuestion.buttonText 
-                    : "Next"}
+                    : t('survey.next')}
               </Text>
             </Button>
           </View>
@@ -379,18 +391,17 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
         <AlertDialogContent portalHost="root-portal">
           <AlertDialogHeader>
-            <AlertDialogTitle>Exit Survey?</AlertDialogTitle>
+            <AlertDialogTitle>{t('survey.exitTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Your progress will be saved, but you will exit the survey.
-              Are you sure you want to exit?
+              {t('survey.exitMessage')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onPress={cancelExit}>
-              <Text>Continue Survey</Text>
+              <Text>{t('survey.continueSurvey')}</Text>
             </AlertDialogCancel>
             <AlertDialogAction className="bg-destructive" onPress={confirmExit}>
-              <Text className="text-destructive-foreground">Exit Survey</Text>
+              <Text className="text-destructive-foreground">{t('survey.exitSurvey')}</Text>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

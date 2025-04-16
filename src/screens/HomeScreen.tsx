@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ADayAtThePark from "~/assets/a-day-at-the-park.svg";
 import { Button } from "~/src/components/ui/button";
 import { Text } from "~/src/components/ui/text";
+import { useLanguage } from "~/src/contexts/LanguageContext";
 import { RootStackParamList } from "~/src/navigation/AppNavigator";
 import SurveyService from "../services/SurveyService";
 import { createLogger } from "~/src/utils/logger";
@@ -40,6 +41,7 @@ interface HomeScreenProps {
  * ```
  */
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const { t, language } = useLanguage();
   /** State to prevent double submissions */
   const [isCreatingSurvey, setIsCreatingSurvey] = useState(false);
 
@@ -63,7 +65,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       setIsCreatingSurvey(true);
       log.info("Starting a new survey session...");
 
-      const { surveyId, questions } = await SurveyService.startSurvey();
+      const { surveyId, questions } = await SurveyService.startSurvey(false, language);
 
       if (surveyId) {
         log.info("Survey session started", { surveyId });
@@ -89,7 +91,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         {/* Bottom Button */}
         <View className="w-full px-4 mb-12 items-center">
           <Button variant="default" className="bg-accent" onPress={handleStartSurvey}>
-            <Text className="text-primary text-lg font-bold">Start Survey</Text>
+            <Text className="text-primary text-lg font-bold">{t('home.startSurvey')}</Text>
           </Button>
         </View>
       </SafeAreaView>

@@ -1,4 +1,5 @@
 import { createLogger } from "~/src/utils/logger";
+import { LanguageCode } from "../locales";
 import { SurveyRepository } from "../repositories/SurveyRepository";
 import { Question } from "../types/question";
 import AnsweredQuestionsService from "./AnsweredQuestionsService";
@@ -10,21 +11,22 @@ class SurveyService {
   /**
    * Starts a new survey session.
    * @param includeAnsweredOnceQuestions Optional flag to include all questions, even those marked as showOnce that have been answered before
+   * @param language The language code to use for the questions
    * @returns The new survey ID and its questions.
    */
-  static async startSurvey(includeAnsweredOnceQuestions = false): Promise<{ surveyId: string; questions: Question[] }> {
-    log.info("Starting a new survey session...");
+  static async startSurvey(includeAnsweredOnceQuestions = false, language: LanguageCode = 'en'): Promise<{ surveyId: string; questions: Question[] }> {
+    log.info("Starting a new survey session...", { language });
 
     try {
       // Parallelisiere die DeviceID-Abfrage und Fragenabruf, um Zeit zu sparen
       const [deviceId, allQuestions] = await Promise.all([
         DeviceService.getDeviceId(),
-        SurveyRepository.fetchQuestions()
+        SurveyRepository.fetchQuestions(false, language)
       ]);
 
-      // Survey erstellen mit der jetzt bekannten Device-ID
-      const surveyId = await SurveyRepository.createSurvey(deviceId);
-      log.info("Survey session created", { surveyId });
+      // Survey erstellen mit der jetzt bekannten Device-ID und Sprache
+      const surveyId = await SurveyRepository.createSurvey(deviceId, language);
+      log.info("Survey session created", { surveyId, language });
       
       // Wenn alle Fragen zurückgegeben werden sollen, können wir hier direkt zurückgeben
       if (includeAnsweredOnceQuestions) {

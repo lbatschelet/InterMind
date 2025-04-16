@@ -44,6 +44,7 @@ import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '~/src/components/ui/alert-dialog';
 import { Button } from '~/src/components/ui/button';
+import { useLanguage } from '~/src/contexts/LanguageContext';
 import { ArrowLeft } from '~/src/lib/icons/ArrowLeft';
 import { Settings } from '~/src/lib/icons/Settings';
 import { PORTAL_HOST_NAME } from '../lib/constants';
@@ -76,13 +77,16 @@ const Stack = createStackNavigator<RootStackParamList>();
  * - Settings button (right-aligned)
  * - Proper safe area handling
  */
-const HomeHeader = (props: StackHeaderProps) => (
+const HomeHeader = (props: StackHeaderProps) => {
+  const { t } = useLanguage();
+  
+  return (
     <SafeAreaView edges={['top']} className="bg-background">
         <View className="px-4 pt-2">
             <View className="flex-row items-center justify-between">
                 <View className="flex-1" />
                 <Text style={{ fontSize: 36 }} className="text-primary font-bold">
-                    InterMind
+                    {t('home.title')}
                 </Text>
                 <View className="flex-1 items-end">
                     <Button 
@@ -96,7 +100,8 @@ const HomeHeader = (props: StackHeaderProps) => (
             </View>
         </View>
     </SafeAreaView>
-);
+  );
+};
 
 /**
  * Assessment question screen header.
@@ -123,7 +128,10 @@ const HomeHeader = (props: StackHeaderProps) => (
  * - Settings title
  * - Consistent styling with other headers
  */
-const SettingsHeader = (props: StackHeaderProps) => (
+const SettingsHeader = (props: StackHeaderProps) => {
+  const { t } = useLanguage();
+  
+  return (
     <SafeAreaView edges={['top']} className="bg-background">
         <View className="px-4 pt-2">
             <View className="flex-row items-center">
@@ -135,12 +143,13 @@ const SettingsHeader = (props: StackHeaderProps) => (
                     <ArrowLeft className="text-primary" size={24} />
                 </Button>
                 <Text className="text-xl font-bold text-primary ml-2">
-                    Settings
+                    {t('settings.title')}
                 </Text>
             </View>
         </View>
     </SafeAreaView>
-);
+  );
+};
 
 /**
  * Root navigation component.
