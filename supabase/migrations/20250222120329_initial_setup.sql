@@ -29,7 +29,8 @@ CREATE TABLE questions (
     text TEXT NOT NULL,
     options JSONB DEFAULT NULL,
     category TEXT,
-    sequence_number INTEGER DEFAULT 9999
+    sequence_number INTEGER DEFAULT 9999,
+    image_source TEXT DEFAULT NULL
 );
 
 -- Table: responses (stores user answers)

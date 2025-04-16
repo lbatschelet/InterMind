@@ -7,7 +7,9 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
 You''ll receive brief surveys a few times a day, taking only a few minutes to answer. Your responses remain confidential and will be used solely to gain insights into how different environments and personal factors affect well-being.',
   '{"buttonText": "Next", "showOnce": true}',
   'welcome',
-  0),
+  0);
+
+  INSERT INTO questions (type, title, text, options, category, sequence_number, image_source) VALUES
   
   ('info_screen',
    'About Your Data',
@@ -22,7 +24,8 @@ Your data is:
 • Can be deleted at any time',
    '{"buttonText": "I understand", "showOnce": true}',
    'demographic',
-   10);
+   10,
+   'contract');
    
 
 INSERT INTO questions (type, title, text, options, category, sequence_number) VALUES
@@ -99,20 +102,33 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
 
 
 -- ==========================
--- REPEATED INTERSECTIONAL WELL-BEING
+-- REPEATED QUESTIONS ABOUT CURRENT SURROUNDINGS
 -- ==========================
 
-INSERT INTO questions (type, title, text, options, category, sequence_number) VALUES
+
+
+INSERT INTO questions (type, title, text, options, category, sequence_number, image_source) VALUES
 -- Current Place
+
+('info_screen',
+ 'Current environment',
+ 'The following questions are about your current surroundings. Please select the option(s) that best describes your current location.',
+ '{"buttonText": "Next", "showOnce": false}',
+ 'well-being',
+ 200,
+ 'our-neighborhood');
+
+ INSERT INTO questions (type, title, text, options, category, sequence_number) VALUES
+
 ('single_choice',
  'Indoor or Outdoor?',
  'Are you indoors or outdoors?',
  '{"options": [
   {"value": "indoor", "label": "Indoors"},
   {"value": "outdoor", "label": "Outdoors"}
- ], "showOnce": true, "autoAdvance": true}',
+ ], "showOnce": false, "autoAdvance": true}',
  'well-being',
- 140),
+ 210),
 
 
 -- Current Place
@@ -129,7 +145,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
   {"value": "other", "label": "Other"}
  ], "showOnce": false, "autoAdvance": true}',
  'well-being',
- 150),
+ 220),
 
  -- Current Situation
  ('multiple_choice',
@@ -148,7 +164,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
    {"value": "other", "label": "Other"}
   ], "showOnce": false, "autoAdvance": false}',
   'well-being',
-  160),
+  230),
 
   -- Current Situation
  ('single_choice',
@@ -163,7 +179,25 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
    {"value": "other", "label": "Other"}
   ], "showOnce": false, "autoAdvance": false}',
   'well-being',
-  170),
+  240);
+
+-- ==========================
+-- REPEATED QUESTIONS ABOUT WELL-BEING
+-- ==========================
+
+INSERT INTO questions (type, title, text, options, category, sequence_number, image_source) VALUES
+
+-- Introduction to the Well-Being Questions
+('info_screen',
+ 'Well-Being Questions',
+ 'The following questions are about your well-being in your current surroundings. Please select the option(s) that best describes your current well-being.',
+ '{"buttonText": "Next", "showOnce": false}',
+ 'well-being',
+ 300,
+ 'undraw_relaxation_ies6');
+
+ INSERT INTO questions (type, title, text, options, category, sequence_number) VALUES
+
 
 -- A) Overall Well-Being (single_choice)
 ('single_choice',
@@ -180,7 +214,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
    "autoAdvance": true
  }',
  'well-being',
- 200),
+ 310),
 
 -- B) Sense of Safety (single_choice)
 ('single_choice',
@@ -197,7 +231,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
    "autoAdvance": true
  }',
  'well-being',
- 210),
+ 320),
 
 -- C) Relevant Social Factors (multiple_choice)
 ('multiple_choice',
@@ -210,7 +244,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
    {"value": "sexuality", "label": "Sexual orientation"},
    {"value": "none",      "label": "None / Not sure"}]',
  'well-being',
- 220),
+ 330),
 
 -- D) Gender Impact (slider)
 ('slider',
@@ -218,7 +252,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
  'How does your gender identity impact your well-being here?',
  '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}',
  'well-being',
- 230),
+ 340),
 
 -- E) Age Impact (slider)
 ('slider',
@@ -226,7 +260,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
  'How does your age or generation impact your well-being here?',
  '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}',
  'well-being',
- 240),
+ 350),
 
 -- F) Ethnicity Impact (slider)
 ('slider',
@@ -234,7 +268,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
  'How does your cultural/ethnic background impact your well-being here?',
  '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}',
  'well-being',
- 250),
+ 360),
 
 -- G) Financial Impact (slider)
 ('slider',
@@ -242,7 +276,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
  'How does your socioeconomic status impact your well-being here?',
  '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}',
  'well-being',
- 260),
+ 370),
 
 -- H) Sexual Orientation Impact (slider)
 ('slider',
@@ -250,7 +284,7 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
  'How does your sexual orientation impact your well-being here?',
  '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}',
  'well-being',
- 270),
+ 380),
 
 -- I) Text Reflection
 ('text',
@@ -258,5 +292,5 @@ INSERT INTO questions (type, title, text, options, category, sequence_number) VA
  'Would you like to share any thoughts on how your intersecting identities shape your experience here?',
  NULL,
  'well-being',
- 280);
+ 500);
 

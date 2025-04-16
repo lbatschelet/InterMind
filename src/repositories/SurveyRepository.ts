@@ -12,6 +12,7 @@ type RawQuestionData = {
   options: unknown;
   category?: string;
   sequence_number?: number;
+  image_source?: string; // Neues Feld für Bilder
 };
 
 // Cache für Fragen, um wiederholte DB-Abfragen zu vermeiden
@@ -109,7 +110,7 @@ export class SurveyRepository {
           : question.options;
           
         // Für Single-Choice Questions mit neuer Struktur
-        if (question.type === 'single_choice' && parsedOptions && typeof parsedOptions === 'object' && 'options' in parsedOptions) {
+        if ((question.type === 'single_choice' || question.type === 'multiple_choice') && parsedOptions && typeof parsedOptions === 'object' && 'options' in parsedOptions) {
           autoAdvance = parsedOptions.autoAdvance;
           // showOnce-Flag extrahieren, wenn vorhanden
           if ('showOnce' in parsedOptions) {
@@ -148,7 +149,8 @@ export class SurveyRepository {
         text: question.text,
         category: question.category, // Kategorie aus Datenbank übernehmen
         sequence_number: question.sequence_number, // Sequenznummer für Sortierung
-        showOnce: showOnce // showOnce-Flag setzen
+        showOnce: showOnce, // showOnce-Flag setzen
+        imageSource: question.image_source // Umbenannt zu imageSource für konsistente Namensgebung
       };
       
       // Spezielle Felder je nach Fragetyp hinzufügen

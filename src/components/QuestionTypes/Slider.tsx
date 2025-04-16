@@ -27,13 +27,34 @@
  * // - The component displays only the min and max labels on the UI
  */
 
-import Slider from "@react-native-community/slider";
 import React, { useEffect, useRef, useState } from "react";
-import { Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import Slider from "@react-native-community/slider";
+import { Text } from "../ui/text";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
 
 const log = createLogger("SliderQuestion");
+
+// Styles für den Slider
+const styles = StyleSheet.create({
+  slider: {
+    width: "100%",
+    height: 40
+  },
+  labelsContainer: {
+    width: "100%",
+    position: "relative",
+    marginTop: 10,
+    height: 30,
+  },
+  label: {
+    position: "absolute",
+    textAlign: "center",
+    width: 70,
+    fontSize: 12
+  }
+});
 
 /**
  * Smooth slider question component.
@@ -106,9 +127,10 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider"> & {
   };
 
   return (
-    <View className="space-y-6">
+    <View className="w-full space-y-6">
       {/* Slider component */}
       <Slider
+        style={styles.slider}
         minimumValue={0}
         maximumValue={1}
         step={undefined}

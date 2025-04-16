@@ -28,6 +28,7 @@ export type Question =
       autoAdvance?: boolean;
       showOnce?: boolean; // If true, question is only shown once per device
       sequence_number?: number; // Für die Sortierung der Fragen
+      imageSource?: string; // Name des Bildes in der Grafik-Registry oder URL
     }
   | {
       id: string;
@@ -37,6 +38,7 @@ export type Question =
       category?: string; // Kategorie der Frage (z.B. "demographic", "mood", etc.)
       showOnce?: boolean; // If true, question is only shown once per device
       sequence_number?: number; // Für die Sortierung der Fragen
+      imageSource?: string; // Name des Bildes in der Grafik-Registry oder URL
     }
   | {
       id: string;
@@ -46,6 +48,7 @@ export type Question =
       category?: string; // Kategorie der Frage (z.B. "demographic", "mood", etc.)
       showOnce?: boolean; // If true, question is only shown once per device
       sequence_number?: number; // Für die Sortierung der Fragen
+      imageSource?: string; // Name des Bildes in der Grafik-Registry oder URL
     }
   | {
       id: string;
@@ -55,6 +58,7 @@ export type Question =
       category?: string; // Kategorie der Frage (z.B. "demographic", "mood", etc.)
       showOnce?: boolean; // If true, question is only shown once per device
       sequence_number?: number; // Für die Sortierung der Fragen
+      imageSource?: string; // Name des Bildes in der Grafik-Registry oder URL
     }
   | {
       id: string;
@@ -65,6 +69,7 @@ export type Question =
       category?: string; // Can be used to associate with specific section (e.g., "demographic_intro")
       showOnce?: boolean; // If true, this info screen is only shown once per device
       sequence_number?: number; // Für die Sortierung der Fragen
+      imageSource?: string; // Name des Bildes in der Grafik-Registry oder URL
     };
 
 /**

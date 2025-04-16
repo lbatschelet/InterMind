@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Keyboard, TouchableWithoutFeedback, View } from "react-native";
+import { Animated, Keyboard, TouchableWithoutFeedback, View, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import QuestionRenderer from "../components/QuestionRenderer";
 import {
@@ -18,6 +18,7 @@ import ResponseService from "../services/ResponseService";
 import SurveyService from "../services/SurveyService";
 import { Question } from "../types/question";
 import { createLogger } from "../utils/logger";
+import QuestionImage from "../components/QuestionImage";
 
 // Initialize logger for this module
 const log = createLogger("SurveyScreen");
@@ -274,15 +275,38 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
             className="flex-1 justify-center"
             style={{ transform: [{ translateX: slideAnim }] }}
           >
-            <View className="items-center">
-              <View className="w-full max-w-md">
-                {/* Nur für Nicht-InfoScreen-Typen anzeigen */}
-                {currentQuestion.type !== "info_screen" && (
+            {/* Optimierte Struktur mit weniger Verschachtelung */}
+            {currentQuestion.type !== "info_screen" ? (
+              <View className="items-center">
+                <View className="w-full max-w-md">
+                  {/* Reguläre Fragetypen: Bild über dem Fragentext */}
+                  {currentQuestion.imageSource && (
+                    <View className="mb-6">
+                      <QuestionImage imageSource={currentQuestion.imageSource} />
+                    </View>
+                  )}
+                  
                   <Text className="text-2xl font-bold mb-8 text-center">
                     {currentQuestion.text}
                   </Text>
-                )}
-                {/* Info-Screens verwalten ihre eigene Darstellung inkl. Titel */}
+                  
+                  <QuestionRenderer 
+                    question={currentQuestion} 
+                    onNext={handleResponseUpdate} 
+                    onAutoAdvance={handleAutoAdvance}
+                    initialValue={previousResponse}
+                  />
+                </View>
+              </View>
+            ) : (
+              /* InfoScreen bekommt ein eigenes Layout mit mehr Platz */
+              <View 
+                className="flex-1 pt-20"
+                style={{ 
+                  height: Dimensions.get('window').height - 150, // Feste Höhe abzüglich Platz für Buttons unten
+                  overflow: 'visible' // Erlaubt Überlauf für Kinder-Komponenten
+                }}
+              >
                 <QuestionRenderer 
                   question={currentQuestion} 
                   onNext={handleResponseUpdate} 
@@ -290,52 +314,41 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                   initialValue={previousResponse}
                 />
               </View>
-            </View>
+            )}
           </Animated.View>
 
           {/* Navigation Buttons - Not animated */}
           <View className="flex-row justify-between items-center w-full py-4">
-            {currentQuestion.type !== "info_screen" ? (
-              <>
-                <Button 
-                  variant="outline" 
-                  onPress={handleBack} 
-                  className={currentIndex === 0 ? "opacity-50" : ""}
-                  disabled={isAnimating}
-                >
-                  <Text>Back</Text>
-                </Button>
+            <Button 
+              variant="outline" 
+              onPress={handleBack} 
+              className={currentIndex === 0 ? "opacity-50" : ""}
+              disabled={isAnimating}
+            >
+              <Text>Back</Text>
+            </Button>
 
-                {/* Next/Submit Button for all question types */}
-                <Button 
-                  variant="default" 
-                  className="bg-accent" 
-                  onPress={handleNext}
-                  disabled={isAnimating}
-                >
-                  <Text className="text-primary">
-                    {currentIndex === questions.length - 1 ? "Submit" : "Next"}
-                  </Text>
-                </Button>
-              </>
-            ) : (
-              <View className="w-full">
-                <Button 
-                  variant="default" 
-                  className="bg-accent w-full" 
-                  onPress={() => {
-                    // Für Info-Screens müssen wir manually onNext aufrufen und dann zur nächsten Frage gehen
-                    handleResponseUpdate(undefined);
-                    handleNext();
-                  }}
-                  disabled={isAnimating}
-                >
-                  <Text className="text-primary">
-                    {currentQuestion.type === "info_screen" && currentQuestion.buttonText || "I understand"}
-                  </Text>
-                </Button>
-              </View>
-            )}
+            {/* Next/Submit Button for all question types */}
+            <Button 
+              variant="default" 
+              className="bg-accent" 
+              onPress={() => {
+                // Bei Info-Screens müssen wir manuell onNext aufrufen
+                if (currentQuestion.type === "info_screen") {
+                  handleResponseUpdate(undefined);
+                }
+                handleNext();
+              }}
+              disabled={isAnimating}
+            >
+              <Text className="text-primary">
+                {currentIndex === questions.length - 1 
+                  ? "Submit" 
+                  : currentQuestion.type === "info_screen" && currentQuestion.buttonText 
+                    ? currentQuestion.buttonText 
+                    : "Next"}
+              </Text>
+            </Button>
           </View>
         </View>
       </TouchableWithoutFeedback>

@@ -11,7 +11,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { View } from "react-native";
+import { TextInput, View } from "react-native";
 import { Input } from "~/src/components/ui/input";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
@@ -57,10 +57,10 @@ const TextInputQuestion: React.FC<QuestionComponentProps<"text"> & {
   };
 
   return (
-    <View className="space-y-4">
-      {/* Text Input */}
+    <View className="space-y-4 w-full">
+      {/* Texteingabefeld darunter */}
       <Input
-        placeholder="Enter your response..."
+        placeholder="Geben Sie Ihre Antwort ein..."
         value={text}
         onChangeText={handleTextChange}
         multiline={true}
