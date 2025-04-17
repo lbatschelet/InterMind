@@ -35,15 +35,7 @@ import { Dimensions, Text, View, StyleSheet } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import QuestionImage from "../QuestionImage";
 import Markdown from 'react-native-markdown-display';
-
-// Konstante Werte für Layout-Abstände und Größen
-const LAYOUT = {
-  IMAGE_HEIGHT_PERCENT: 0.2,    // 20% der Bildschirmhöhe für Bilder
-  TITLE_FONT_SIZE: 28,
-  TITLE_MARGIN_BOTTOM: 24,
-  TEXT_FONT_SIZE: 16,
-  TEXT_LINE_HEIGHT: 24
-};
+import { getImageHeight, INFO_SCREEN_LAYOUT, markdownStyles as sharedMarkdownStyles } from "~/src/styles/infoScreenStyles";
 
 /**
  * Information screen component.
@@ -75,7 +67,7 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
         <View style={styles.imageContainer}>
           <QuestionImage 
             imageSource={question.imageSource} 
-            imageHeight={screenHeight * LAYOUT.IMAGE_HEIGHT_PERCENT}
+            imageHeight={getImageHeight(screenHeight)}
           />
         </View>
       )}
@@ -100,10 +92,10 @@ const styles = StyleSheet.create({
     marginVertical: 8  // Mehr vertikaler Abstand
   },
   title: {
-    fontSize: LAYOUT.TITLE_FONT_SIZE,
+    fontSize: INFO_SCREEN_LAYOUT.TITLE_FONT_SIZE,
     fontWeight: 'bold',
     marginTop: 20,
-    marginBottom: LAYOUT.TITLE_MARGIN_BOTTOM,
+    marginBottom: INFO_SCREEN_LAYOUT.TITLE_MARGIN_BOTTOM,
     textAlign: 'left'
   },
   imageContainer: {
@@ -113,102 +105,14 @@ const styles = StyleSheet.create({
   }
 });
 
-// Spezielle Styles für Markdown-Elemente
-const markdownStyles = StyleSheet.create({
-  // Basis-Textstil
+// Wir verwenden die gemeinsamen Markdown-Styles, aber fügen hier spezifische Anpassungen hinzu
+const markdownStyles = {
+  ...sharedMarkdownStyles,
+  // Spezielle Anpassungen für InfoScreen:
   body: {
-    fontSize: LAYOUT.TEXT_FONT_SIZE,
-    lineHeight: LAYOUT.TEXT_LINE_HEIGHT,
-    color: '#000',
+    ...sharedMarkdownStyles.body,
     marginBottom: 0, // Kein zusätzliches Padding unten, da der SurveyScreen bereits Padding hat
-  },
-  // Überschriften
-  heading1: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  heading2: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  heading3: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  // Listen
-  bullet_list: {
-    marginVertical: 12,
-  },
-  ordered_list: {
-    marginVertical: 12,
-  },
-  // Listenpunkte
-  list_item: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  // Text innerhalb von Listenpunkten
-  bullet_list_content: {
-    flex: 1, // Erlaubt Textumbruch
-  },
-  ordered_list_content: {
-    flex: 1, // Erlaubt Textumbruch
-  },
-  // Hervorhebungen
-  strong: {
-    fontWeight: 'bold',
-  },
-  em: {
-    fontStyle: 'italic',
-  },
-  // Links
-  link: {
-    color: '#2196F3', // Standardmäßige Link-Farbe
-    textDecorationLine: 'underline',
-  },
-  // Blockzitate
-  blockquote: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#CCCCCC',
-    paddingLeft: 8,
-    marginLeft: 8,
-    marginVertical: 8,
-    fontStyle: 'italic',
-  },
-  // Code-Blöcke
-  code_block: {
-    backgroundColor: '#F5F5F5',
-    padding: 8,
-    borderRadius: 4,
-    fontFamily: 'monospace',
-    marginVertical: 8,
-  },
-  // Inlinie-Code
-  code_inline: {
-    backgroundColor: '#F5F5F5',
-    fontFamily: 'monospace',
-    padding: 2,
-    borderRadius: 2,
-  },
-  // Horizontale Linien
-  hr: {
-    backgroundColor: '#CCCCCC',
-    height: 1,
-    marginVertical: 12,
-  },
-  // Bilder - angepasst an volle Breite mit responsiver Höhe
-  image: {
-    width: '100%',
-    resizeMode: 'contain',
-    marginVertical: 16,
-    alignSelf: 'center',
-  },
-});
+  }
+};
 
 export default InfoScreen; 

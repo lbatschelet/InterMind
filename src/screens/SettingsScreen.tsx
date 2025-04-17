@@ -28,12 +28,28 @@ import { createLogger } from "~/src/utils/logger";
 import { PORTAL_HOST_NAME } from "../lib/constants";
 import { DeviceService } from "../services/DeviceService";
 import SurveyService from "../services/SurveyService";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/AppNavigator";
+
 const log = createLogger("SettingsScreen");
+
+/**
+ * Navigation prop type for the Settings screen
+ */
+type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Settings">;
+
+/**
+ * Props for the Settings screen component
+ */
+interface SettingsScreenProps {
+  /** Navigation object for screen transitions */
+  navigation: SettingsScreenNavigationProp;
+}
 
 /**
  * Settings Screen Component
  */
-const SettingsScreen: React.FC = () => {
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { t, language, setLanguage } = useLanguage();
   const [deviceId, setDeviceId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -191,7 +207,7 @@ const SettingsScreen: React.FC = () => {
             variant="outline"
             className="w-full justify-between py-6"
             onPress={() => {
-              // Implement navigation to Privacy Policy
+              navigation.navigate('PrivacyPolicy');
             }}
           >
             <Text className="text-primary text-lg">{t('settings.privacyPolicy')}</Text>
@@ -202,7 +218,7 @@ const SettingsScreen: React.FC = () => {
             variant="outline"
             className="w-full justify-between py-6"
             onPress={() => {
-              // Implement navigation to About screen
+              navigation.navigate('About');
             }}
           >
             <Text className="text-primary text-lg">{t('settings.about')}</Text>

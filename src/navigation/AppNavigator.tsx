@@ -14,6 +14,8 @@
  * - Home (root)
  *   ├─ Question (assessment flow)
  *   └─ Settings
+ *      ├─ About
+ *      └─ Privacy Policy
  * 
  * Screen Features:
  * Home:
@@ -28,6 +30,14 @@
  * 
  * Settings:
  * - Configuration options
+ * - Simple back navigation
+ * 
+ * About:
+ * - Information about the app
+ * - Simple back navigation
+ * 
+ * Privacy Policy:
+ * - Legal information about privacy
  * - Simple back navigation
  * 
  * Design Patterns:
@@ -51,6 +61,8 @@ import { PORTAL_HOST_NAME } from '../lib/constants';
 import HomeScreen from '../screens/HomeScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import SurveyScreen from '../screens/SurveyScreen';
+import AboutScreen from '../screens/AboutScreen';
+import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 
 /**
  * Type definitions for the navigation stack parameters.
@@ -60,6 +72,8 @@ export type RootStackParamList = {
     Settings: undefined;
     Question: { questionIndex: number; assessmentId: string };
     SurveyScreen: undefined;
+    About: undefined;
+    PrivacyPolicy: undefined;
   };
   
 
@@ -152,6 +166,41 @@ const SettingsHeader = (props: StackHeaderProps) => {
 };
 
 /**
+ * Generic info screen header component (for About and Privacy Policy screens).
+ * 
+ * @param props.navigation - Navigation object for screen transitions
+ * @param title - Title to display in the header
+ * 
+ * @remarks
+ * Features:
+ * - Back button for simple navigation
+ * - Localized title
+ * - Consistent styling with other headers
+ */
+const InfoScreenHeader = (props: StackHeaderProps, title: string) => {
+  const { t } = useLanguage();
+  
+  return (
+    <SafeAreaView edges={['top']} className="bg-background">
+        <View className="px-4 pt-2">
+            <View className="flex-row items-center">
+                <Button 
+                    variant="ghost" 
+                    className="h-10 w-10 rounded-full"
+                    onPress={() => props.navigation.goBack()}
+                >
+                    <ArrowLeft className="text-primary" size={24} />
+                </Button>
+                <Text className="text-xl font-bold text-primary ml-2">
+                    {title}
+                </Text>
+            </View>
+        </View>
+    </SafeAreaView>
+  );
+};
+
+/**
  * Root navigation component.
  * 
  * @returns Configured navigation structure
@@ -164,6 +213,8 @@ const SettingsHeader = (props: StackHeaderProps) => {
  * - Assigns custom headers
  */
 const AppNavigator = () => {
+    const { t } = useLanguage();
+    
     return (
         <NavigationContainer>
             <Stack.Navigator>
@@ -181,6 +232,20 @@ const AppNavigator = () => {
                     name="SurveyScreen" 
                     component={SurveyScreen} 
                     options={{ headerShown: false }} 
+                />
+                <Stack.Screen 
+                    name="About" 
+                    component={AboutScreen} 
+                    options={{ 
+                        header: (props) => InfoScreenHeader(props, t('about.title'))
+                    }} 
+                />
+                <Stack.Screen 
+                    name="PrivacyPolicy" 
+                    component={PrivacyPolicyScreen} 
+                    options={{ 
+                        header: (props) => InfoScreenHeader(props, t('privacy.title'))
+                    }} 
                 />
             </Stack.Navigator>
         </NavigationContainer>

@@ -16,6 +16,8 @@ import ADayAtThePark from "~/assets/a-day-at-the-park.svg";
 import Contract from "~/assets/undraw_contract_upwc.svg";
 import OurNeighborhood from "~/assets/undraw_our-neighborhood_s0n2.svg";
 import Relaxation from "~/assets/undraw_relaxation_ies6.svg";
+import EverydayDesign from "~/assets/undraw_everyday-design_4f7q.svg";
+import LocationSearch from "~/assets/undraw_location-search_nesh.svg";
 
 // Weitere SVG-Importe hier hinzufügen...
 // import OtherSvg from "~/assets/other-svg.svg";
@@ -28,6 +30,8 @@ export type ImageKey =
   | 'contract'
   | 'our-neighborhood'
   | 'relaxation'
+  | 'everyday-design'
+  | 'location-search'
   // Weitere Bildschlüssel hier hinzufügen
   | 'placeholder';
 
@@ -40,6 +44,8 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'contract': Contract,
   'our-neighborhood': OurNeighborhood,
   'relaxation': Relaxation,
+  'everyday-design': EverydayDesign,
+  'location-search': LocationSearch,
   // Weitere SVG-Komponenten hier registrieren
   'placeholder': ADayAtThePark, // Platzhalter (später durch echtes Bild ersetzen)
 };

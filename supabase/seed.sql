@@ -112,7 +112,7 @@ INSERT INTO questions (id, type, category, sequence_number, image_source, option
     ], "showOnce": false, "autoAdvance": true}'),
 
   -- Info Screen für Wohlbefindensfragen
-  ('wellbeing_info', 'info_screen', 'well-being', 300, 'undraw_relaxation_ies6', '{"buttonText": "general.continue", "showOnce": false}'),
+  ('wellbeing_info', 'info_screen', 'well-being', 300, 'relaxation', '{"buttonText": "general.continue", "showOnce": false}'),
 
   -- Allgemeines Wohlbefinden
   ('overall_wellbeing', 'single_choice', 'well-being', 310, NULL,
