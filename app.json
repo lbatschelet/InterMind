@@ -44,6 +44,14 @@
         "projectId": "6320b27a-a582-4d67-9d73-c3e3bc96bc9a"
       }
     },
-    "owner": "seraphine33"
+    "owner": "seraphine33",
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ]
+    ]
   }
 }
