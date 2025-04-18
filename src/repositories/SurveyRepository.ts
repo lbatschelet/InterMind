@@ -337,4 +337,29 @@ export class SurveyRepository {
 
     return true;
   }
+
+  /**
+   * Checks if a device has any completed surveys.
+   * @param deviceId The device ID to check
+   * @returns True if the device has completed at least one survey, false otherwise
+   */
+  static async hasCompletedSurveys(deviceId: string): Promise<boolean> {
+    try {
+      const { count, error } = await supabase
+        .from("surveys")
+        .select("id", { count: "exact", head: true })
+        .eq("device_id", deviceId)
+        .eq("completed", true);
+      
+      if (error) {
+        log.error("Error checking completed surveys", error);
+        throw new Error("Failed to check completed surveys");
+      }
+      
+      return count !== null && count > 0;
+    } catch (error) {
+      log.error("Error in hasCompletedSurveys", error);
+      return false;
+    }
+  }
 }

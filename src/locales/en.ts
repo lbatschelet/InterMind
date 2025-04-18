@@ -28,6 +28,13 @@ export default {
   home: {
     title: "InterMind",
     startSurvey: "Start Survey",
+    surveyAvailable: "A survey is available now! You have one hour to complete it.",
+    surveyNotAvailable: "Survey Not Available",
+    nextSurveyIn: "Next survey in",
+    nextSurveyAt: "Next survey at",
+    hours: "hours",
+    minutes: "minutes",
+    noUpcomingSurvey: "No upcoming surveys scheduled yet. Please check back later.",
   },
   survey: {
     userId: "User ID",
@@ -40,6 +47,12 @@ export default {
     exitMessage: "Your progress will be saved, but you will exit the survey. Are you sure you want to exit?",
     continueSurvey: "Continue Survey",
     exitSurvey: "Exit Survey",
+  },
+  notifications: {
+    title: "New Survey Available",
+    body: "A new survey is available. You have one hour to complete it.",
+    permission: "Please enable notifications to receive survey reminders.",
+    permissionDenied: "Notifications are disabled. You can enable them in the device settings.",
   },
   about: {
     title: "About InterMind",

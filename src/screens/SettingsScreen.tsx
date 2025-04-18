@@ -25,11 +25,12 @@ import { Text } from "~/src/components/ui/text";
 import { useLanguage } from "~/src/contexts/LanguageContext";
 import { LanguageCode, languageNames } from "~/src/locales";
 import { createLogger } from "~/src/utils/logger";
-import { PORTAL_HOST_NAME } from "../lib/constants";
+import { PORTAL_HOST_NAME } from "~/src/lib/constants";
 import { DeviceService } from "../services/DeviceService";
-import SurveyService from "../services/SurveyService";
+import SurveyService from "~/src/services/SurveyService";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
+import { resetSlotSystem } from '../services/slots';
 
 const log = createLogger("SettingsScreen");
 
@@ -109,10 +110,22 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
       log.info("Deleting all data for device", { deviceId: currentDeviceId });
 
       const surveysDeleted = await SurveyService.deleteAllSurveys();
+      
+      try {
+        await resetSlotSystem();
+        log.info("Slot system successfully reset");
+      } catch (slotError) {
+        log.error("Error resetting slot system", slotError);
+      }
 
       if (surveysDeleted) {
         log.info("All data successfully deleted.");
         setDeleteStatus("success");
+        
+        setTimeout(() => {
+          setDeleteDialogOpen(false);
+          navigation.navigate('Home');
+        }, 1500);
       } else {
         log.error("Error deleting surveys.");
         setDeleteStatus("error");

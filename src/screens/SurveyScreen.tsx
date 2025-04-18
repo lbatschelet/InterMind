@@ -250,6 +250,14 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
    */
   const handleComplete = async () => {
     if (surveyId) {
+      // Verhindere doppeltes Abschließen der Umfrage
+      if (isLoading) {
+        log.warn("Ignoring duplicate survey completion attempt");
+        return;
+      }
+      
+      setIsLoading(true);
+      log.info("Survey completed");
       log.info("Completing survey", { surveyId });
       
       // Convert the set of answered question IDs to an array of Question objects
@@ -258,9 +266,20 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
       ).filter(Boolean) as Question[];
       
       log.debug("Submitting answered questions to service", { count: allAnsweredQuestions.length });
-      await SurveyService.completeSurvey(surveyId, allAnsweredQuestions);
+      try {
+        await SurveyService.completeSurvey(surveyId, allAnsweredQuestions);
+        // Navigiere nach erfolgreicher Übermittlung zurück
+        navigation.navigate("Home");
+      } catch (error) {
+        log.error("Failed to complete survey", error);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Keine gültige Umfrage-ID
+      log.error("Cannot complete survey, no valid survey ID");
+      navigation.navigate("Home");
     }
-    navigation.navigate("Home");
   };
 
   if (isLoading) return <Text>Loading survey...</Text>;
