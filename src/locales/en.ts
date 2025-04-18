@@ -49,8 +49,8 @@ export default {
     exitSurvey: "Exit Survey",
   },
   notifications: {
-    title: "New Survey Available",
-    body: "A new survey is available. You have one hour to complete it.",
+    title: "A new survey is waiting for you.",
+    body: "You have one hour to complete.",
     permission: "Please enable notifications to receive survey reminders.",
     permissionDenied: "Notifications are disabled. You can enable them in the device settings.",
   },

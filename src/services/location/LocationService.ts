@@ -26,4 +26,4 @@ class LocationService {
   }
 }
 
-export { LocationService };
+export default LocationService; 

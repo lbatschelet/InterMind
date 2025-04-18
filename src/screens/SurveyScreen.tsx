@@ -15,8 +15,7 @@ import {
 import { Button } from "../components/ui/button";
 import { Text } from "../components/ui/text";
 import { useLanguage } from "../contexts/LanguageContext";
-import ResponseService from "../services/ResponseService";
-import SurveyService from "../services/SurveyService";
+import { SurveyService, SurveyResponseService } from "../services";
 import { Question } from "../types/question";
 import { createLogger } from "../utils/logger";
 import QuestionImage from "../components/QuestionImage";
@@ -155,7 +154,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
       }
       
       log.debug("Submitting response", { questionId, response, type: currentQuestion.type });
-      await ResponseService.submitResponse(surveyId, questionId, response);
+      await SurveyResponseService.submitResponse(surveyId, questionId, response);
       
       // Mark this question as having been answered
       answeredQuestions.current.add(questionId);

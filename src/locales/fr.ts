@@ -28,6 +28,12 @@ export default {
   home: {
     title: "InterMind",
     startSurvey: "Démarrer l'enquête",
+    surveyAvailable: "Une enquête est disponible maintenant ! Vous avez une heure pour la compléter.",
+    surveyNotAvailable: "Enquête non disponible",
+    nextSurveyIn: "Prochaine enquête dans",
+    nextSurveyAt: "Prochaine enquête à",
+    hours: "heures",
+    minutes: "minutes",
   },
   survey: {
     userId: "ID utilisateur",
@@ -40,6 +46,12 @@ export default {
     exitMessage: "Votre progression sera sauvegardée, mais vous quitterez l'enquête. Êtes-vous sûr de vouloir quitter ?",
     continueSurvey: "Continuer l'enquête",
     exitSurvey: "Quitter l'enquête",
+  },
+  notifications: {
+    title: "Une nouvelle enquête est disponible.",
+    body: "Vous avez une heure pour la compléter.",
+    permission: "Veuillez activer les notifications pour recevoir des rappels d'enquêtes.",
+    permissionDenied: "Les notifications sont désactivées. Vous pouvez les activer dans les paramètres de votre appareil.",
   },
   about: {
     title: "À propos",

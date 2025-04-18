@@ -269,9 +269,13 @@ export default function App() {
     <LanguageProvider>
       <SafeAreaProvider>
         <AppNavigator />
-        <WindowOverlay>
+        {Platform.OS === 'ios' ? (
+          <WindowOverlay>
+            <PortalHost name={PORTAL_HOST_NAME} />
+          </WindowOverlay>
+        ) : (
           <PortalHost name={PORTAL_HOST_NAME} />
-        </WindowOverlay>
+        )}
       </SafeAreaProvider>
     </LanguageProvider>
   );

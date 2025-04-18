@@ -1,8 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createLogger } from "~/src/utils/logger";
-import { supabase } from "../lib/supabase";
-import AnsweredQuestionsService from "./AnsweredQuestionsService";
-import { resetSlotSystem } from "./slots";
+import { supabase } from "../../lib/supabase";
+import { SurveyAnsweredQuestionsService } from "../survey";
+import { resetSlotSystem } from "../slots";
 
 const log = createLogger("DeviceService");
 
@@ -71,7 +71,7 @@ class DeviceService {
       }
 
       // Reset answered questions in AsyncStorage
-      await AnsweredQuestionsService.resetAnsweredQuestions();
+      await SurveyAnsweredQuestionsService.resetAnsweredQuestions();
       log.info("Reset answered questions after data deletion");
 
       // Reset slot system (handles notification cancellation, and slot storage)
@@ -91,4 +91,4 @@ class DeviceService {
   }
 }
 
-export { DeviceService };
+export default DeviceService; 

@@ -28,6 +28,13 @@ export default {
   home: {
     title: "InterMind",
     startSurvey: "Umfrage starten",
+    surveyAvailable: "Eine Umfrage ist jetzt verfügbar! Du hast eine Stunde Zeit zum Ausfüllen.",
+    surveyNotAvailable: "Umfrage nicht verfügbar",
+    nextSurveyIn: "Nächste Umfrage in",
+    nextSurveyAt: "Nächste Umfrage um",
+    hours: "Stunden",
+    minutes: "Minuten",
+    noUpcomingSurvey: "Noch keine nächste Umfrage geplant. Bitte später erneut prüfen.",
   },
   survey: {
     userId: "Benutzer-ID",
@@ -40,6 +47,12 @@ export default {
     exitMessage: "Ihr Fortschritt wird gespeichert, aber Sie werden die Umfrage beenden. Sind Sie sicher, dass Sie die Umfrage beenden möchten?",
     continueSurvey: "Umfrage fortsetzen",
     exitSurvey: "Umfrage beenden",
+  },
+  notifications: {
+    title: "Eine neue Umfrage wartet auf dich.",
+    body: "Du hast eine Stunde Zeit zum Ausfüllen.",
+    permission: "Bitte aktiviere Benachrichtigungen, um Umfrage-Erinnerungen zu erhalten.",
+    permissionDenied: "Benachrichtigungen sind deaktiviert. Du kannst sie in den Geräteeinstellungen aktivieren.",
   },
   about: {
     title: "Über InterMind",

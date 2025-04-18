@@ -7,7 +7,7 @@ import { Button } from "~/src/components/ui/button";
 import { Text } from "~/src/components/ui/text";
 import { useLanguage } from "~/src/contexts/LanguageContext";
 import { RootStackParamList } from "~/src/navigation/AppNavigator";
-import SurveyService from "../services/SurveyService";
+import { SurveyService } from "../services";
 import { createLogger } from "~/src/utils/logger";
 import { useFocusEffect } from "@react-navigation/native";
 import { slotCoordinator, SlotStatus } from '../services/slots';

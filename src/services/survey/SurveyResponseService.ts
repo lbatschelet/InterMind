@@ -1,9 +1,9 @@
-import { supabase } from "../lib/supabase";
-import { SurveyResponse } from "../types/response";
+import { supabase } from "../../lib/supabase";
+import { SurveyResponse } from "../../types/response";
 import { createLogger } from "~/src/utils/logger";
-const log = createLogger("ResponseService");
+const log = createLogger("SurveyResponseService");
 
-class ResponseService {
+class SurveyResponseService {
   /**
    * Submits a user's response for a specific question.
    * @param surveyId - The survey session ID.
@@ -51,4 +51,4 @@ class ResponseService {
   }
 }
 
-export default ResponseService;
+export default SurveyResponseService; 

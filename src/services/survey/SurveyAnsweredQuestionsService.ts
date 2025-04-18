@@ -1,6 +1,6 @@
 /**
  * @packageDocumentation
- * @module Services/AnsweredQuestionsService
+ * @module Services/Survey/SurveyAnsweredQuestionsService
  * 
  * @summary
  * Service to manage "showOnce" questions that have been already answered.
@@ -13,13 +13,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createLogger } from '~/src/utils/logger';
 
-const log = createLogger('AnsweredQuestionsService');
+const log = createLogger('SurveyAnsweredQuestionsService');
 const STORAGE_KEY = 'answered_once_questions';
 
 /**
  * Service for managing questions that should only be shown once per device.
  */
-class AnsweredQuestionsService {
+class SurveyAnsweredQuestionsService {
   /**
    * Retrieves the list of question IDs that have already been answered
    * and are marked as "showOnce".
@@ -92,4 +92,4 @@ class AnsweredQuestionsService {
   }
 }
 
-export default AnsweredQuestionsService; 
+export default SurveyAnsweredQuestionsService; 
