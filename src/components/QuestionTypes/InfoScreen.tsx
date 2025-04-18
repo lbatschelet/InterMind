@@ -52,10 +52,14 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
   // Berechne Dimensionen für responsive Elemente
   const screenHeight = Dimensions.get('window').height;
   
+  // Der Button-Text sollte aus den Optionen kommen (oder als Fallback genutzt werden)
+  const buttonText = question.buttonText || "general.continue";
+  
   // Stellen wir sicher, dass der onNext-Handler verfügbar ist für den "Next"-Button
   useEffect(() => {
     // Rufe onNext einmal beim Rendern auf, um sicherzustellen, dass die Komponente initialisiert ist
     if (onNext) {
+      // Übergebe keine Parameter, da onNext keine erwartet
       onNext();
     }
   }, [onNext]);

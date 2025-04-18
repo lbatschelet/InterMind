@@ -215,7 +215,7 @@ By tapping **"I Agree"**, you confirm that:
 - You can withdraw at any time by deleting your data in the app settings
 
 Please read our [Privacy Policy](#) for more details.',
-   '{"buttonText": "general.continue"}'),
+   '{"buttonText": "general.agree"}'),
   
   -- Altersgruppe Frage
   ('age_question', 'en', 'Age Group', 'In which age group do you find yourself?', NULL),
@@ -325,7 +325,7 @@ Durch Tippen auf **"Ich stimme zu"**, bestätigst du, dass:
 - Du jederzeit zurücktreten kannst, indem du deine Daten in den App-Einstellungen löschst
 
 Bitte lies unsere [Datenschutzrichtlinie](#) für weitere Details.',
-   '{"buttonText": "general.continue"}'),
+   '{"buttonText": "general.agree"}'),
   
   -- Altersgruppe Frage
   ('age_question', 'de', 'Altersgruppe', 'In welcher Altersgruppe befindest du dich?', 
@@ -533,7 +533,7 @@ En appuyant sur **"J''accepte"**, vous confirmez que :
 - Vous pouvez vous retirer à tout moment en supprimant vos données dans les paramètres de l''application
 
 Veuillez lire notre [politique de confidentialité](#) pour plus de détails.',
-   '{"buttonText": "general.continue"}'),
+   '{"buttonText": "general.agree"}'),
   
   -- Altersgruppe Frage
   ('age_question', 'fr', 'Groupe d''âge', 'Dans quel groupe d''âge vous situez-vous ?', 

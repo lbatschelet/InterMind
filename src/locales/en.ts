@@ -32,6 +32,7 @@ export default {
     surveyNotAvailable: "Survey Not Available",
     nextSurveyIn: "Next survey in",
     nextSurveyAt: "Next survey at",
+    tomorrow: "Next survey tomorrow at",
     hours: "hours",
     minutes: "minutes",
     noUpcomingSurvey: "No upcoming surveys scheduled yet. Please check back later.",

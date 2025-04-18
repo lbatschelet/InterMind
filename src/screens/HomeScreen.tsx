@@ -219,14 +219,24 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     nextSurveyTime.getMonth() === now.getMonth() &&
                     nextSurveyTime.getFullYear() === now.getFullYear();
     
+    // Check if it's tomorrow
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = nextSurveyTime.getDate() === tomorrow.getDate() &&
+                       nextSurveyTime.getMonth() === tomorrow.getMonth() &&
+                       nextSurveyTime.getFullYear() === tomorrow.getFullYear();
+    
     // Format time as HH:MM
     const hours = nextSurveyTime.getHours().toString().padStart(2, '0');
     const minutes = nextSurveyTime.getMinutes().toString().padStart(2, '0');
     
     if (isToday) {
       return `${t('home.nextSurveyAt')} ${hours}:${minutes}`;
+    } else if (isTomorrow) {
+      // Special handling for tomorrow using a localized string for "tomorrow"
+      return `${t('home.tomorrow')} ${hours}:${minutes}`;
     } else {
-      // Format for tomorrow or later date
+      // Format for later dates
       const date = nextSurveyTime.getDate().toString().padStart(2, '0');
       const month = (nextSurveyTime.getMonth() + 1).toString().padStart(2, '0');
       return `${t('home.nextSurveyAt')} ${date}.${month}. ${hours}:${minutes}`;

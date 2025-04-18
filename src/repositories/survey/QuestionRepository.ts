@@ -242,6 +242,14 @@ export class QuestionRepository implements IQuestionRepository {
             } else if (baseOptions && 'buttonText' in baseOptions) {
               buttonText = baseOptions.buttonText;
             }
+            // Debug-Ausgabe für das buttonText-Feld
+            if (item.id === 'consent_screen') {
+              log.debug('Extracted buttonText for consent_screen', { 
+                buttonText,
+                langOptions,
+                baseOptions
+              });
+            }
             break;
         }
       } catch (e) {
@@ -293,7 +301,7 @@ export class QuestionRepository implements IQuestionRepository {
             type: 'info_screen' as const,
             title: translation.title || '',
             text: translation.text || '',
-            buttonText,
+            buttonText: buttonText || 'general.continue', // Explizites Setzen mit Fallback
             showOnce
           };
           

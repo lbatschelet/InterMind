@@ -13,26 +13,76 @@
 
 // SVG-Komponenten importieren
 import ADayAtThePark from "~/assets/a-day-at-the-park.svg";
-import Contract from "~/assets/undraw_contract_upwc.svg";
-import OurNeighborhood from "~/assets/undraw_our-neighborhood_s0n2.svg";
-import Relaxation from "~/assets/undraw_relaxation_ies6.svg";
-import EverydayDesign from "~/assets/undraw_everyday-design_4f7q.svg";
-import LocationSearch from "~/assets/undraw_location-search_nesh.svg";
-
-// Weitere SVG-Importe hier hinzufügen...
-// import OtherSvg from "~/assets/other-svg.svg";
+import Buddies from "~/assets/buddies.svg";
+import CityLife from "~/assets/city-life.svg";
+import CoffeeWithFriends from "~/assets/coffee-with-friends.svg";
+import Contract from "~/assets/contract.svg";
+import DogWalking from "~/assets/dog-walking.svg";
+import Dreamer from "~/assets/dreamer.svg";
+import EffortlessLove from "~/assets/effortless-love.svg";
+import EverydayDesign from "~/assets/everyday-design.svg";
+import Exams from "~/assets/exams.svg";
+import Friends from "~/assets/friends.svg";
+import Hiking from "~/assets/hiking.svg";
+import LocationSearch from "~/assets/location-search.svg";
+import Login from "~/assets/login.svg";
+import MyCurrentLocation from "~/assets/my-current-location.svg";
+import Neighbors from "~/assets/neighbors.svg";
+import OnlineLearning from "~/assets/online-learning.svg";
+import OurNeighborhood from "~/assets/our-neighborhood.svg";
+import Outdoors from "~/assets/outdoors.svg";
+import PageNotFound from "~/assets/page-not-found.svg";
+import QualityTime from "~/assets/quality-time.svg";
+import QuietStreet from "~/assets/quiet-street.svg";
+import QuietTown from "~/assets/quiet-town.svg";
+import ReadingABook from "~/assets/reading-a-book.svg";
+import RelaxMode from "~/assets/relax-mode.svg";
+import Relaxation from "~/assets/relaxation.svg";
+import RoadSign from "~/assets/road-sign.svg";
+import Studying from "~/assets/studying.svg";
+import ThroughThePark from "~/assets/through-the-park.svg";
+import Traveling from "~/assets/traveling.svg";
+import TreeSwing from "~/assets/tree-swing.svg";
+import WalkingOutside from "~/assets/walking-outside.svg";
+import Walking from "~/assets/walking.svg";
 
 /**
  * Bildtypen für die App
  */
 export type ImageKey = 
   | 'a-day-at-the-park'
+  | 'buddies'
+  | 'city-life'
+  | 'coffee-with-friends'
   | 'contract'
-  | 'our-neighborhood'
-  | 'relaxation'
+  | 'dog-walking'
+  | 'dreamer'
+  | 'effortless-love'
   | 'everyday-design'
+  | 'exams'
+  | 'friends'
+  | 'hiking'
   | 'location-search'
-  // Weitere Bildschlüssel hier hinzufügen
+  | 'login'
+  | 'my-current-location'
+  | 'neighbors'
+  | 'online-learning'
+  | 'our-neighborhood'
+  | 'outdoors'
+  | 'page-not-found'
+  | 'quality-time'
+  | 'quiet-street'
+  | 'quiet-town'
+  | 'reading-a-book'
+  | 'relax-mode'
+  | 'relaxation'
+  | 'road-sign'
+  | 'studying'
+  | 'through-the-park'
+  | 'traveling'
+  | 'tree-swing'
+  | 'walking-outside'
+  | 'walking'
   | 'placeholder';
 
 /**
@@ -41,12 +91,38 @@ export type ImageKey =
  */
 export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'a-day-at-the-park': ADayAtThePark,
+  'buddies': Buddies,
+  'city-life': CityLife,
+  'coffee-with-friends': CoffeeWithFriends,
   'contract': Contract,
-  'our-neighborhood': OurNeighborhood,
-  'relaxation': Relaxation,
+  'dog-walking': DogWalking,
+  'dreamer': Dreamer,
+  'effortless-love': EffortlessLove,
   'everyday-design': EverydayDesign,
+  'exams': Exams,
+  'friends': Friends,
+  'hiking': Hiking,
   'location-search': LocationSearch,
-  // Weitere SVG-Komponenten hier registrieren
+  'login': Login,
+  'my-current-location': MyCurrentLocation,
+  'neighbors': Neighbors,
+  'online-learning': OnlineLearning,
+  'our-neighborhood': OurNeighborhood,
+  'outdoors': Outdoors,
+  'page-not-found': PageNotFound,
+  'quality-time': QualityTime,
+  'quiet-street': QuietStreet,
+  'quiet-town': QuietTown,
+  'reading-a-book': ReadingABook,
+  'relax-mode': RelaxMode,
+  'relaxation': Relaxation,
+  'road-sign': RoadSign,
+  'studying': Studying,
+  'through-the-park': ThroughThePark,
+  'traveling': Traveling,
+  'tree-swing': TreeSwing,
+  'walking-outside': WalkingOutside,
+  'walking': Walking,
   'placeholder': ADayAtThePark, // Platzhalter (später durch echtes Bild ersetzen)
 };
 
