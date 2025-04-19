@@ -247,6 +247,6 @@ By tapping **"I Agree"**, you confirm that:
 - You agree to participate voluntarily
 - You can withdraw at any time by deleting your data in the app settings
 
-Please read our [Privacy Policy](#) for more details.`
+Please read our [Privacy Policy](https://intermind.ch/privacy-policy.html) for more details.`
   }
 };

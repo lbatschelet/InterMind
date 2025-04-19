@@ -251,7 +251,7 @@ Durch Tippen auf **"Ich stimme zu"** bestätigst du, dass:
 - Du freiwillig an der Teilnahme einwilligst
 - Du jederzeit durch Löschen deiner Daten in den App-Einstellungen zurücktreten kannst
 
-Bitte lies unsere [Datenschutzrichtlinie](#) für weitere Details.`
+Bitte lies unsere [Datenschutzrichtlinie](https://intermind.ch/privacy-policy.html) für weitere Details.`
   }
 };
 

@@ -251,7 +251,7 @@ En appuyant sur **"J''accepte"**, vous confirmez que :
 - Vous participez volontairement
 - Vous pouvez vous retirer à tout moment en supprimant vos données dans les paramètres de l''application
 
-Veuillez lire notre [politique de confidentialité](#) pour plus de détails.`
+Veuillez lire notre [politique de confidentialité](https://intermind.ch/privacy-policy.html) pour plus de détails.`
   }
 };
 
