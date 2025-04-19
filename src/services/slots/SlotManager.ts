@@ -73,6 +73,58 @@ export class SlotManager {
       currentSegment: this.getSegmentForTime(now)
     });
 
+    // Spezialfall: Wenn die erste Umfrage vor der Morgen-Zeit abgeschlossen wird,
+    // und es sich um die erste Survey handelt (FIRST_COMPLETED),
+    // dann planen wir den Slot für den aktuellen Tag (nicht den nächsten)
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const currentHourMinutes = hour * 60 + minute;
+    const morningStartMinutes = this.config.MORNING_RANGE.startHour * 60 + this.config.MORNING_RANGE.startMinute;
+    
+    if (lastStatus === SlotStatus.FIRST_COMPLETED && 
+        currentHourMinutes < morningStartMinutes) {
+      log.info("First survey completed before morning hours, scheduling for current day's morning");
+      
+      // Verwende den aktuellen Tag für das Morning-Segment
+      const targetDate = new Date(now);
+      const nextSegment = DaySegment.MORNING;
+      
+      // Stelle sicher, dass wir innerhalb des Zielsegments sind
+      const segmentStart = this.getSegmentStartTime(nextSegment, targetDate);
+      
+      // Berechne die früheste mögliche Startzeit
+      // Mindestens 60 Minuten Puffer oder Segment-Start, je nachdem was später ist
+      let earliest = new Date(now);
+      const MIN_IMMEDIATE_BUFFER_MINUTES = 60;
+      earliest.setMinutes(earliest.getMinutes() + MIN_IMMEDIATE_BUFFER_MINUTES);
+      
+      if (segmentStart > earliest) {
+        earliest = segmentStart;
+      }
+      
+      // Runde auf das nächste Granularitätsintervall auf
+      earliest = this.roundUpToGranularity(earliest);
+      
+      // Spätester Start ist das Ende des Segments minus Slotlänge
+      const segmentEnd = this.getSegmentEndTime(nextSegment, targetDate);
+      const slotLengthMs = this.config.SLOT_LENGTH_MINUTES * 60 * 1000;
+      const latest = new Date(segmentEnd.getTime() - slotLengthMs);
+      
+      // Wenn das früheste Zeitfenster später als das späteste Zeitfenster ist,
+      // fallen wir zurück zur normalen Logik
+      if (earliest > latest) {
+        log.info("Cannot schedule in current day's morning segment, using standard logic");
+      } else {
+        // Wähle eine Zufallszeit im Bereich [earliest, latest]
+        const start = this.getRandomTimeInRange(earliest, latest, targetDate, nextSegment);
+        const end = new Date(start.getTime() + slotLengthMs);
+        
+        log.info(`Special case: Next slot for first survey completion: ${nextSegment} on ${targetDate.toLocaleDateString()} from ${start.toLocaleTimeString()} to ${end.toLocaleTimeString()}`);
+        
+        return { start, end };
+      }
+    }
+
     // 0. Bestimme das Segment des vorherigen Slots
     let prevSegment: DaySegment;
     let prevDate: Date;

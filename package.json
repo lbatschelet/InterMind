@@ -11,7 +11,11 @@
     "docs": "typedoc --options ./typedoc.json --tsconfig ./tsconfig.docs.json --out docs"
   },
   "dependencies": {
+    "@expo/cli": "^0.22.26",
+    "@expo/config-plugins": "~9.0.0",
+    "@expo/metro-config": "^0.19.12",
     "@expo/metro-runtime": "~4.0.1",
+    "@expo/prebuild-config": "^8.2.0",
     "@miblanchard/react-native-slider": "^2.6.0",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-clipboard/clipboard": "^1.16.1",
@@ -49,7 +53,7 @@
     "@supabase/supabase-js": "^2.48.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "expo": "~52.0.42",
+    "expo": "^52.0.46",
     "expo-application": "~6.0.2",
     "expo-clipboard": "~7.0.1",
     "expo-constants": "~17.0.5",
