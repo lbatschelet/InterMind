@@ -3,8 +3,12 @@ import { NotificationScheduler } from "./NotificationScheduler";
 import { SlotManager } from "./SlotManager";
 import { SlotStateStore } from "./SlotStateStore";
 import { Slot, SlotMeta, SlotStatus, SurveyEvent, eventToStatus } from "./types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const log = createLogger("SlotCoordinator");
+
+// Storage key für den Status - muss mit dem Key in SlotStateStore übereinstimmen
+const SLOT_STATUS_KEY = 'slot_status';
 
 /**
  * SlotCoordinator
@@ -118,8 +122,14 @@ export class SlotCoordinator {
               segment: this.slotManager.getSegmentForTime(nextSlot.start)
             });
           } else if (now < currentSlot.start) {
-            // Der Slot beginnt in der Zukunft, plane eine Benachrichtigung
-            // Aber prüfe zuerst, ob bereits eine geplant ist, um Duplikate zu vermeiden
+            // Der Slot beginnt in der Zukunft, plane nur die Benachrichtigung neu, ohne den Slot selbst zu ändern
+            log.info("Future slot exists, keeping it unchanged", {
+              start: currentSlot.start.toLocaleString(),
+              end: currentSlot.end.toLocaleString(),
+              minutesUntilStart: Math.round((currentSlot.start.getTime() - now.getTime()) / (60 * 1000))
+            });
+            
+            // Aber prüfe, ob die Benachrichtigung neu geplant werden muss
             const needsScheduling = await this.shouldRescheduleNotification(currentSlot);
             
             if (needsScheduling) {
@@ -229,8 +239,9 @@ export class SlotCoordinator {
     
     // Normale Slot-Planung für alle anderen Event-Typen
     try {
-      // Hole Metadaten des letzten Slots
+      // Hole Metadaten des letzten Slots und den aktuellen Slot
       const lastMeta = await this.slotStore.readLastMeta();
+      const currentSlot = await this.getCurrentSlot();
       
       // Wandle das Event in einen Status um
       const status = eventToStatus(event);
@@ -238,7 +249,34 @@ export class SlotCoordinator {
       // Aktuelle Zeit für die Berechnung
       const now = new Date();
       
-      // Berechne den nächsten Slot
+      // Prüfen, ob bereits ein gültiger zukünftiger Slot existiert
+      // In diesem Fall sollten wir keinen neuen Slot berechnen, um Inkonsistenzen zu vermeiden
+      if (currentSlot && now < currentSlot.start) {
+        log.info("Valid future slot already exists, keeping it unchanged", {
+          event,
+          start: currentSlot.start.toLocaleTimeString(),
+          end: currentSlot.end.toLocaleTimeString(),
+          minutesUntilStart: Math.round((currentSlot.start.getTime() - now.getTime()) / (60 * 1000))
+        });
+        
+        // Aktualisiere nur den Status, wenn notwendig
+        if (lastMeta && lastMeta.status !== status) {
+          await Promise.all([
+            AsyncStorage.setItem(SLOT_STATUS_KEY, status)
+          ]);
+          log.info("Updated slot status while keeping the same time window", { 
+            oldStatus: lastMeta.status, 
+            newStatus: status 
+          });
+        }
+        
+        // Stelle sicher, dass die Benachrichtigung korrekt geplant ist
+        await this.scheduleNotificationOnce(currentSlot);
+        
+        return currentSlot;
+      }
+      
+      // Berechne einen neuen Slot für alle anderen Fälle
       const nextSlot = this.slotManager.nextSlot(
         now, // current time
         lastMeta?.end || now, // Wenn kein letzter Slot existiert, verwende aktuelle Zeit

@@ -8,7 +8,7 @@
 
 import * as Clipboard from "expo-clipboard";
 import React, { useEffect, useState } from "react";
-import { View, Dimensions, ScrollView } from "react-native";
+import { View, Dimensions, ScrollView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
     AlertDialog,
@@ -34,6 +34,7 @@ import { resetSlotSystem } from '../services/slots';
 import { getImage } from "~/src/lib/images";
 import Markdown from 'react-native-markdown-display';
 import { getImageHeight, infoScreenStyles, markdownStyles } from "~/src/styles/infoScreenStyles";
+import { platformStyles } from "~/src/styles/platformStyles";
 
 const log = createLogger("SettingsScreen");
 
@@ -149,9 +150,9 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   return (
     <View className="flex-1 bg-background">
       <SafeAreaView edges={["top"]} className="flex-1">
-        <ScrollView className="flex-1 px-4 -mt-16">
+        <ScrollView className={`flex-1 px-4 ${platformStyles.contentScrollViewMarginTop}`}>
           {/* Settings Header with Image */}
-          <View className="items-center mt-0 mb-2">
+          <View className={`items-center mb-2 ${platformStyles.headerImageMarginTop}`}>
             {SettingsImage && <SettingsImage 
               height={getImageHeight(screenHeight, 0.2)}
               width="100%"

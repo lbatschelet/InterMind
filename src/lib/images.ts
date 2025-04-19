@@ -56,6 +56,7 @@ import LateAtNight from "~/assets/late-at-night.svg";
 import LearningSketchingsh from "~/assets/learning-sketchingsh.svg";
 import LikeDislike from "~/assets/like-dislike.svg";
 import Living from "~/assets/living.svg";
+import Loading from "~/assets/loading.svg";
 import LocationSearch from "~/assets/location-search.svg";
 import Logic from "~/assets/logic.svg";
 import Login from "~/assets/login.svg";
@@ -159,6 +160,7 @@ export type ImageKey =
   | 'learning-sketchingsh'
   | 'like-dislike'
   | 'living'
+  | 'loading'
   | 'location-search'
   | 'logic'
   | 'login'
@@ -264,6 +266,7 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'learning-sketchingsh': LearningSketchingsh,
   'like-dislike': LikeDislike,
   'living': Living,
+  'loading': Loading,
   'location-search': LocationSearch,
   'logic': Logic,
   'login': Login,

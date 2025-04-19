@@ -15,6 +15,7 @@ import { useLanguage } from "~/src/contexts/LanguageContext";
 import { createLogger } from "~/src/utils/logger";
 import { SvgRegistry } from "~/src/lib/images";
 import { getImageHeight, infoScreenStyles, markdownStyles } from "~/src/styles/infoScreenStyles";
+import { platformStyles } from "~/src/styles/platformStyles";
 
 const log = createLogger("AboutScreen");
 
@@ -35,9 +36,9 @@ const AboutScreen: React.FC = () => {
   return (
     <View className="flex-1 bg-background">
       <SafeAreaView edges={["top"]} className="flex-1">
-        <ScrollView className="flex-1 px-4 -mt-16">
+        <ScrollView className={`flex-1 px-4 ${platformStyles.contentScrollViewMarginTop}`}>
           {/* App Logo/Image at top - reduced even further */}
-          <View className="items-center mt-0 mb-2">
+          <View className={`items-center mb-2 ${platformStyles.headerImageMarginTop}`}>
             <EverydayDesign 
               height={getImageHeight(screenHeight, 0.2)}
               width="100%"

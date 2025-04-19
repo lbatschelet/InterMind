@@ -22,9 +22,13 @@ import QuestionImage from "../components/QuestionImage";
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
 import { executeAction } from '../components/QuestionTypes/InfoScreen';
+import { LoadingScreen, ErrorScreen } from '../components/screens';
 
 // Initialize logger for this module
 const log = createLogger("SurveyScreen");
+
+// Screen dimensions for responsive design
+const { width, height } = Dimensions.get('window');
 
 /**
  * SurveyScreen handles the full survey flow.
@@ -303,8 +307,27 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
     }
   };
 
-  if (isLoading) return <Text>Loading survey...</Text>;
-  if (questions.length === 0) return <Text>No questions available.</Text>;
+  // Show loading screen while survey questions are being fetched
+  if (isLoading) {
+    return (
+      <LoadingScreen 
+        title={t('survey.loading') || 'Loading survey...'}
+        description={t('survey.loadingDescription') || 'Please wait while we prepare your survey questions.'}
+      />
+    );
+  }
+
+  // Show error screen if no questions are available
+  if (questions.length === 0) {
+    return (
+      <ErrorScreen
+        title={t('survey.noQuestions') || 'No questions available.'}
+        description={t('survey.noQuestionsDescription') || 'There was a problem loading the survey questions. Please try again later.'}
+        buttonText={t('survey.returnHome') || 'Return to Home'}
+        onAction={() => navigation.goBack()}
+      />
+    );
+  }
 
   const currentQuestion = questions[currentIndex];
   const questionId = currentQuestion.id;
