@@ -24,18 +24,28 @@ export class SurveyRepository implements ISurveyRepository {
   async createSurvey(deviceId: string, language: LanguageCode = 'en'): Promise<string> {
     log.info("Creating new survey for device", { deviceId, language });
 
-    const { data, error } = await this.dbClient
-      .from("surveys")
-      .insert([{ device_id: deviceId, completed: false, language }])
-      .select("id")
-      .single();
+    try {
+      const { data, error } = await this.dbClient
+        .from("surveys")
+        .insert([{ device_id: deviceId, completed: false, language }])
+        .select("id")
+        .single();
 
-    if (error || !data) {
-      log.error("Error creating survey", error);
-      throw new Error("Survey creation failed");
+      if (error) {
+        log.error("Error creating survey", { error, details: error.details, code: error.code, message: error.message });
+        throw new Error(`Survey creation failed: ${error.message}`);
+      }
+
+      if (!data) {
+        log.error("No data returned when creating survey");
+        throw new Error("Survey creation failed: No data returned");
+      }
+
+      return data.id;
+    } catch (error) {
+      log.error("Error creating survey", { error, details: error instanceof Error ? error.message : "Unknown error" });
+      throw error;
     }
-
-    return data.id;
   }
 
   /**

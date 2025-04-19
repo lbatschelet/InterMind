@@ -10,6 +10,7 @@
  * - Not an actual question, but follows the same flow pattern.
  * - Supports markdown for rich text formatting.
  * - Handles scrollable content for longer texts.
+ * - Can trigger permission requests or other callbacks when proceeding
  * 
  * @example
  * // SQL statement to insert a new info screen with markdown into the database:
@@ -25,7 +26,7 @@
  *   - First important point
  *   - Second important point
  *   - Third important point',
- *   '{"buttonText": "I understand"}',
+ *   '{"buttonText": "I understand", "action": "request_notification_permission"}',
  *   'demographic_intro'
  * );
  */
@@ -36,6 +37,85 @@ import type { QuestionComponentProps } from "~/src/types/question";
 import QuestionImage from "../QuestionImage";
 import Markdown from 'react-native-markdown-display';
 import { getImageHeight, INFO_SCREEN_LAYOUT, markdownStyles as sharedMarkdownStyles } from "~/src/styles/infoScreenStyles";
+import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
+import { createLogger } from "~/src/utils/logger";
+import { useLanguage } from "~/src/contexts/LanguageContext";
+
+const log = createLogger("InfoScreen");
+
+// Definiere die möglichen Aktionen, die beim Fortfahren ausgeführt werden können
+type InfoScreenAction = 
+  | 'request_notification_permission' 
+  | 'request_location_permission'
+  | null;
+
+/**
+ * Führt eine spezifische Aktion aus, basierend auf dem action-Parameter
+ * @param action Die auszuführende Aktion
+ * @returns Promise<boolean> true, wenn die Aktion erfolgreich war
+ */
+export const executeAction = async (action: InfoScreenAction): Promise<boolean> => {
+  if (!action) return true;
+  
+  log.debug(`executeAction called with action: ${action}`);
+  
+  switch (action) {
+    case 'request_notification_permission':
+      try {
+        log.info('Starting notification permission request...');
+        
+        // Prüfe zuerst den aktuellen Status
+        const currentStatus = await Notifications.getPermissionsAsync();
+        log.debug(`Current notification permission status: ${currentStatus.status}`);
+        
+        // Nur anfragen, wenn nicht bereits erteilt
+        if (currentStatus.status !== 'granted') {
+          log.debug('Permission not granted yet, requesting...');
+          const { status } = await Notifications.requestPermissionsAsync({
+            ios: { allowAlert: true, allowBadge: true, allowSound: true }
+          });
+          const granted = status === 'granted';
+          log.info(`Notification permission ${granted ? 'granted' : 'denied'}`);
+          return granted;
+        } else {
+          log.info('Notification permission already granted');
+          return true;
+        }
+      } catch (error) {
+        log.error('Error requesting notification permission', error);
+        return false;
+      }
+      
+    case 'request_location_permission':
+      try {
+        log.info('Starting location permission request...');
+        
+        // Prüfe zuerst den aktuellen Status
+        const currentStatus = await Location.getForegroundPermissionsAsync();
+        log.debug(`Current location permission status: ${currentStatus.status}`);
+        
+        // Nur anfragen, wenn nicht bereits erteilt
+        if (currentStatus.status !== 'granted') {
+          log.debug('Permission not granted yet, requesting...');
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          const granted = status === 'granted';
+          log.info(`Location permission ${granted ? 'granted' : 'denied'}`);
+          return granted;
+        } else {
+          log.info('Location permission already granted');
+          return true;
+        }
+      } catch (error) {
+        log.error('Error requesting location permission', error);
+        return false;
+      }
+      
+    default:
+      log.warn(`Unknown action: ${action}`);
+      return true;
+  }
+};
 
 /**
  * Information screen component.
@@ -52,17 +132,35 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
   // Berechne Dimensionen für responsive Elemente
   const screenHeight = Dimensions.get('window').height;
   
-  // Der Button-Text sollte aus den Optionen kommen (oder als Fallback genutzt werden)
-  const buttonText = question.buttonText || "general.continue";
+  // Parse die action aus den question options (falls vorhanden)
+  const action = question.options?.action as InfoScreenAction || null;
   
-  // Stellen wir sicher, dass der onNext-Handler verfügbar ist für den "Next"-Button
+  // Debug-Log, was genau dieser InfoScreen hat
   useEffect(() => {
-    // Rufe onNext einmal beim Rendern auf, um sicherzustellen, dass die Komponente initialisiert ist
-    if (onNext) {
-      // Übergebe keine Parameter, da onNext keine erwartet
+    log.info("InfoScreen rendered", {
+      title: question.title,
+      hasAction: !!action,
+      action: action
+    });
+  }, [question, action]);
+  
+  // Für normale Info-Screens ohne Aktionen: Automatisch weitergehen
+  useEffect(() => {
+    // Nur für normale Info-Screens ohne Aktionen: Automatisch weitergehen
+    if (!action && onNext) {
+      log.info("InfoScreen without action - auto-advancing");
       onNext();
+    } else if (action) {
+      log.info("InfoScreen with action - waiting for button click");
     }
-  }, [onNext]);
+  }, [onNext, action]);
+  
+  // Für Info-Screens mit Berechtigungsaktionen:
+  // Die Aktion wird im SurveyScreen beim Klick auf den "Weiter"-Button
+  // durch Aufruf der onNext-Funktion ausgeführt.
+  // Hier definieren wir nur die Benutzeroberfläche.
+  
+  const { t } = useLanguage();
   
   return (
     <View style={styles.container}>
@@ -106,6 +204,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,  // Etwas mehr Abstand nach unten
     width: '100%'
+  },
+  actionButtonContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 10
+  },
+  actionButton: {
+    backgroundColor: '#007AFF',
+    color: '#FFF',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 25,
+    overflow: 'hidden',
+    fontSize: 16,
+    fontWeight: 'bold'
   }
 });
 

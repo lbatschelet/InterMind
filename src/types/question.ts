@@ -66,6 +66,10 @@ export type Question =
       title: string; // The title/heading of the information screen
       text: string; // The main content text
       buttonText?: string; // Optional custom button text (default: "Continue")
+      options?: { 
+        action?: 'request_notification_permission' | 'request_location_permission' | string;
+        [key: string]: any;
+      }; // Optional configuration for actions or other settings
       category?: string; // Can be used to associate with specific section (e.g., "demographic_intro")
       showOnce?: boolean; // If true, this info screen is only shown once per device
       sequence_number?: number; // Für die Sortierung der Fragen

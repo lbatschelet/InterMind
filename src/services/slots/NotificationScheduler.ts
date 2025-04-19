@@ -3,121 +3,88 @@ import { Platform } from 'react-native';
 import { createLogger } from "~/src/utils/logger";
 import { Slot } from "./types";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import en from '../../locales/en';
+import { languages } from '../../locales';
 
 const log = createLogger("NotificationScheduler");
 
-// Storage key für die nächste geplante Benachrichtigung
+// Storage keys
 const NOTIFICATION_STORAGE_KEY = 'next_notification';
+const LANGUAGE_STORAGE_KEY = 'app_language';
+
+/**
+ * Setup notifications globally - this should be called early in the app initialization
+ * to ensure background notifications work correctly
+ */
+export function setupNotifications() {
+  // Configure notifications handler for both foreground and background
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  });
+  
+  log.info('Notification handler configured for all app states');
+}
+
+// Initialisiere Benachrichtigungen beim Laden des Moduls
+setupNotifications();
 
 /**
  * NotificationScheduler Interface
- * ------------------------------
- * 
- * Zuständig für die Planung und Ausführung von Benachrichtigungen
- * für aktive Umfrage-Slots.
  */
 export interface NotificationScheduler {
-  /**
-   * Plant eine Benachrichtigung für den Anfang eines Slots
-   * @param slot Der Slot, für den die Benachrichtigung geplant werden soll
-   */
   schedule(slot: Slot): Promise<boolean>;
-  
-  /**
-   * Sendet sofort eine Benachrichtigung, dass eine Umfrage verfügbar ist
-   */
-  sendSurveyAvailableNotification(): Promise<boolean>;
-  
-  /**
-   * Bricht alle geplanten Benachrichtigungen ab
-   */
   cancelAll(): Promise<void>;
-  
-  /**
-   * Fordert Benachrichtigungsberechtigungen an (falls noch nicht erteilt)
-   */
-  requestPermissions(): Promise<boolean>;
-  
-  /**
-   * Liest die Zeit der nächsten geplanten Benachrichtigung
-   * @returns Das Datum der nächsten Benachrichtigung oder null, wenn keine geplant ist
-   */
   getNextScheduledNotificationTime(): Promise<Date | null>;
+  getScheduledNotificationsCount(): Promise<number>;
+  requestPermissions(): Promise<boolean>;
 }
 
 /**
- * Expo-Implementierung des NotificationSchedulers
+ * Minimale Expo-Implementierung des NotificationSchedulers für geplante Benachrichtigungen
  */
 export class ExpoNotificationScheduler implements NotificationScheduler {
   /**
-   * Schedules a notification for the start of a slot
-   * @param slot The slot to schedule a notification for
+   * Plant eine Benachrichtigung für einen Slot
    */
   async schedule(slot: Slot): Promise<boolean> {
     try {
-      log.info('Scheduling notification', {
-        slotStart: slot.start.toLocaleString(),
-        slotEnd: slot.end.toLocaleString(),
-      });
-
-      // Don't schedule in the past
+      // Nicht in der Vergangenheit planen
       const now = new Date();
       let notificationTime = slot.start;
       
       if (slot.start <= now) {
-        log.warn('Attempted to schedule a notification in the past, adjusting to future time', {
-          slotStart: slot.start.toLocaleString(),
-          now: now.toLocaleString(),
-        });
-        // If the slot is in the past, schedule the notification for 60 seconds from now
+        log.warn('Adjusting past notification to future time');
         notificationTime = new Date(now.getTime() + 60 * 1000);
       }
-
-      // Calculate time until notification in seconds
-      const timeUntilNotification = Math.floor((notificationTime.getTime() - now.getTime()) / 1000);
       
-      // IMPORTANT: Don't schedule notifications that are too soon - this prevents immediate notifications
-      const MIN_NOTIFICATION_SECONDS = 300; // 5 minutes
-      if (timeUntilNotification < MIN_NOTIFICATION_SECONDS) {
-        log.warn(`Notification time too close (${timeUntilNotification} seconds away). Skipping to prevent immediate triggering.`, {
-          notificationTime: notificationTime.toLocaleString(),
-          now: now.toLocaleString()
-        });
+      // Berechtigungen prüfen & Kanal sicherstellen
+      if (!await this.ensurePermissions()) {
         return false;
       }
       
-      log.info('Time until notification', { 
-        seconds: timeUntilNotification,
-        minutes: Math.floor(timeUntilNotification / 60),
-        notificationTime: notificationTime.toLocaleString(),
-        now: now.toLocaleString()
-      });
+      // Vorhandene Benachrichtigungen überprüfen und alle löschen
+      // Dies stellt sicher, dass immer nur eine Benachrichtigung aktiv ist
+      await this.ensureSingleNotification();
       
-      // Store the slot for later reference
+      // Zeit speichern
       await AsyncStorage.setItem(NOTIFICATION_STORAGE_KEY, notificationTime.toISOString());
-
-      // Check if we have permission
-      const hasPermission = await this.requestPermissions();
       
-      if (!hasPermission) {
-        log.warn('No notification permission, cannot schedule');
-        return false;
-      }
-
-      // Plane the notification for the slot start
-      // We use a custom notification type "slot_scheduled" 
-      // to distinguish it from immediate notifications
-      await Notifications.scheduleNotificationAsync({
+      // Texte für aktuelle Sprache laden
+      const texts = await this.getLocalizedTexts();
+      
+      // Benachrichtigung planen
+      const identifier = await Notifications.scheduleNotificationAsync({
         content: {
-          title: en.notifications.title,
-          body: en.notifications.body,
+          title: texts.title,
+          body: texts.body,
           sound: true,
           priority: Notifications.AndroidNotificationPriority.HIGH,
-          // Structured data for the notification
+          badge: 1,
           data: { 
             type: 'slot_scheduled',
-            notificationType: 'future',
             slotData: {
               start: slot.start.toISOString(),
               end: slot.end.toISOString()
@@ -125,14 +92,19 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
           },
         },
         trigger: {
-          seconds: timeUntilNotification,
-          channelId: 'survey-reminders',
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: notificationTime,
+          channelId: Platform.OS === 'android' ? 'survey-reminders' : undefined,
         },
       });
       
-      log.info('Notification scheduled successfully', {
+      // Nach dem Planen nochmal überprüfen, ob wirklich nur eine Benachrichtigung existiert
+      const count = await this.getScheduledNotificationsCount();
+      
+      log.info('Notification scheduled', {
+        identifier,
         time: notificationTime.toLocaleString(),
-        timeFromNow: `${Math.floor(timeUntilNotification / 60)} minutes, ${timeUntilNotification % 60} seconds`
+        totalScheduled: count
       });
       
       return true;
@@ -143,101 +115,124 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
   }
   
   /**
-   * Sendet sofort eine Benachrichtigung, dass eine Umfrage verfügbar ist
+   * Alle geplanten Benachrichtigungen abbrechen
    */
-  async sendSurveyAvailableNotification(): Promise<boolean> {
+  async cancelAll(): Promise<void> {
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await AsyncStorage.removeItem(NOTIFICATION_STORAGE_KEY);
+    log.info('All notifications cancelled');
+  }
+  
+  /**
+   * Zeit der nächsten geplanten Benachrichtigung lesen
+   */
+  async getNextScheduledNotificationTime(): Promise<Date | null> {
+    const timeStr = await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY);
+    return timeStr ? new Date(timeStr) : null;
+  }
+  
+  /**
+   * Gibt die Anzahl der aktuell geplanten Benachrichtigungen zurück
+   */
+  async getScheduledNotificationsCount(): Promise<number> {
+    const notifications = await Notifications.getAllScheduledNotificationsAsync();
+    return notifications.length;
+  }
+  
+  /**
+   * Fordert Benachrichtigungsberechtigungen an und stellt sicher, dass Kanäle eingerichtet sind
+   */
+  async requestPermissions(): Promise<boolean> {
     try {
-      // Überprüfe Berechtigungen
-      const hasPermission = await this.requestPermissions();
-      if (!hasPermission) {
-        log.warn('Cannot send notification, permission not granted');
-        return false;
-      }
-      
-      // Sende sofort eine Benachrichtigung
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: en.notifications.title,
-          body: en.notifications.body,
-          sound: true,
-          priority: Notifications.AndroidNotificationPriority.HIGH,
-          data: { 
-            type: 'survey_available',
-            notificationType: 'immediate',
-            timestamp: new Date().toISOString()
-          },
-        },
-        trigger: null, // Sende sofort
-      });
-      
-      log.info('Sent immediate survey available notification');
-      return true;
+      return await this.ensurePermissions();
     } catch (error) {
-      log.error('Error sending survey available notification', error);
+      log.error('Error requesting permissions', error);
       return false;
     }
   }
   
   /**
-   * Fordert Benachrichtigungsberechtigungen an (falls noch nicht erteilt)
+   * Private Hilfsmethoden
    */
-  async requestPermissions(): Promise<boolean> {
+  
+  /**
+   * Stellt sicher, dass nur eine Benachrichtigung aktiv ist
+   */
+  private async ensureSingleNotification(): Promise<void> {
     try {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
+      const count = await this.getScheduledNotificationsCount();
       
+      if (count > 0) {
+        log.info(`Cancelling ${count} existing notification(s) before scheduling new one`);
+        await this.cancelAll();
+      }
+    } catch (error) {
+      log.error('Error ensuring single notification', error);
+    }
+  }
+  
+  /**
+   * Stellt sicher, dass Berechtigungen vorhanden sind und auf Android der Kanal existiert
+   */
+  private async ensurePermissions(): Promise<boolean> {
+    try {
+      // Berechtigungen prüfen/anfordern
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      
+      let finalStatus = existingStatus;
       if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+        const { status } = await Notifications.requestPermissionsAsync({
+          ios: { allowAlert: true, allowBadge: true, allowSound: true }
+        });
         finalStatus = status;
       }
       
       if (finalStatus !== 'granted') {
+        log.warn('Notification permission not granted');
         return false;
       }
       
+      // Auf Android: Kanal erstellen
       if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('survey-reminders', {
-          name: 'Survey Reminders',
-          importance: Notifications.AndroidImportance.HIGH,
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: '#FF231F7C',
-        });
+        const channels = await Notifications.getNotificationChannelsAsync();
+        if (!channels.some(c => c.id === 'survey-reminders')) {
+          await Notifications.setNotificationChannelAsync('survey-reminders', {
+            name: 'Survey Reminders',
+            importance: Notifications.AndroidImportance.HIGH,
+            vibrationPattern: [0, 250, 250, 250],
+            lightColor: '#0076FF',
+            enableVibrate: true,
+            lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+          });
+        }
       }
       
       return true;
     } catch (error) {
-      log.error('Error requesting notification permissions', error);
+      log.error('Permission error', error);
       return false;
     }
   }
   
   /**
-   * Bricht alle geplanten Benachrichtigungen ab und löscht die Speicherinformationen
+   * Holt lokalisierte Texte basierend auf der aktuellen Sprache
    */
-  async cancelAll(): Promise<void> {
+  private async getLocalizedTexts() {
     try {
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      await AsyncStorage.removeItem(NOTIFICATION_STORAGE_KEY);
-      log.info('Cancelled all scheduled notifications');
-    } catch (error) {
-      log.error('Error cancelling notifications', error);
-    }
-  }
-  
-  /**
-   * Liest die Zeit der nächsten geplanten Benachrichtigung
-   */
-  async getNextScheduledNotificationTime(): Promise<Date | null> {
-    try {
-      const nextNotificationStr = await AsyncStorage.getItem(NOTIFICATION_STORAGE_KEY);
-      if (!nextNotificationStr) {
-        return null;
-      }
+      // Aktuelle Sprache lesen
+      const lang = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY) || 'en';
+      const language = languages[lang as keyof typeof languages] || languages.en;
       
-      return new Date(nextNotificationStr);
+      return {
+        title: language.notifications.title,
+        body: language.notifications.body
+      };
     } catch (error) {
-      log.error('Error getting next scheduled notification time', error);
-      return null;
+      // Fallback bei Fehler
+      return {
+        title: "A new survey is waiting for you.",
+        body: "You have one hour to complete."
+      };
     }
   }
 } 

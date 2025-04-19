@@ -13,35 +13,17 @@ import { PortalHost } from '@rn-primitives/portal';
 import * as Notifications from 'expo-notifications';
 import { createLogger } from './utils/logger';
 import { slotCoordinator } from './services/slots';
+import { setupNotifications } from './services/slots/NotificationScheduler';
 
 const log = createLogger("App");
 
 // Reduzierte Logging-Ebene in Produktion/Testversion
 const isVerboseLogging = __DEV__;
 
-// Configure how notifications appear when the app is in the foreground
-Notifications.setNotificationHandler({
-  handleNotification: async (notification) => {
-    // Check the notification type to determine whether to show an alert
-    const data = notification.request.content.data || {};
-    const isFutureNotification = data.notificationType === 'future';
-    
-    if (isVerboseLogging) {
-      log.debug('Handling incoming notification visibility', { 
-        notificationType: data.notificationType,
-        isFutureNotification,
-      });
-    }
-    
-    // Only show immediate notifications as alerts when the app is in foreground
-    // Future notifications (for slot scheduling) should be handled silently
-    return {
-      shouldShowAlert: !isFutureNotification, // Only show alert for non-future notifications
-      shouldPlaySound: !isFutureNotification,
-      shouldSetBadge: !isFutureNotification,
-    };
-  },
-});
+// Stelle sicher, dass das Benachrichtigungssystem korrekt initialisiert ist
+// Diese Funktion wird bereits im NotificationScheduler.ts aufgerufen, aber
+// wir rufen sie hier explizit auf, um sicherzustellen, dass sie ausgeführt wird
+setupNotifications();
 
 // Einmalig gespeicherte Referenz auf den Initialisierungszustand
 // Wird app-global gespeichert, damit die Komponente neu-mounting nicht zum erneuten Initialisieren führt
@@ -59,7 +41,6 @@ const WindowOverlay = Platform.OS === "ios" ? FullWindowOverlay : React.Fragment
  * 
  * Responsibilities:
  * - Setting up global providers (language, navigation)
- * - Configuring notifications
  * - Initializing core services
  * 
  * This component serves as the entry point for the app.
@@ -112,12 +93,8 @@ export default function App() {
         log.info('App has come to the foreground');
       }
       
-      // Only check active slot if we've been in background for at least 30 seconds
-      // This prevents rapid re-checking when quickly switching between apps
-      if (timeSinceLastForeground > 30000 && globalInitStatus.isInitialized) {
-        // Check if we should show a survey notification when coming to foreground
-        await slotCoordinator.sendNotificationIfSlotActive();
-      }
+      // Slot-Status wird automatisch aktualisiert, wenn die App in den Vordergrund kommt
+      // Es sind keine sofortigen Benachrichtigungen erforderlich
     }
     
     appState.current = nextAppState;
@@ -133,9 +110,6 @@ export default function App() {
       
       log.info('Starting app initialization...');
       
-      // Führen wir erst die Initialisierung der Berechtigungen durch
-      await initNotifications();
-      
       // Initialisiere das Slot-System (nur einmal beim Start)
       log.info('Initializing slot coordinator (one-time initialization)');
       await slotCoordinator.initialize();
@@ -147,40 +121,12 @@ export default function App() {
         globalInitStatus.isInitialized = true;
         globalInitStatus.isInitializing = false;
         setIsAppInitialized(true);
-        log.info("Initialization phase completed, notification handling activated");
+        log.info("Initialization phase completed");
       }, 2000); // Reduziert auf 2 Sekunden
     } catch (error) {
       log.error('Error during app initialization', error);
       globalInitStatus.isInitializing = false;
       globalInitStatus.isInitialized = false;
-    }
-  };
-  
-  /**
-   * Set up notification handling and permissions
-   */
-  const initNotifications = async () => {
-    try {
-      // Jetzt können wir direkt auf den notificationScheduler zugreifen
-      const hasPermission = await slotCoordinator.notificationScheduler.requestPermissions();
-      
-      if (!hasPermission) {
-        log.warn('Notification permissions not granted');
-      } else {
-        log.info('Notification permissions granted');
-      }
-      
-      // Check for existing scheduled notifications - but don't reschedule here
-      // Let the SlotCoordinator.initialize handle scheduling
-      const currentSlot = await slotCoordinator.getCurrentSlot();
-      if (currentSlot && isVerboseLogging) {
-        log.info('Found existing slot', { 
-          start: currentSlot.start.toLocaleString(),
-          end: currentSlot.end.toLocaleString()
-        });
-      }
-    } catch (error) {
-      log.error('Error initializing notifications', error);
     }
   };
   
@@ -198,6 +144,9 @@ export default function App() {
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       response => {
         // Handle user interaction with the notification
+        log.info('User tapped on notification', {
+          actionIdentifier: response.actionIdentifier
+        });
         handleNotificationReceived(response.notification);
       }
     );
@@ -221,12 +170,11 @@ export default function App() {
   const handleNotificationReceived = async (notification: Notifications.Notification) => {
     // Log notification but in a more compact format to reduce console noise
     const data = notification.request?.content?.data;
-    const notificationType = data?.notificationType;
+    const type = data?.type;
     
     if (isVerboseLogging) {
       log.debug('Notification received', { 
-        type: data?.type, 
-        notificationType,
+        type,
         id: notification.request?.identifier?.substring(0, 8)
       });
     }
@@ -238,28 +186,9 @@ export default function App() {
     }
     
     try {
-      // Ignore future notifications - they are just scheduling triggers
-      if (notificationType === 'future') {
-        if (isVerboseLogging) {
-          log.info('Ignoring future notification trigger');
-        }
-        return;
-      }
-      
-      // Process immediate notification or reminder for active slot
-      if (notificationType === 'immediate' || data?.type === 'reminder') {
-        // Check if survey is available
-        const isAvailable = await slotCoordinator.isSurveyAvailable();
-        log.info(`Current survey availability status: ${isAvailable}`);
-        
-        if (isAvailable) {
-          // If already available, just refresh UI
-          log.info('Survey is available, UI should refresh');
-        } else {
-          // Make survey available with active slot
-          await slotCoordinator.makeSurveyAvailableIfSlotActive();
-        }
-      }
+      // Check slot status on notification tap
+      const isAvailable = await slotCoordinator.isSurveyAvailable();
+      log.info(`Survey availability status: ${isAvailable ? 'Available' : 'Not available'}`);
     } catch (error) {
       log.error('Error handling notification:', error);
     }

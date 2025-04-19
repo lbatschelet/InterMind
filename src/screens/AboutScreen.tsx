@@ -39,7 +39,7 @@ const AboutScreen: React.FC = () => {
           {/* App Logo/Image at top - reduced even further */}
           <View className="items-center mt-0 mb-2">
             <EverydayDesign 
-              height={getImageHeight(screenHeight, 0.13)}
+              height={getImageHeight(screenHeight, 0.2)}
               width="100%"
             />
           </View>

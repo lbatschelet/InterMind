@@ -1,4 +1,6 @@
-export default {
+import { TranslationKeys } from './index';
+
+const de: TranslationKeys = {
   general: {
     agree: "Ich stimme zu",
     continue: "Weiter",
@@ -11,22 +13,41 @@ export default {
     loading: "Lädt...",
     error: "Fehler",
     success: "Erfolg",
+    retry: "Wiederholen",
+    reset: "Zurücksetzen",
+    confirmation: "Bestätigung",
+    warning: "Warnung",
+    understand: "Ich verstehe",
+    tryAgain: "Erneut versuchen",
+    noDataAvailable: "Keine Daten verfügbar",
+    unexpectedError: "Ein unerwarteter Fehler ist aufgetreten",
+    ok: "OK"
   },
   settings: {
     title: "Einstellungen",
     language: "Sprache",
     languageSelection: "Sprachauswahl",
-    showUserId: "Benutzer-ID anzeigen",
+    showDeviceId: "Geräte-ID anzeigen",
     privacyPolicy: "Datenschutzrichtlinie",
     about: "Über",
     deleteAllData: "Alle Daten löschen",
     deleteConfirmTitle: "Alle Daten löschen?",
-    deleteConfirmText: "Diese Aktion ist unwiderruflich. Alle gesammelten Umfragedaten werden dauerhaft gelöscht.",
+    deleteConfirmText: "Diese Aktion ist unwiderruflich. Alle gesammelten Umfragedaten werden dauerhaft von unseren Servern und deinem Gerät gelöscht.",
     deleteSuccess: "Daten gelöscht",
     deleteError: "Fehler beim Löschen der Daten",
+    notifications: "Benachrichtigungen",
+    deleteData: "Meine Daten löschen",
+    resetQuestions: "Beantwortete Fragen zurücksetzen",
+    dataManagement: "Datenverwaltung",
+    generalSettings: "Allgemein",
+    advancedSettings: "Erweitert",
+    appearance: "Erscheinungsbild",
+    debug: "Debug-Funktionen",
+    consent: "Einwilligung"
   },
   home: {
     title: "InterMind",
+    welcome: "Willkommen bei InterMind!",
     startSurvey: "Umfrage starten",
     surveyAvailable: "Eine Umfrage ist jetzt verfügbar! Du hast eine Stunde Zeit zum Ausfüllen.",
     surveyNotAvailable: "Umfrage nicht verfügbar",
@@ -35,19 +56,30 @@ export default {
     tomorrow: "Nächste Umfrage morgen um",
     hours: "Stunden",
     minutes: "Minuten",
-    noUpcomingSurvey: "Noch keine nächste Umfrage geplant. Bitte später erneut prüfen.",
+    noUpcomingSurvey: "Keine Umfrage geplant",
+    unavailable: "Derzeit keine Umfrage verfügbar"
   },
   survey: {
-    userId: "Benutzer-ID",
-    userIdDesc: "Diese ID wird von Ihrem Gerät generiert und für pseudonymisierte Datenerfassung verwendet.",
-    copyId: "ID kopieren",
+    deviceId: "Geräte-ID",
+    deviceIdDesc: "Diese ID wird von Ihrem Gerät generiert und für pseudonymisierte Datenerfassung verwendet.",
+    copyDeviceId: "ID kopieren",
     back: "Zurück",
     next: "Weiter",
     submit: "Absenden",
-    exitTitle: "Umfrage beenden?",
-    exitMessage: "Ihr Fortschritt wird gespeichert, aber Sie werden die Umfrage beenden. Sind Sie sicher, dass Sie die Umfrage beenden möchten?",
+    exitTitle: "Umfrage verlassen?",
+    exitMessage: "Dein Fortschritt geht verloren, wenn du jetzt gehst.",
     continueSurvey: "Umfrage fortsetzen",
-    exitSurvey: "Umfrage beenden",
+    exitSurvey: "Umfrage verlassen",
+    complete: "Umfrage abgeschlossen",
+    completeMessage: "Vielen Dank für das Ausfüllen dieser Umfrage!",
+    errorSubmitting: "Fehler beim Absenden der Umfrage",
+    errorLoading: "Fehler beim Laden der Umfrage",
+    dataDeleteConfirm: "Möchtest du wirklich alle Umfragedaten löschen?",
+    dataDeleteSuccess: "Alle Umfragedaten wurden gelöscht",
+    dataDeleteError: "Fehler beim Löschen der Umfragedaten",
+    optional: "Optional",
+    start: "Umfrage starten",
+    title: "Umfrage"
   },
   notifications: {
     title: "Eine neue Umfrage wartet auf dich.",
@@ -57,6 +89,12 @@ export default {
   },
   about: {
     title: "Über InterMind",
+    version: "Version",
+    description: "InterMind ist eine Forschungs-App zur Untersuchung des Einflusses städtischer Umgebungen auf das Wohlbefinden.",
+    contact: "Kontakt",
+    team: "Team",
+    license: "Lizenz",
+    thankYou: "Vielen Dank für deine Teilnahme an unserer Forschung!",
     content: `**InterMind** ist eine Forschungs-App, die von Lukas Batschelet am Geographischen Institut der Universität Bern entwickelt wurde. Sie dient der Erhebung von Wohlbefinden aus einer intersektionalen und raumbezogenen Perspektive. Die App ist Teil einer Bachelorarbeit und wird ausschliesslich zu wissenschaftlichen Zwecken eingesetzt.
 
 ## Lizenzen
@@ -104,7 +142,7 @@ Wir erfassen folgende Informationen:
 - **Antworten auf Umfragen** zu Ihrem Wohlbefinden, Ihren Gedanken und Ihrer Umgebung  
 - **Standortdaten** (per GPS), jedoch **nur im Moment der Umfrage**, nicht dauerhaft oder im Hintergrund
 
-Wir erfassen **keine** Daten, die Rückschlüsse auf Ihre Identität erlauben (z. B. Name, Telefonnummer, E-Mail-Adresse).
+Wir erfassen **keine** Daten, die Rückschlüsse auf Ihre Identität erlauben (z. B. Name, Telefonnummer, E-Mail-Adresse).
 
 ## 3. Zweck der Datenerhebung
 
@@ -157,8 +195,67 @@ Diese Datenschutzerklärung kann bei Änderungen im Projekt, der Infrastruktur o
 
 Letzte Aktualisierung: 17. April 2025
 `
+  },
+  permissions: {
+    allowNotifications: "Benachrichtigungen erlauben",
+    allowLocation: "Standortzugriff erlauben",
+    denyNotifications: "Nicht jetzt",
+    denyLocation: "Nicht jetzt"
+  },
+  languages: {
+    en: "Englisch",
+    de: "Deutsch",
+    fr: "Französisch"
+  },
+  validation: {
+    required: "Dieses Feld ist erforderlich",
+    invalidEmail: "Bitte gib eine gültige E-Mail-Adresse ein",
+    invalidNumber: "Bitte gib eine gültige Zahl ein"
+  },
+  errors: {
+    connectionError: "Verbindungsfehler. Bitte überprüfe deine Internetverbindung und versuche es erneut.",
+    serverError: "Serverfehler. Bitte versuche es später noch einmal.",
+    permissionDenied: "Berechtigung verweigert",
+    notFound: "Nicht gefunden",
+    unknownError: "Unbekannter Fehler"
+  },
+  consent: {
+    title: "Einwilligung",
+    content: `Im Rahmen dieser Studie stellen wir dir einige Fragen – zunächst über dich selbst (z.B. Alter, Geschlechtsidentität) und dann über deine Gefühle und deine Umgebung zu verschiedenen Zeitpunkten deines Tages. Deine Antworten helfen uns zu verstehen, wie verschiedene Menschen städtische Räume erleben und wie diese Erfahrungen mit dem Wohlbefinden zusammenhängen.
+
+**Die Teilnahme ist freiwillig**. Du kannst jede Frage überspringen, indem du "Keine Angabe" auswählst. Du kannst auch jederzeit alle deine Daten über die App-Einstellungen löschen.
+
+## Welche Daten werden erfasst?
+
+- **Demografische Daten** wie Alter und Geschlechtsidentität
+- **Umfrageantworten** zu deinen Emotionen, Gedanken und deiner Umgebung
+- **Standortdaten** via GPS (wenn du dies erlaubst)
+
+Wir erfassen **nicht** deinen Namen, deine Telefonnummer, E-Mail-Adresse oder andere identifizierende Informationen. Deine Antworten sind **völlig anonym** und **können nicht mit dir in Verbindung gebracht werden**.
+
+## Wie werden deine Daten verwendet?
+
+Deine Daten werden:
+
+- Für **wissenschaftliche Forschung** zu Wohlbefinden im städtischen Raum verwendet
+- Sicher auf einem **passwortgeschützten Server** gespeichert
+- **Nicht an Dritte weitergegeben**
+- **Anonymisiert** und **nicht identifizierbar** gehalten
+- Jederzeit über die App von dir löschbar sein
+
+## Deine Einwilligung
+
+Durch Tippen auf **"Ich stimme zu"** bestätigst du, dass:
+
+- Du den Zweck dieser Studie verstehst
+- Du freiwillig an der Teilnahme einwilligst
+- Du jederzeit durch Löschen deiner Daten in den App-Einstellungen zurücktreten kannst
+
+Bitte lies unsere [Datenschutzrichtlinie](#) für weitere Details.`
   }
-}; 
+};
+
+export default de; 
 
 
 

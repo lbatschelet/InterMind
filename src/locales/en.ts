@@ -11,19 +11,37 @@ export default {
     loading: "Loading...",
     error: "Error",
     success: "Success",
+    retry: "Retry",
+    reset: "Reset",
+    confirmation: "Confirmation",
+    warning: "Warning",
+    understand: "I Understand",
+    tryAgain: "Try Again",
+    noDataAvailable: "No data available",
+    unexpectedError: "An unexpected error occurred",
+    ok: "OK"
   },
   settings: {
     title: "Settings",
     language: "Language",
     languageSelection: "Language Selection",
-    showUserId: "Show User ID",
+    showDeviceId: "Show Device ID",
     privacyPolicy: "Privacy Policy",
     about: "About",
     deleteAllData: "Delete All Data",
     deleteConfirmTitle: "Delete All Data?",
-    deleteConfirmText: "This action is irreversible. All collected survey data will be permanently deleted.",
+    deleteConfirmText: "This action is irreversible. All collected survey data will be permanently deleted from our servers as well as your device.",
     deleteSuccess: "Data Deleted",
     deleteError: "Error Deleting Data",
+    notifications: "Notifications",
+    deleteData: "Delete My Data",
+    resetQuestions: "Reset Answered Questions",
+    dataManagement: "Data Management",
+    generalSettings: "General",
+    advancedSettings: "Advanced",
+    appearance: "Appearance",
+    debug: "Debug Functions",
+    consent: "Consent"
   },
   home: {
     title: "InterMind",
@@ -36,11 +54,13 @@ export default {
     hours: "hours",
     minutes: "minutes",
     noUpcomingSurvey: "No upcoming surveys scheduled yet. Please check back later.",
+    welcome: "Welcome to InterMind!",
+    unavailable: "No survey available right now"
   },
   survey: {
-    userId: "User ID",
-    userIdDesc: "This ID is generated from your device and used for pseudonymized data collection.",
-    copyId: "Copy ID",
+    deviceId: "Device ID",
+    deviceIdDesc: "This ID is generated from your device and used for pseudonymized data collection.",
+    copyDeviceId: "Copy ID",
     back: "Back",
     next: "Next",
     submit: "Submit",
@@ -48,6 +68,16 @@ export default {
     exitMessage: "Your progress will be saved, but you will exit the survey. Are you sure you want to exit?",
     continueSurvey: "Continue Survey",
     exitSurvey: "Exit Survey",
+    start: "Start Survey",
+    title: "Survey",
+    optional: "Optional",
+    complete: "Survey Completed",
+    completeMessage: "Thank you for completing this survey!",
+    errorSubmitting: "Error submitting survey",
+    errorLoading: "Error loading survey",
+    dataDeleteConfirm: "Are you sure you want to delete all survey data?",
+    dataDeleteSuccess: "All survey data has been deleted",
+    dataDeleteError: "Error deleting survey data"
   },
   notifications: {
     title: "A new survey is waiting for you.",
@@ -76,7 +106,13 @@ from the open source project [undraw.co](https://undraw.co)
 
 ## Version
 Version: 0.1.0
-`
+`,
+    version: "Version",
+    description: "InterMind is a research app designed to understand how urban environments affect wellbeing.",
+    contact: "Contact",
+    team: "Team",
+    license: "License",
+    thankYou: "Thank you for participating in our research!"
   },
   privacy: {
     title: "Privacy Policy",
@@ -155,5 +191,62 @@ We may update this policy to reflect changes in the research project, infrastruc
 
 **This Privacy Policy was last updated on 17 April 2025.**
 `
+  },
+  permissions: {
+    allowNotifications: "Allow Notifications",
+    allowLocation: "Allow Location Access",
+    denyNotifications: "Not Now",
+    denyLocation: "Not Now"
+  },
+  languages: {
+    en: "English",
+    de: "Deutsch",
+    fr: "Français"
+  },
+  validation: {
+    required: "This field is required",
+    invalidEmail: "Please enter a valid email address",
+    invalidNumber: "Please enter a valid number"
+  },
+  errors: {
+    connectionError: "Connection error. Please check your internet connection and try again.",
+    serverError: "Server error. Please try again later.",
+    permissionDenied: "Permission denied",
+    notFound: "Not found",
+    unknownError: "Unknown error"
+  },
+  consent: {
+    title: "Consent",
+    content: `As part of this study, we will ask you some questions—first about yourself (e.g. age, gender identity), and then about your feelings and your surrounding environment at different moments in your day. Your responses help us understand how different people experience urban spaces and how these experiences relate to wellbeing.
+
+**Participation is voluntary**. You can skip any question by selecting "Prefer not to say." You can also delete all your data at any time via the app settings.
+
+## What Data Will Be Collected?
+
+- **Demographic data**, such as your age and gender identity  
+- **Survey responses** about your emotions, thoughts, and surroundings  
+- **Location data** via GPS (if you choose to allow it)
+
+We do **not** collect your name, phone number, email address, or any other identifying information. Your responses are **completely anonymous** and **cannot be linked to you**.
+
+## How Will Your Data Be Used?
+
+Your data will be:
+
+- Used for **academic research** on wellbeing and urban space
+- Stored securely on a **password-protected server**
+- **Not shared** with third parties
+- **Anonymized** and **non-identifiable**
+- Deletable by you at any time through the app
+
+## Your Consent
+
+By tapping **"I Agree"**, you confirm that:
+
+- You understand the purpose of this study
+- You agree to participate voluntarily
+- You can withdraw at any time by deleting your data in the app settings
+
+Please read our [Privacy Policy](#) for more details.`
   }
 };

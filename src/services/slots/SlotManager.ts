@@ -15,8 +15,8 @@ const log = createLogger("SlotManager");
 export const DEFAULT_CONFIG: SlotManagerConfig = {
   MORNING_RANGE: {
     name: 'morning',
-    startHour: 6,
-    startMinute: 0,
+    startHour: 7,
+    startMinute: 30,
     endHour: 11,
     endMinute: 0
   },
@@ -130,6 +130,16 @@ export class SlotManager {
       segmentChanged = true;
       
       log.info(`Time has passed beyond next segment (${oldSegment}), using current ${nextSegment}`);
+    } else if (currentSegment === DaySegment.EVENING && nextSegment === DaySegment.NOON) {
+      // Spezieller Fall: Umfrage wurde in der Nacht ausgefüllt (nach 22 Uhr)
+      // Das nächste Segment sollte Morgen sein
+      const oldSegment = nextSegment;
+      nextSegment = DaySegment.MORNING;
+      targetDate = new Date(now);
+      targetDate.setDate(targetDate.getDate() + 1);
+      segmentChanged = true;
+      
+      log.info(`Special case: Survey completed at night, skipping to MORNING segment for next day`);
     }
     
     // Setze das Datum auf Mitternacht und füge dann die Startzeit hinzu
@@ -209,6 +219,7 @@ export class SlotManager {
     // Fallback, falls die Zeit in keinem Segment liegt
     const currentHourMinutes = hour * 60 + minute;
     const morningStartMinutes = this.config.MORNING_RANGE.startHour * 60 + this.config.MORNING_RANGE.startMinute;
+    const eveningEndMinutes = this.config.EVENING_RANGE.endHour * 60 + this.config.EVENING_RANGE.endMinute;
     
     // Nachts/früh morgens (nach Ende Abend und vor Beginn Morgen)
     // d.h. zwischen 22:00 und 06:00
@@ -216,6 +227,10 @@ export class SlotManager {
       // Wir sind nach Mitternacht, aber vor dem Start des MORNING Segments
       log.info(`Time ${time.toLocaleTimeString()} is in early morning hours (before ${this.config.MORNING_RANGE.startHour}:${this.config.MORNING_RANGE.startMinute})`);
       return DaySegment.EVENING; // Gilt als später Abend des Vortags für Planungszwecke
+    } else if (currentHourMinutes >= eveningEndMinutes) {
+      // Wir sind nach dem Ende des EVENING Segments (nach 22:00 Uhr)
+      log.info(`Time ${time.toLocaleTimeString()} is after evening segment (after ${this.config.EVENING_RANGE.endHour}:${this.config.EVENING_RANGE.endMinute})`);
+      return DaySegment.EVENING; // Gilt als später Abend für Planungszwecke
     }
     
     // Sollte nie erreicht werden, aber als Fallback
@@ -303,12 +318,26 @@ export class SlotManager {
     // Statt eines deterministischen Seeds verwenden wir echte Zufälligkeit
     // Berechne die Anzahl der möglichen Zeitpunkte
     const granularityMs = this.config.TIME_GRANULARITY_MINUTES * 60 * 1000;
+    
+    // Sicherheitsprüfung: Falls earliest > latest ist, nutzen wir die früheste Zeit
+    // Dies sollte eigentlich nicht vorkommen, aber als Absicherung
+    if (earliest > latest) {
+      log.warn("Invalid time range detected (earliest > latest), using earliest time", {
+        earliest: earliest.toLocaleTimeString(),
+        latest: latest.toLocaleTimeString(),
+        segment
+      });
+      return earliest;
+    }
+    
     const rangeMs = latest.getTime() - earliest.getTime();
     const numSteps = Math.floor(rangeMs / granularityMs) + 1;
     
     if (numSteps <= 0) {
       log.warn("Invalid time range for random selection, using earliest time", {
-        earliest, latest, segment
+        earliest: earliest.toLocaleTimeString(),
+        latest: latest.toLocaleTimeString(),
+        segment
       });
       return earliest;
     }

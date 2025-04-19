@@ -1,9 +1,9 @@
 /**
  * @packageDocumentation
- * @module Screens/PrivacyPolicy
+ * @module Screens/Consent
  * 
  * @summary
- * Privacy Policy screen that provides information about data privacy.
+ * Consent screen that provides information about data usage and consent.
  */
 
 import React from "react";
@@ -16,37 +16,36 @@ import { createLogger } from "~/src/utils/logger";
 import { SvgRegistry } from "~/src/lib/images";
 import { getImageHeight, infoScreenStyles, markdownStyles } from "~/src/styles/infoScreenStyles";
 
-const log = createLogger("PrivacyPolicyScreen");
+const log = createLogger("ConsentScreen");
 
 /**
- * Privacy Policy Screen Component
+ * Consent Screen Component
  */
-const PrivacyPolicyScreen: React.FC = () => {
+const ConsentScreen: React.FC = () => {
   const { t } = useLanguage();
   const screenHeight = Dimensions.get('window').height;
   
-  // Content for the privacy policy screen - could be moved to translation files
-  const privacyTitle = t('privacy.title');
-  const privacyContent = t('privacy.content');
+  // Content for the consent screen from translation files
+  const consentContent = t('consent.content');
   
-  // Get the SVG component from the registry
-  const LocationSearch = SvgRegistry['location-search'];
+  // Get the SVG component from the registry - using contract image
+  const Contract = SvgRegistry['contract'];
   
   return (
     <View className="flex-1 bg-background">
       <SafeAreaView edges={["top"]} className="flex-1">
         <ScrollView className="flex-1 px-4 -mt-16">
-          {/* Privacy Image at top - reduced even further */}
+          {/* Consent Image at top */}
           <View className="items-center mt-0 mb-2">
-            <LocationSearch 
+            <Contract 
               height={getImageHeight(screenHeight, 0.2)}
               width="100%"
             />
           </View>
           
-          {/* Directly show the markdown content without duplicating the title */}
+          {/* Markdown content with title included in the markdown */}
           <Markdown style={markdownStyles}>
-            {privacyContent}
+            {consentContent}
           </Markdown>
           
           {/* Bottom padding */}
@@ -57,4 +56,4 @@ const PrivacyPolicyScreen: React.FC = () => {
   );
 };
 
-export default PrivacyPolicyScreen; 
+export default ConsentScreen; 

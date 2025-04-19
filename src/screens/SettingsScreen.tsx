@@ -8,7 +8,7 @@
 
 import * as Clipboard from "expo-clipboard";
 import React, { useEffect, useState } from "react";
-import { View } from "react-native";
+import { View, Dimensions, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
     AlertDialog,
@@ -31,6 +31,9 @@ import { SurveyService } from "~/src/services";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
 import { resetSlotSystem } from '../services/slots';
+import { getImage } from "~/src/lib/images";
+import Markdown from 'react-native-markdown-display';
+import { getImageHeight, infoScreenStyles, markdownStyles } from "~/src/styles/infoScreenStyles";
 
 const log = createLogger("SettingsScreen");
 
@@ -60,6 +63,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
     "idle"
   );
   const [isLoading, setIsLoading] = useState(true);
+  const screenHeight = Dimensions.get('window').height;
+  
+  // Get settings image from registry
+  const SettingsImage = getImage('settings');
+  
+  // Settings description text with markdown support
+  const settingsContent = t('settings.content') || '## Einstellungen\n\nHier können Sie verschiedene Einstellungen der App anpassen und Ihre Daten verwalten.';
 
   useEffect(() => {
     const fetchDeviceId = async () => {
@@ -139,146 +149,169 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   return (
     <View className="flex-1 bg-background">
       <SafeAreaView edges={["top"]} className="flex-1">
-        <View className="p-4 space-y-4">
-          {/* Language Selection */}
-          <AlertDialog open={languageDialogOpen} onOpenChange={setLanguageDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between py-6"
-              >
-                <Text className="text-primary text-lg flex-shrink">{t('settings.language')}</Text>
-                <Text className="text-muted-foreground ml-2">
-                  {languageNames[language]}
-                </Text>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('settings.languageSelection')}</AlertDialogTitle>
-              </AlertDialogHeader>
-              <View className="space-y-2">
-                {Object.entries(languageNames).map(([code, name]) => (
-                  <Button
-                    key={code}
-                    variant={code === language ? "default" : "outline"}
-                    className="w-full"
-                    onPress={() => handleLanguageChange(code as LanguageCode)}
-                  >
-                    <Text className={code === language ? "text-primary-foreground" : "text-primary"}>
-                      {name}
-                    </Text>
+        <ScrollView className="flex-1 px-4 -mt-16">
+          {/* Settings Header with Image */}
+          <View className="items-center mt-0 mb-2">
+            {SettingsImage && <SettingsImage 
+              height={getImageHeight(screenHeight, 0.2)}
+              width="100%"
+            />}
+          </View>
+          
+          {/* Buttons container with consistent spacing */}
+
+          <View className="space-y-4 mt-4">
+             {/* 1. About Screen */}
+             <Button
+              variant="outline"
+              className="w-full justify-between py-6"
+              onPress={() => {
+                navigation.navigate('About');
+              }}
+            >
+              <Text className="text-primary text-lg">{t('settings.about')}</Text>
+            </Button>
+
+            {/* 2. Privacy Policy */}
+            <Button
+              variant="outline"
+              className="w-full justify-between py-6"
+              onPress={() => {
+                navigation.navigate('PrivacyPolicy');
+              }}
+            >
+              <Text className="text-primary text-lg">{t('settings.privacyPolicy')}</Text>
+            </Button>
+
+            {/* 3. Consent Screen */}
+            <Button
+              variant="outline"
+              className="w-full justify-between py-6"
+              onPress={() => {
+                navigation.navigate('Consent');
+              }}
+            >
+              <Text className="text-primary text-lg">{t('settings.consent')}</Text>
+            </Button>
+
+            {/* 4. Language Selection */}
+            <AlertDialog open={languageDialogOpen} onOpenChange={setLanguageDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between py-6"
+                >
+                  <Text className="text-primary text-lg">{`${t('settings.language')}: ${languageNames[language]}`}</Text>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent portalHost={PORTAL_HOST_NAME} className="w-full max-w-full mx-4">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('settings.languageSelection')}</AlertDialogTitle>
+                </AlertDialogHeader>
+                <View className="space-y-2">
+                  {Object.entries(languageNames).map(([code, name]) => (
+                    <Button
+                      key={code}
+                      variant={code === language ? "default" : "outline"}
+                      className="w-full"
+                      onPress={() => handleLanguageChange(code as LanguageCode)}
+                    >
+                      <Text className={code === language ? "text-primary-foreground" : "text-primary"}>
+                        {name}
+                      </Text>
+                    </Button>
+                  ))}
+                </View>
+                <AlertDialogFooter className="space-y-2">
+                  <Button variant="outline" className="w-full" onPress={() => setLanguageDialogOpen(false)}>
+                    <Text>{t('general.cancel')}</Text>
                   </Button>
-                ))}
-              </View>
-              <AlertDialogFooter>
-                <Button variant="outline" className="w-full" onPress={() => setLanguageDialogOpen(false)}>
-                  <Text>{t('general.cancel')}</Text>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* 5. Device ID Display */}
+            <AlertDialog open={open} onOpenChange={setOpen}>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between py-6"
+                  disabled={isLoading}
+                >
+                  <Text className="text-primary text-lg">
+                    {isLoading ? t('general.loading') : t('settings.showDeviceId')}
+                  </Text>
                 </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+              </AlertDialogTrigger>
+              <AlertDialogContent portalHost={PORTAL_HOST_NAME} className="w-full max-w-full mx-4">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t('survey.deviceId')}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t('survey.deviceIdDesc')}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <View className="p-4 bg-muted rounded-lg">
+                  <Text className="text-primary text-lg font-mono text-center">
+                    {deviceId || t('general.loading')}
+                  </Text>
+                </View>
+                <AlertDialogFooter className="space-y-2">
+                  <Button variant="outline" className="w-full" onPress={copyToClipboard}>
+                    <Text>{t('survey.copyDeviceId')}</Text>
+                  </Button>
+                  <Button className="w-full" onPress={() => setOpen(false)}>
+                    <Text>{t('general.close')}</Text>
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-          {/* User ID Display */}
-          <AlertDialog open={open} onOpenChange={setOpen}>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-between py-6"
-                disabled={isLoading}
-              >
-                <Text className="text-primary text-lg">
-                  {isLoading ? t('general.loading') : t('settings.showUserId')}
-                </Text>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t('survey.userId')}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t('survey.userIdDesc')}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <View className="p-4 bg-muted rounded-lg">
-                <Text className="text-primary text-lg font-mono text-center">
-                  {deviceId || t('general.loading')}
-                </Text>
-              </View>
-              <AlertDialogFooter className="space-y-2">
-                <Button variant="outline" className="w-full" onPress={copyToClipboard}>
-                  <Text>{t('survey.copyId')}</Text>
+            {/* 6. Delete All Data */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full">
+                  <Text className="text-destructive-foreground">{t('settings.deleteAllData')}</Text>
                 </Button>
-                <Button className="w-full" onPress={() => setOpen(false)}>
-                  <Text>{t('general.close')}</Text>
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          {/* Privacy Policy */}
-          <Button
-            variant="outline"
-            className="w-full justify-between py-6"
-            onPress={() => {
-              navigation.navigate('PrivacyPolicy');
-            }}
-          >
-            <Text className="text-primary text-lg">{t('settings.privacyPolicy')}</Text>
-          </Button>
-
-          {/* About Screen */}
-          <Button
-            variant="outline"
-            className="w-full justify-between py-6"
-            onPress={() => {
-              navigation.navigate('About');
-            }}
-          >
-            <Text className="text-primary text-lg">{t('settings.about')}</Text>
-          </Button>
-
-          {/* Delete All Data */}
-          <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full">
-                <Text className="text-destructive-foreground">{t('settings.deleteAllData')}</Text>
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent portalHost={PORTAL_HOST_NAME}>
-              {deleteStatus === "idle" ? (
-                <>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('settings.deleteConfirmTitle')}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t('settings.deleteConfirmText')}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="space-y-2">
-                    <AlertDialogCancel className="w-full" onPress={() => setDeleteDialogOpen(false)}>
-                      <Text>{t('general.cancel')}</Text>
-                    </AlertDialogCancel>
-                    <Button className="w-full bg-destructive" onPress={handleDeleteData}>
-                      <Text className="text-destructive-foreground">{t('general.yes')}, {t('settings.deleteAllData')}</Text>
-                    </Button>
-                  </AlertDialogFooter>
-                </>
-              ) : (
-                <>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      {deleteStatus === "success" ? t('settings.deleteSuccess') : t('settings.deleteError')}
-                    </AlertDialogTitle>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <Button className="w-full" onPress={() => setDeleteDialogOpen(false)}>
-                      <Text>{t('general.close')}</Text>
-                    </Button>
-                  </AlertDialogFooter>
-                </>
-              )}
-            </AlertDialogContent>
-          </AlertDialog>
-        </View>
+              </AlertDialogTrigger>
+              <AlertDialogContent portalHost={PORTAL_HOST_NAME} className="w-full max-w-full mx-4">
+                {deleteStatus === "idle" ? (
+                  <>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>{t('settings.deleteConfirmTitle')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        {t('settings.deleteConfirmText')}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="space-y-2">
+                      <AlertDialogCancel className="w-full" onPress={() => setDeleteDialogOpen(false)}>
+                        <Text className="text-center w-full">{t('general.cancel')}</Text>
+                      </AlertDialogCancel>
+                      <Button className="w-full bg-destructive" onPress={handleDeleteData}>
+                        <Text className="text-destructive-foreground">{t('general.yes')}, {t('settings.deleteAllData')}</Text>
+                      </Button>
+                    </AlertDialogFooter>
+                  </>
+                ) : (
+                  <>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        {deleteStatus === "success" ? t('settings.deleteSuccess') : t('settings.deleteError')}
+                      </AlertDialogTitle>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="space-y-2">
+                      <Button className="w-full" onPress={() => setDeleteDialogOpen(false)}>
+                        <Text>{t('general.close')}</Text>
+                      </Button>
+                    </AlertDialogFooter>
+                  </>
+                )}
+              </AlertDialogContent>
+            </AlertDialog>
+          </View>
+          
+          {/* Bottom padding */}
+          <View className="h-8" />
+        </ScrollView>
       </SafeAreaView>
     </View>
   );

@@ -46,7 +46,33 @@ En appuyant sur **"J''accepte"**, vous confirmez que :
 
 Veuillez lire notre [politique de confidentialité](#) pour plus de détails.',
    '{"buttonText": "general.agree"}'),
-  
+   
+  -- Benachrichtigungsberechtigungen-Screen (neu)
+  ('notifications_permission', 'fr', 'Notifications', 
+   'Pour participer efficacement à cette étude, nous devons vous envoyer des notifications lorsqu''un nouveau sondage est disponible.
+
+Ces notifications :
+- Vous alerteront lorsqu''un nouveau sondage est prêt à être complété
+- Ne seront envoyées que quelques fois par jour
+- Vous aideront à fournir des données à différents moments et dans différents environnements
+
+Les notifications sont essentielles pour recevoir des sondages en temps opportun tout au long de la journée. Sans elles, vous pourriez manquer des opportunités de participation.',
+   '{"buttonText": "general.ok"}'),
+   
+  -- Standortberechtigungen-Screen (neu)
+  ('location_permission', 'fr', 'Accès à la localisation', 
+   'Comprendre votre environnement est une partie importante de cette étude. Nous demandons l''accès à votre localisation pour :
+
+- Associer vos réponses aux lieux que vous visitez
+- Comprendre comment différents environnements affectent le bien-être
+- Cartographier les expériences urbaines à travers différents lieux
+
+Vos données de localisation sont :
+- Collectées uniquement lorsque vous complétez activement un sondage
+- Jamais suivies en continu en arrière-plan
+- Anonymes et ne peuvent pas être liées à votre identité',
+   '{"buttonText": "general.ok"}'),
+   
   -- Altersgruppe Frage
   ('age_question', 'fr', 'Groupe d''âge', 'Dans quel groupe d''âge vous situez-vous ?', 
    '{"options": [

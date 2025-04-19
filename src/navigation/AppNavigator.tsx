@@ -63,6 +63,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import SurveyScreen from '../screens/SurveyScreen';
 import AboutScreen from '../screens/AboutScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
+import ConsentScreen from '../screens/ConsentScreen';
 
 /**
  * Type definitions for the navigation stack parameters.
@@ -74,6 +75,7 @@ export type RootStackParamList = {
     SurveyScreen: undefined;
     About: undefined;
     PrivacyPolicy: undefined;
+    Consent: undefined;
   };
   
 
@@ -245,6 +247,13 @@ const AppNavigator = () => {
                     component={PrivacyPolicyScreen} 
                     options={{ 
                         header: (props) => InfoScreenHeader(props, t('privacy.title'))
+                    }} 
+                />
+                <Stack.Screen 
+                    name="Consent" 
+                    component={ConsentScreen} 
+                    options={{ 
+                        header: (props) => InfoScreenHeader(props, t('consent.title'))
                     }} 
                 />
             </Stack.Navigator>

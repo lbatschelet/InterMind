@@ -8,10 +8,18 @@
 -- Fragen-Metadaten (ohne sprachabhängige Inhalte)
 INSERT INTO questions (id, type, category, sequence_number, image_source, options_structure) VALUES
   -- Willkommensbildschirm
-  ('welcome_screen', 'info_screen', 'welcome', 0, NULL, '{"buttonText": "general.continue", "showOnce": true}'),
+  ('welcome_screen', 'info_screen', 'welcome', 0, 'welcoming', '{"buttonText": "general.continue", "showOnce": true}'),
   
   -- Einwilligungsbildschirm
   ('consent_screen', 'info_screen', 'welcome', 10, 'contract', '{"buttonText": "general.agree", "showOnce": true}'),
+  
+  -- Benachrichtigungsberechtigungen-Screen (neu)
+  ('notifications_permission', 'info_screen', 'permissions', 20, 'reminders', 
+   '{"buttonText": "general.ok", "action": "request_notification_permission", "showOnce": true}'),
+  
+  -- Standortberechtigungen-Screen (neu)
+  ('location_permission', 'info_screen', 'permissions', 30, 'my-current-location', 
+   '{"buttonText": "general.ok", "action": "request_location_permission", "showOnce": true}'),
   
   -- Altersgruppen Frage
   ('age_question', 'single_choice', 'demographic', 100, NULL, 

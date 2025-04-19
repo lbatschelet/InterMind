@@ -220,47 +220,85 @@ export class SlotCoordinator {
       await this.scheduleNotificationOnce(nextSlot);
       
       log.info("First regular slot scheduled", { 
-        start: nextSlot.start.toLocaleString(),
-        end: nextSlot.end.toLocaleString()
+        start: nextSlot.start.toLocaleTimeString(),
+        end: nextSlot.end.toLocaleTimeString()
       });
       
       return nextSlot;
     }
     
     // Normale Slot-Planung für alle anderen Event-Typen
-    // Hole Metadaten des letzten Slots
-    const lastMeta = await this.slotStore.readLastMeta();
-    
-    // Wandle das Event in einen Status um
-    const status = eventToStatus(event);
-    
-    // Berechne den nächsten Slot
-    const nextSlot = this.slotManager.nextSlot(
-      new Date(), // current time
-      lastMeta?.end || null,
-      lastMeta ? lastMeta.status : null
-    );
-    
-    // Speichere den neuen Slot mit dem entsprechenden Status
-    await this.slotStore.saveSlot(nextSlot, status);
-    
-    // Plane eine Benachrichtigung für den Start des Slots
-    // Beachte, dass die Planung fehlschlagen kann, wenn der Zeitpunkt zu nah ist
-    const scheduled = await this.scheduleNotificationOnce(nextSlot);
-    
-    if (scheduled) {
-      log.info("New slot scheduled with notification", { 
-        start: nextSlot.start.toLocaleString(),
-        end: nextSlot.end.toLocaleString()
+    try {
+      // Hole Metadaten des letzten Slots
+      const lastMeta = await this.slotStore.readLastMeta();
+      
+      // Wandle das Event in einen Status um
+      const status = eventToStatus(event);
+      
+      // Aktuelle Zeit für die Berechnung
+      const now = new Date();
+      
+      // Berechne den nächsten Slot
+      const nextSlot = this.slotManager.nextSlot(
+        now, // current time
+        lastMeta?.end || now, // Wenn kein letzter Slot existiert, verwende aktuelle Zeit
+        lastMeta ? lastMeta.status : status // Falls kein Status existiert, verwende den aktuellen
+      );
+      
+      // Speichere den neuen Slot mit dem entsprechenden Status
+      await this.slotStore.saveSlot(nextSlot, status);
+      
+      // Plane eine Benachrichtigung für den Start des Slots
+      // Beachte, dass die Planung fehlschlagen kann, wenn der Zeitpunkt zu nah ist
+      const scheduled = await this.scheduleNotificationOnce(nextSlot);
+      
+      if (scheduled) {
+        log.info("New slot scheduled with notification", { 
+          start: nextSlot.start.toLocaleTimeString(),
+          end: nextSlot.end.toLocaleTimeString(),
+          segment: this.slotManager.getSegmentForTime(nextSlot.start)
+        });
+      } else {
+        log.info("New slot created without notification (too close or permission denied)", {
+          start: nextSlot.start.toLocaleTimeString(),
+          end: nextSlot.end.toLocaleTimeString(),
+          segment: this.slotManager.getSegmentForTime(nextSlot.start)
+        });
+      }
+      
+      return nextSlot;
+    } catch (error) {
+      log.error("Error creating next slot", error);
+      
+      // Fallback: Erstelle einen Standardslot in einem vernünftigen Zeitfenster
+      const now = new Date();
+      
+      // Erstelle einen Slot für nächsten Tag um 10 Uhr
+      const fallbackSlot: Slot = {
+        start: new Date(now),
+        end: new Date(now)
+      };
+      
+      // Setze auf nächsten Tag 10 Uhr
+      fallbackSlot.start.setDate(fallbackSlot.start.getDate() + 1);
+      fallbackSlot.start.setHours(10, 0, 0, 0);
+      
+      // Slot-Ende 1 Stunde später
+      fallbackSlot.end = new Date(fallbackSlot.start);
+      fallbackSlot.end.setHours(fallbackSlot.end.getHours() + 1);
+      
+      log.info("Created fallback slot due to error", {
+        start: fallbackSlot.start.toLocaleTimeString(),
+        end: fallbackSlot.end.toLocaleTimeString(),
+        reason: "Error in slot calculation"
       });
-    } else {
-      log.info("New slot created without notification (too close or permission denied)", {
-        start: nextSlot.start.toLocaleString(),
-        end: nextSlot.end.toLocaleString()
-      });
+      
+      // Speichere den Fallback-Slot
+      const status = eventToStatus(event);
+      await this.slotStore.saveSlot(fallbackSlot, status);
+      
+      return fallbackSlot;
     }
-    
-    return nextSlot;
   }
   
   /**
@@ -300,17 +338,6 @@ export class SlotCoordinator {
   }
   
   /**
-   * Sendet sofort eine Benachrichtigung, wenn ein Slot aktiv ist
-   */
-  async sendNotificationIfSlotActive(): Promise<boolean> {
-    const isActive = await this.isSurveyAvailable();
-    if (isActive) {
-      return await this.notificationScheduler.sendSurveyAvailableNotification();
-    }
-    return false;
-  }
-  
-  /**
    * Bricht alle Benachrichtigungen ab
    */
   async cancelAllNotifications(): Promise<void> {
@@ -325,26 +352,5 @@ export class SlotCoordinator {
     log.info("Resetting initialization state of SlotCoordinator");
     this.isInitialized = false;
     this.isInitializing = false;
-  }
-  
-  /**
-   * Macht eine Umfrage verfügbar wenn ein Slot aktiv ist
-   * Diese Methode wird aufgerufen, wenn eine Benachrichtigung empfangen wird
-   * @returns true, wenn eine Umfrage verfügbar gemacht wurde
-   */
-  async makeSurveyAvailableIfSlotActive(): Promise<boolean> {
-    log.info("Checking if slot is active to make survey available");
-    
-    const isActive = await this.isSurveyAvailable();
-    if (isActive) {
-      // Wir senden nur eine Benachrichtigung, dass die Umfrage verfügbar ist
-      // Die Verfügbarkeit selbst wird durch den aktiven Slot bestimmt
-      await this.notificationScheduler.sendSurveyAvailableNotification();
-      log.info("Survey is available and notification sent");
-      return true;
-    }
-    
-    log.info("No active slot found, survey not made available");
-    return false;
   }
 } 

@@ -296,12 +296,20 @@ export class QuestionRepository implements IQuestionRepository {
           };
           
         case 'info_screen':
+          // Versuche, die options_structure zu parsen
+          const baseOptions = typeof item.options_structure === 'string' 
+            ? JSON.parse(item.options_structure) 
+            : item.options_structure;
+            
           return {
             ...baseQuestion,
             type: 'info_screen' as const,
             title: translation.title || '',
             text: translation.text || '',
             buttonText: buttonText || 'general.continue', // Explizites Setzen mit Fallback
+            options: baseOptions ? { 
+              action: baseOptions.action // Explizit die action-Property übernehmen
+            } : undefined,
             showOnce
           };
           

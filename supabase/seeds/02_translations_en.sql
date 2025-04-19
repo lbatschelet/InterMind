@@ -46,6 +46,32 @@ By tapping **"I Agree"**, you confirm that:
 
 Please read our [Privacy Policy](#) for more details.',
    '{"buttonText": "general.agree"}'),
+   
+  -- Benachrichtigungsberechtigungen-Screen (neu)
+  ('notifications_permission', 'en', 'Notifications', 
+   'To participate effectively in this study, we need to send you notifications when a new survey is available.
+
+These notifications will:
+- Alert you when a new survey is ready to complete
+- Only be sent a few times per day
+- Help you provide data at different times and environments
+
+Notifications are essential for receiving timely surveys throughout the day. Without them, you might miss opportunities to participate.',
+   '{"buttonText": "general.ok"}'),
+   
+  -- Standortberechtigungen-Screen (neu)
+  ('location_permission', 'en', 'Location Access', 
+   'Understanding your surroundings is an important part of this study. We request access to your location to:
+
+- Associate your responses with the places you visit
+- Understand how different environments affect wellbeing
+- Map urban experiences across different locations
+
+Your location data is:
+- Only collected when you actively complete a survey
+- Never tracked continuously in the background
+- Anonymous and cannot be linked to your identity',
+   '{"buttonText": "general.ok"}'),
   
   -- Altersgruppe Frage
   ('age_question', 'en', 'Age Group', 'In which age group do you find yourself?', NULL),

@@ -22,7 +22,11 @@
       "bundleIdentifier": "ch.intermind.app",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy.",
+        "UIBackgroundModes": [
+          "fetch",
+          "remote-notification"
+        ]
       },
       "entitlements": {
         "aps-environment": "production"
@@ -33,7 +37,9 @@
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM"
       ]
     },
     "web": {
@@ -50,6 +56,12 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "default"
         }
       ]
     ]

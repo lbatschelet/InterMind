@@ -62,7 +62,10 @@ const QuestionRenderer = ({
     case "info_screen":
       return <InfoScreen
         question={question}
-        onNext={() => onNext()} // Info screens don't return a value
+        onNext={() => {
+          log.debug("InfoScreen onNext callback triggered");
+          onNext();
+        }}
       />;
 
     default:

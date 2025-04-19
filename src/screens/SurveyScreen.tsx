@@ -15,10 +15,13 @@ import {
 import { Button } from "../components/ui/button";
 import { Text } from "../components/ui/text";
 import { useLanguage } from "../contexts/LanguageContext";
-import { SurveyService, SurveyResponseService } from "../services";
+import { SurveyService, SurveyResponseService, SurveyLocationService } from "../services";
 import { Question } from "../types/question";
 import { createLogger } from "../utils/logger";
 import QuestionImage from "../components/QuestionImage";
+import * as Notifications from 'expo-notifications';
+import * as Location from 'expo-location';
+import { executeAction } from '../components/QuestionTypes/InfoScreen';
 
 // Initialize logger for this module
 const log = createLogger("SurveyScreen");
@@ -167,6 +170,25 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
         });
         
         const nextIndex = currentIndex + 1;
+        const nextQuestion = questions[nextIndex];
+
+        // Attempt to capture location if next question's sequence_number is eligible
+        if (nextQuestion && nextQuestion.sequence_number !== undefined && nextQuestion.sequence_number >= 100) {
+          log.debug("Attempting to capture location for eligible question", { 
+            questionId: nextQuestion.id, 
+            sequenceNumber: nextQuestion.sequence_number 
+          });
+          
+          // Try to capture location in background - don't await this to avoid delaying navigation
+          SurveyLocationService.captureLocationIfEligible(surveyId, nextQuestion.sequence_number)
+            .then(success => {
+              log.debug("Location capture result", { success });
+            })
+            .catch(error => {
+              log.error("Error capturing location", error);
+            });
+        }
+        
         animateTransition("forward", nextIndex);
       } else {
         log.info("Survey completed");
@@ -395,12 +417,53 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
             <Button 
               variant="default" 
               className="bg-accent" 
-              onPress={() => {
-                // Bei Info-Screens müssen wir manuell onNext aufrufen
-                if (currentQuestion.type === "info_screen") {
-                  handleResponseUpdate(undefined);
+              onPress={async () => {
+                // Verhindere doppelte Klicks
+                if (isAnimating) return;
+                
+                log.info("Next/Submit button clicked", { 
+                  questionType: currentQuestion.type,
+                  hasAction: currentQuestion.type === "info_screen" && !!currentQuestion.options?.action,
+                  action: currentQuestion.type === "info_screen" ? currentQuestion.options?.action : null
+                });
+                
+                // Setze isAnimating temporär, um doppelte Klicks zu verhindern
+                setIsAnimating(true);
+                
+                try {
+                  // Schritt 1: Bei Info-Screens mit Aktionen zuerst die Berechtigung anfordern
+                  if (currentQuestion.type === "info_screen" && currentQuestion.options?.action) {
+                    const action = currentQuestion.options.action as 'request_notification_permission' | 'request_location_permission';
+                    log.info(`Executing InfoScreen action: ${action}`);
+                    
+                    // Benutze die importierte executeAction-Funktion
+                    log.debug("BEFORE executeAction call");
+                    const success = await executeAction(action);
+                    log.debug("AFTER executeAction call");
+                    log.info(`Action ${action} executed with result: ${success}`);
+                    
+                    // Kurze Pause, damit die Berechtigungsanfrage Zeit hat, abzuschließen
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                  }
+                  
+                  // Schritt 2: Bei Info-Screens manuell onNext aufrufen
+                  if (currentQuestion.type === "info_screen") {
+                    log.debug("Calling handleResponseUpdate for InfoScreen");
+                    handleResponseUpdate(undefined);
+                  }
+                  
+                  // Schritt 3: Zur nächsten Frage navigieren
+                  log.debug("Calling handleNext to navigate to next question");
+                  await handleNext();
+                  
+                } catch (error) {
+                  log.error("Error in Next button handler:", error);
+                  // Trotzdem weitergehen
+                  await handleNext();
+                } finally {
+                  // Setze isAnimating zurück
+                  setIsAnimating(false);
                 }
-                handleNext();
               }}
               disabled={isAnimating}
             >

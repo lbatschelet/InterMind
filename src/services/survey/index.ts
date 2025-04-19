@@ -7,6 +7,7 @@ export { default as SurveyAvailabilityService } from './SurveyAvailabilityServic
 export { default as SurveyDataService } from './SurveyDataService';
 export { default as SurveyResponseService } from './SurveyResponseService';
 export { default as SurveyAnsweredQuestionsService } from './SurveyAnsweredQuestionsService';
+export { default as SurveyLocationService } from './SurveyLocationService';
 
 // Konstanten für Abwärtskompatibilität
 export { FIRST_SURVEY_CHECKED_KEY } from './SurveyLifecycleService';
