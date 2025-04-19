@@ -114,7 +114,7 @@ aus dem Open-Source-Projekt [undraw.co](https://undraw.co)
 
 ## Version
 
-App-Version: 0.2.2
+App-Version: 0.2.3
 `
   },
   privacy: {
