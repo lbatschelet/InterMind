@@ -27,9 +27,9 @@
  * // - The component displays only the min and max labels on the UI
  */
 
-import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import Slider from "@react-native-community/slider";
+import React, { useEffect, useRef, useState, useCallback } from "react";
+import { StyleSheet, View, Platform } from "react-native";
+import { Slider } from "@miblanchard/react-native-slider"; // Bessere Slider-Implementation für Android
 import { Text } from "../ui/text";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
@@ -53,6 +53,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     width: 70,
     fontSize: 12
+  },
+  thumbStyle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "#2196F3"
+  },
+  trackStyle: {
+    height: 4,
+    borderRadius: 2
   }
 });
 
@@ -95,6 +105,9 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider"> & {
 
   // Flag to track whether we've already sent the initial value
   const initialValueSentRef = useRef<boolean>(initialValue !== undefined);
+  
+  // Verwenden Sie einen Timer, um die Aktualisierungen bei Wertänderungen zu drosseln
+  const changeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update the question ID ref and reset value if question changes
   useEffect(() => {
@@ -131,32 +144,58 @@ export const SliderQuestion: React.FC<QuestionComponentProps<"slider"> & {
       onNext(selectedValue);
       initialValueSentRef.current = true;
     }
+    
+    // Cleanup-Timer beim Unmount
+    return () => {
+      if (changeTimeoutRef.current) {
+        clearTimeout(changeTimeoutRef.current);
+      }
+    };
   }, [question.id, selectedValue, onNext]);
 
-  // Update parent component with current value
-  const handleValueChange = (value: number) => {
-    setSelectedValue(value);
-    log.debug("Slider value updated", { questionId: question.id, value });
+  // Update parent component with current value, aber drossele die Updates
+  const handleValueChange = useCallback((value: number | Array<number>) => {
+    const newValue = Array.isArray(value) ? value[0] : value;
+    setSelectedValue(newValue);
     
-    // Send updated value to parent component
-    onNext(value);
-    // Mark that we've sent a value
+    // Löschen des vorherigen Timers
+    if (changeTimeoutRef.current) {
+      clearTimeout(changeTimeoutRef.current);
+    }
+    
+    // Verzögere das Senden von Aktualisierungen an die übergeordnete Komponente
+    changeTimeoutRef.current = setTimeout(() => {
+      log.debug("Slider value updated", { questionId: question.id, value: newValue });
+      onNext(newValue);
+      initialValueSentRef.current = true;
+    }, 50); // Kurze Verzögerung für bessere Performance
+  }, [question.id, onNext]);
+
+  // Callback für das Beenden des Slidens, sendet den endgültigen Wert
+  const handleSlidingComplete = useCallback((value: number | Array<number>) => {
+    const finalValue = Array.isArray(value) ? value[0] : value;
+    log.debug("Sliding completed", { questionId: question.id, value: finalValue });
+    onNext(finalValue);
     initialValueSentRef.current = true;
-  };
+  }, [question.id, onNext]);
 
   return (
     <View className="w-full space-y-6">
-      {/* Slider component */}
+      {/* Slider component mit verbesserter Implementation für Android */}
       <Slider
-        style={styles.slider}
+        containerStyle={styles.slider}
         minimumValue={0}
         maximumValue={1}
         step={undefined}
         value={selectedValue}
         onValueChange={handleValueChange}
+        onSlidingComplete={handleSlidingComplete}
         minimumTrackTintColor="#2196F3"
         maximumTrackTintColor="#BDBDBD"
         thumbTintColor="#2196F3"
+        thumbStyle={styles.thumbStyle}
+        trackStyle={styles.trackStyle}
+        animateTransitions
       />
 
       {/* Labels on both sides */}
