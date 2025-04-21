@@ -26,14 +26,14 @@ const log = createLogger("SlotManager");
 
 /**
  * Pure utility class responsible for calculating **when** the *next* survey slot
- * should start and end.  The class is **stateless** – all decisions are derived
+ * should start and end. The class is **stateless** – all decisions are derived
  * from the method arguments and the injected {@link SlotManagerConfig}.
  *
- * **What it does not do**: scheduling push notifications.  That is handled
- *     by your `NotificationScheduler` implementation.
+ * **What it does not do**: scheduling push notifications. That is handled
+ * by your `NotificationScheduler` implementation.
  *
  * ### Key design choices (vs. the legacy version)
- * * **Four segments** – a new *NIGHT* segment (22 : 00‑07 : 29) prevents the
+ * * **Four segments** – a new *NIGHT* segment (22:00-07:29) prevents the
  *   unwanted "EVENING ➜ MORNING (+1 day)" shift.
  * * **Iterative search** – a `while`‑loop with a hard max depth replaces the
  *   recursive fallback, eliminating any chance of stack overflow / endless
@@ -43,7 +43,9 @@ const log = createLogger("SlotManager");
  */
 export class SlotManager {
   /**
-   * @param config   Slot generation parameters.  If omitted
+   * Creates a new SlotManager instance.
+   * 
+   * @param config - Slot generation parameters. If omitted
    *                 {@link DEFAULT_CONFIG} is used.
    */
   constructor(private readonly config: SlotManagerConfig = DEFAULT_CONFIG) {}
@@ -51,14 +53,13 @@ export class SlotManager {
   /**
    * Calculates the *next* usable slot.
    *
-   * @param now        Current timestamp (normally `new Date()`).
-   * @param lastEnd    `Date` when the previous slot ended *or* `null` if there
-   *                   has never been a slot before.
-   * @param lastStatus Outcome of the previous slot (`COMPLETED`, `EXPIRED`, …)
+   * @param now - Current timestamp (normally `new Date()`).
+   * @param lastEnd - `Date` when the previous slot ended *or* `null` if there
+   *               has never been a slot before.
+   * @param lastStatus - Outcome of the previous slot (`COMPLETED`, `EXPIRED`, etc.)
    *                   or `null` on first invocation.
-   * @returns          A {@link Slot} object containing the start and end time
-   *                   of the upcoming slot. The length equals
-   *                   `config.SLOT_LENGTH_MINUTES`.
+   * @returns A {@link Slot} object containing the start and end time
+   *         of the upcoming slot. The length equals `config.SLOT_LENGTH_MINUTES`.
    */
   public nextSlot(now: Date, lastEnd: Date | null, lastStatus: SlotStatus | null): Slot {
     log.info("nextSlot() called", {
@@ -148,6 +149,9 @@ export class SlotManager {
 
   /**
    * Maps a timestamp to one of the four DaySegments.
+   * 
+   * @param time - The Date object to determine which segment it belongs to
+   * @returns The day segment (MORNING, NOON, EVENING, or NIGHT)
    */
   public getSegmentForTime(time: Date): DaySegment {
     const min = time.getHours() * 60 + time.getMinutes();
@@ -164,7 +168,13 @@ export class SlotManager {
     return DaySegment.NIGHT; // 22:00‑07:29
   }
 
-  /** Returns the next segment in cyclical order. */
+  /** 
+   * Returns the next segment in cyclical order.
+   * 
+   * @param s - The current day segment
+   * @returns The next day segment in the cycle
+   * @private
+   */
   private getNextSegment(s: DaySegment): DaySegment {
     switch (s) {
       case DaySegment.NIGHT:   return DaySegment.MORNING;
@@ -175,6 +185,14 @@ export class SlotManager {
     }
   }
 
+  /**
+   * Gets the start time for a given segment on a specific date.
+   * 
+   * @param seg - The day segment
+   * @param date - The reference date
+   * @returns Date object set to the beginning of the segment
+   * @private
+   */
   private getSegmentStartTime(seg: DaySegment, date: Date): Date {
     const d = new Date(date);
     const r = this.rangeForSegment(seg);
@@ -182,6 +200,14 @@ export class SlotManager {
     return d;
   }
 
+  /**
+   * Gets the end time for a given segment on a specific date.
+   * 
+   * @param seg - The day segment
+   * @param date - The reference date
+   * @returns Date object set to the end of the segment
+   * @private
+   */
   private getSegmentEndTime(seg: DaySegment, date: Date): Date {
     const d = new Date(date);
     const r = this.rangeForSegment(seg);
@@ -189,6 +215,13 @@ export class SlotManager {
     return d;
   }
 
+  /**
+   * Gets the TimeRange configuration for a given day segment.
+   * 
+   * @param seg - The day segment
+   * @returns TimeRange configuration for the segment
+   * @private
+   */
   private rangeForSegment(seg: DaySegment): TimeRange {
     switch (seg) {
       case DaySegment.MORNING: return this.config.MORNING_RANGE;
@@ -198,7 +231,13 @@ export class SlotManager {
     }
   }
 
-  /** Rounds *t* **upwards** to the closest `TIME_GRANULARITY_MINUTES` boundary. */
+  /** 
+   * Rounds time upwards to the closest TIME_GRANULARITY_MINUTES boundary.
+   * 
+   * @param t - Date to round up
+   * @returns New Date rounded up to the granularity boundary
+   * @private
+   */
   private roundUpToGranularity(t: Date): Date {
     const gMs = this.config.TIME_GRANULARITY_MINUTES * 60 * 1000;
     const rem = t.getTime() % gMs;
@@ -207,8 +246,13 @@ export class SlotManager {
 
   /**
    * Returns a random time on the configured granularity grid between two
-   * bounds (inclusive).  For reproducible schedules replace `Math.random()`
+   * bounds (inclusive). For reproducible schedules replace `Math.random()`
    * with a seeded RNG.
+   * 
+   * @param earliest - The earliest possible time
+   * @param latest - The latest possible time
+   * @returns A random Date between earliest and latest
+   * @private
    */
   private getRandomTimeInRange(earliest: Date, latest: Date): Date {
     const gMs   = this.config.TIME_GRANULARITY_MINUTES * 60 * 1000;
