@@ -119,7 +119,7 @@ Toutes les illustrations © 2025 Katerina Limpitsouni
 du projet open source [undraw.co](https://undraw.co)
 
 ## Version
-Version: 0.2.5
+Version: 0.3.0
 `
   },
   privacy: {
