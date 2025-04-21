@@ -1,35 +1,48 @@
 {
-    "entryPoints": [
-        "./src/services",
-        "./src/types",
-        "./src/lib/utils.ts"
-    ],
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": ["./src"],
     "entryPointStrategy": "expand",
     "out": "docs",
     "readme": "README.md",
-    "name": "InterMind API Documentation",
+    "name": "InterMind Documentation",
     "includeVersion": true,
-    "categorizeByGroup": true,
+    "excludePrivate": true,
+    "excludeProtected": false,
+    "excludeExternals": true,
+    "excludeInternal": true,
+    "disableSources": false,
     "searchInComments": true,
     "hideGenerator": true,
-    "visibilityFilters": {
-        "protected": true,
-        "private": false,
-        "inherited": true,
-        "external": false
-    },
+    "skipErrorChecking": true,
+    
     "navigationLinks": {
         "GitHub": "https://github.com/lbatschelet/InterMind"
     },
-    "sort": ["source-order"],
+    
+    "sort": ["static-first", "alphabetical"],
+    
     "validation": {
         "invalidLink": true,
         "notExported": true
     },
-    "navigation": {
-        "includeCategories": true,
-        "includeGroups": true,
-        "excludeReferences": false,
-        "includeFolders": true
-    }
+    
+    "blockTags": [
+        "@example", 
+        "@remarks", 
+        "@summary", 
+        "@module",
+        "@returns",
+        "@param",
+        "@throws",
+        "@template",
+        "@category",
+        "@constant",
+        "@description",
+        "@packageDocumentation"
+    ],
+    
+    "categorizeByGroup": false,
+    "defaultCategory": "Other",
+    
+    "cleanOutputDir": true
 } 

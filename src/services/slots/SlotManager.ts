@@ -1,3 +1,16 @@
+/**
+ * @packageDocumentation
+ * @module Services/Slots
+ * 
+ * @summary
+ * Time-based slot management for scheduling surveys.
+ * 
+ * @remarks
+ * The SlotManager is responsible for calculating when the next survey slot should occur.
+ * It works with day segments (morning, noon, evening, night) and handles various constraints
+ * like minimum gaps between slots and time granularity.
+ */
+
 import { createLogger } from "../../utils/logger";
 import {
   DaySegment,
@@ -11,6 +24,8 @@ import {
  * Default configuration for {@link SlotManager}. All times are in local device
  * time. Adjust the ranges here if you want to move a segment boundary without
  * touching any runtime code.
+ * 
+ * @category Configuration
  */
 export const DEFAULT_CONFIG: SlotManagerConfig = {
   MORNING_RANGE: { name: "morning", startHour: 7, startMinute: 30, endHour: 11, endMinute: 0 },
@@ -32,6 +47,9 @@ const log = createLogger("SlotManager");
  * **What it does not do**: scheduling push notifications. That is handled
  * by your `NotificationScheduler` implementation.
  *
+ * @category Core Services
+ * 
+ * @remarks
  * ### Key design choices (vs. the legacy version)
  * * **Four segments** – a new *NIGHT* segment (22:00-07:29) prevents the
  *   unwanted "EVENING ➜ MORNING (+1 day)" shift.
@@ -40,6 +58,19 @@ const log = createLogger("SlotManager");
  *   recursion.
  * * **Deterministic random optional** – for reproducible slot times you can
  *   swap the built‑in RNG with a seedable one (see `getRandomTimeInRange`).
+ * 
+ * @example
+ * ```typescript
+ * // Create a slot manager with default configuration
+ * const slotManager = new SlotManager();
+ * 
+ * // Calculate the next slot after a completed survey
+ * const now = new Date();
+ * const lastEnd = new Date(now.getTime() - 4 * 60 * 60 * 1000); // 4 hours ago
+ * const nextSlot = slotManager.nextSlot(now, lastEnd, SlotStatus.COMPLETED);
+ * 
+ * console.log(`Next slot: ${nextSlot.start} - ${nextSlot.end}`);
+ * ```
  */
 export class SlotManager {
   /**
@@ -60,6 +91,16 @@ export class SlotManager {
    *                   or `null` on first invocation.
    * @returns A {@link Slot} object containing the start and end time
    *         of the upcoming slot. The length equals `config.SLOT_LENGTH_MINUTES`.
+   * 
+   * @example
+   * ```typescript
+   * // Get the next slot after a completed survey
+   * const slot = slotManager.nextSlot(
+   *   new Date(), 
+   *   previousSlot.end,
+   *   SlotStatus.COMPLETED
+   * );
+   * ```
    */
   public nextSlot(now: Date, lastEnd: Date | null, lastStatus: SlotStatus | null): Slot {
     log.info("nextSlot() called", {
@@ -152,6 +193,14 @@ export class SlotManager {
    * 
    * @param time - The Date object to determine which segment it belongs to
    * @returns The day segment (MORNING, NOON, EVENING, or NIGHT)
+   * 
+   * @example
+   * ```typescript
+   * // Check what segment a time belongs to
+   * const date = new Date('2023-04-12T08:30:00');
+   * const segment = slotManager.getSegmentForTime(date);
+   * // => DaySegment.MORNING
+   * ```
    */
   public getSegmentForTime(time: Date): DaySegment {
     const min = time.getHours() * 60 + time.getMinutes();

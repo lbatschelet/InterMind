@@ -1,50 +1,50 @@
 /**
  * @packageDocumentation
- * @module Components
+ * @module Components/UI
  * 
  * @summary
- * Komponente zur Anzeige von Bildern in Fragen.
+ * Component for displaying images in questions.
  * 
  * @remarks
- * - Unterstützt sowohl lokale SVGs als auch URL-Bilder
- * - Passt sich responsiv an die Bildschirmgröße an
- * - Fallback für nicht gefundene Bilder
+ * - Supports both local SVGs and URL images
+ * - Adapts responsively to screen size
+ * - Provides fallback for images not found
  */
 
 import React from 'react';
 import { Dimensions, Image, View } from 'react-native';
 import { getImage, isImageUrl, isRegisteredImage } from '~/src/lib/images';
 
-// Holt Bildschirmbreite für responsive Größe
+// Get screen width for responsive sizing
 const screenWidth = Dimensions.get('window').width;
 
 interface QuestionImageProps {
   /**
-   * Name des Bildes in der Registry oder URL des Bildes
+   * Name of the image in the registry or URL of the image
    */
   imageSource: string;
   
   /**
-   * Optionale Höhe des Bildes, Standard ist 40% der Bildschirmbreite
+   * Optional height of the image, default is 40% of screen width
    */
   imageHeight?: number;
   
   /**
-   * Optionale Breite des Bildes, Standard ist 80% der Bildschirmbreite
+   * Optional width of the image, default is 80% of screen width
    */
   imageWidth?: number;
   
   /**
-   * Optionale Klassen für das Container-Element
+   * Optional classes for the container element
    */
   className?: string;
 }
 
 /**
- * Komponente zur Anzeige von Bildern in Fragen.
+ * Component for displaying images in questions.
  * 
- * @param props - Komponentenprops
- * @returns JSX-Element
+ * @param props - Component props
+ * @returns JSX Element
  */
 const QuestionImage: React.FC<QuestionImageProps> = ({ 
   imageSource, 
@@ -52,10 +52,10 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
   imageWidth = screenWidth * 0.8,
   className = "my-4"
 }) => {
-  // Wenn keine Bildquelle vorhanden, nichts anzeigen
+  // If no image source is provided, don't render anything
   if (!imageSource) return null;
 
-  // Prüfen, ob es ein registriertes Bild ist
+  // Check if it's a registered image in our registry
   if (isRegisteredImage(imageSource)) {
     const SvgComponent = getImage(imageSource);
     if (SvgComponent) {
@@ -67,7 +67,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
     }
   }
   
-  // Falls es eine URL ist, als Bild anzeigen
+  // If it's a URL, display as an image
   if (isImageUrl(imageSource)) {
     return (
       <View className={`items-center justify-center ${className}`}>
@@ -79,7 +79,7 @@ const QuestionImage: React.FC<QuestionImageProps> = ({
     );
   }
   
-  // Fallback, wenn das Bild nicht gefunden wurde
+  // Fallback if the image was not found
   return null;
 };
 

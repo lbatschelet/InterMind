@@ -1,4 +1,11 @@
 /**
+ * @packageDocumentation
+ * @module Services/Slots
+ * 
+ * @summary
+ * Slot-based survey management system entry point.
+ * 
+ * @description
  * Slot System - Core Implementation
  * --------------------------------
  * 
@@ -44,10 +51,18 @@ import {
 
 const log = createLogger("SlotSystem");
 
-/** Key needs to match exactly the one in SurveyService */
+/** 
+ * Key needs to match exactly the one in SurveyService 
+ * 
+ * @category Configuration
+ */
 const FIRST_SURVEY_CHECKED_KEY = 'first_survey_checked';
 
-/** Storage keys used for debugging/reset */
+/** 
+ * Storage keys used for debugging/reset 
+ * 
+ * @category Configuration
+ */
 const SLOT_STORAGE_KEYS = [
   'slot_end_time',
   'slot_status',
@@ -58,13 +73,46 @@ const SLOT_STORAGE_KEYS = [
 ];
 
 // Create default instances
+/**
+ * Default SlotManager instance with the standard configuration
+ * 
+ * @category Instance
+ */
 const defaultSlotManager = new SlotManager(DEFAULT_CONFIG);
+
+/**
+ * Default SlotStateStore implementation using AsyncStorage
+ * 
+ * @category Instance
+ */
 const defaultSlotStore = new AsyncStorageSlotStateStore();
+
+/**
+ * Default NotificationScheduler implementation using Expo
+ * 
+ * @category Instance
+ */
 const defaultNotificationScheduler = new ExpoNotificationScheduler();
 
 /** 
  * The singleton instance of SlotCoordinator used throughout the application.
  * This is the main interface for interacting with the slot system.
+ * 
+ * @category Instance
+ * 
+ * @example
+ * ```typescript
+ * // Initialize the slot system at app start
+ * await slotCoordinator.initialize();
+ * 
+ * // Listen for slot changes
+ * slotCoordinator.on(SlotCoordinatorEvent.SLOT_CHANGED, (slot) => {
+ *   console.log(`New slot: ${slot.start} to ${slot.end}`);
+ * });
+ * 
+ * // Handle survey completion
+ * await slotCoordinator.onSurveyEvent(SurveyEvent.COMPLETED);
+ * ```
  */
 export const slotCoordinator = new SlotCoordinator(
   defaultSlotManager,
@@ -84,6 +132,19 @@ export const slotCoordinator = new SlotCoordinator(
  * 
  * @returns Promise that resolves when reset completes
  * @throws If reset process fails
+ * 
+ * @category System Management
+ * 
+ * @example
+ * ```typescript
+ * // Reset the entire slot system (e.g., during logout)
+ * try {
+ *   await resetSlotSystem();
+ *   console.log("Slot system has been reset");
+ * } catch (error) {
+ *   console.error("Failed to reset slot system:", error);
+ * }
+ * ```
  */
 export async function resetSlotSystem(): Promise<void> {
   try {
@@ -179,6 +240,8 @@ export async function resetSlotSystem(): Promise<void> {
 /**
  * Export types and classes for direct access from other modules.
  * This provides a clean, single entry point to the slot system.
+ * 
+ * @category Exports
  */
 export {
   SlotManager,

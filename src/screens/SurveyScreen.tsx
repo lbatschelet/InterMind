@@ -18,7 +18,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { SurveyService, SurveyResponseService, SurveyLocationService } from "../services";
 import { Question } from "../types/question";
 import { createLogger } from "../utils/logger";
-import QuestionImage from "../components/QuestionImage";
+import QuestionImage from "../components/ui/question-image";
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
 import { executeAction } from '../components/QuestionTypes/InfoScreen';

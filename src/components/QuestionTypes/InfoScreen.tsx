@@ -34,7 +34,7 @@
 import React, { useEffect } from "react";
 import { Dimensions, Text, View, StyleSheet } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
-import QuestionImage from "../QuestionImage";
+import QuestionImage from "../ui/question-image";
 import Markdown from 'react-native-markdown-display';
 import { getImageHeight, INFO_SCREEN_LAYOUT, markdownStyles as sharedMarkdownStyles } from "~/src/styles/infoScreenStyles";
 import * as Notifications from 'expo-notifications';
@@ -44,16 +44,16 @@ import { useLanguage } from "~/src/contexts/LanguageContext";
 
 const log = createLogger("InfoScreen");
 
-// Definiere die möglichen Aktionen, die beim Fortfahren ausgeführt werden können
+// Define possible actions that can be executed when proceeding
 type InfoScreenAction = 
   | 'request_notification_permission' 
   | 'request_location_permission'
   | null;
 
 /**
- * Führt eine spezifische Aktion aus, basierend auf dem action-Parameter
- * @param action Die auszuführende Aktion
- * @returns Promise<boolean> true, wenn die Aktion erfolgreich war
+ * Executes a specific action based on the action parameter
+ * @param action The action to execute
+ * @returns Promise<boolean> true if the action was successful
  */
 export const executeAction = async (action: InfoScreenAction): Promise<boolean> => {
   if (!action) return true;
@@ -65,11 +65,11 @@ export const executeAction = async (action: InfoScreenAction): Promise<boolean> 
       try {
         log.info('Starting notification permission request...');
         
-        // Prüfe zuerst den aktuellen Status
+        // First check the current status
         const currentStatus = await Notifications.getPermissionsAsync();
         log.debug(`Current notification permission status: ${currentStatus.status}`);
         
-        // Nur anfragen, wenn nicht bereits erteilt
+        // Only request if not already granted
         if (currentStatus.status !== 'granted') {
           log.debug('Permission not granted yet, requesting...');
           const { status } = await Notifications.requestPermissionsAsync({
@@ -91,11 +91,11 @@ export const executeAction = async (action: InfoScreenAction): Promise<boolean> 
       try {
         log.info('Starting location permission request...');
         
-        // Prüfe zuerst den aktuellen Status
+        // First check the current status
         const currentStatus = await Location.getForegroundPermissionsAsync();
         log.debug(`Current location permission status: ${currentStatus.status}`);
         
-        // Nur anfragen, wenn nicht bereits erteilt
+        // Only request if not already granted
         if (currentStatus.status !== 'granted') {
           log.debug('Permission not granted yet, requesting...');
           const { status } = await Location.requestForegroundPermissionsAsync();
@@ -129,13 +129,13 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
   question,
   onNext
 }) => {
-  // Berechne Dimensionen für responsive Elemente
+  // Calculate dimensions for responsive elements
   const screenHeight = Dimensions.get('window').height;
   
-  // Parse die action aus den question options (falls vorhanden)
+  // Parse the action from question options (if present)
   const action = question.options?.action as InfoScreenAction || null;
   
-  // Debug-Log, was genau dieser InfoScreen hat
+  // Debug log for what exactly this InfoScreen has
   useEffect(() => {
     log.info("InfoScreen rendered", {
       title: question.title,
@@ -144,9 +144,9 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
     });
   }, [question, action]);
   
-  // Für normale Info-Screens ohne Aktionen: Automatisch weitergehen
+  // For normal info screens without actions: automatically advance
   useEffect(() => {
-    // Nur für normale Info-Screens ohne Aktionen: Automatisch weitergehen
+    // Only for normal info screens without actions: automatically advance
     if (!action && onNext) {
       log.info("InfoScreen without action - auto-advancing");
       onNext();
@@ -155,16 +155,16 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
     }
   }, [onNext, action]);
   
-  // Für Info-Screens mit Berechtigungsaktionen:
-  // Die Aktion wird im SurveyScreen beim Klick auf den "Weiter"-Button
-  // durch Aufruf der onNext-Funktion ausgeführt.
-  // Hier definieren wir nur die Benutzeroberfläche.
+  // For info screens with permission actions:
+  // The action is executed in the SurveyScreen when clicking the "Continue" button
+  // by calling the onNext function.
+  // Here we only define the user interface.
   
   const { t } = useLanguage();
   
   return (
     <View style={styles.container}>
-      {/* Bild immer zuerst, wenn vorhanden */}
+      {/* Image always first, if available */}
       {question.imageSource && (
         <View style={styles.imageContainer}>
           <QuestionImage 
@@ -174,12 +174,12 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
         </View>
       )}
       
-      {/* Titel nach dem Bild */}
+      {/* Title after the image */}
       <Text style={styles.title}>
         {question.title}
       </Text>
       
-      {/* Markdown-formatierter Text */}
+      {/* Markdown formatted text */}
       <Markdown style={markdownStyles}>
         {question.text}
       </Markdown>
@@ -187,11 +187,11 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
   );
 };
 
-// Styles für bessere Lesbarkeit ausgelagert
+// Styles extracted for better readability
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginVertical: 8  // Mehr vertikaler Abstand
+    marginVertical: 8  // More vertical spacing
   },
   title: {
     fontSize: INFO_SCREEN_LAYOUT.TITLE_FONT_SIZE,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     alignItems: 'center',
-    marginBottom: 20,  // Etwas mehr Abstand nach unten
+    marginBottom: 20,  // Slightly more spacing below
     width: '100%'
   },
   actionButtonContainer: {
@@ -222,13 +222,13 @@ const styles = StyleSheet.create({
   }
 });
 
-// Wir verwenden die gemeinsamen Markdown-Styles, aber fügen hier spezifische Anpassungen hinzu
+// We use the shared markdown styles, but add specific adjustments here
 const markdownStyles = {
   ...sharedMarkdownStyles,
-  // Spezielle Anpassungen für InfoScreen:
+  // Special adjustments for InfoScreen:
   body: {
     ...sharedMarkdownStyles.body,
-    marginBottom: 0, // Kein zusätzliches Padding unten, da der SurveyScreen bereits Padding hat
+    marginBottom: 0, // No additional padding at the bottom, as SurveyScreen already has padding
   }
 };
 

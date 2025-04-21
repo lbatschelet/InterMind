@@ -1,3 +1,18 @@
+/**
+ * @packageDocumentation
+ * @module Components
+ * 
+ * @summary
+ * Renders the appropriate question component based on the question type.
+ * 
+ * @remarks
+ * This component acts as a factory/dispatcher that:
+ * - Dynamically selects the correct question type component
+ * - Ensures type safety for response handling
+ * - Passes initial values when navigating back to previously answered questions
+ * - Handles auto-advance functionality
+ */
+
 import React from "react";
 import { Text } from "react-native";
 import { createLogger } from "~/src/utils/logger";
@@ -12,9 +27,13 @@ const log = createLogger("QuestionRenderer");
 
 /**
  * Renders the appropriate UI component for a given question.
- * - Dynamically selects the correct question type.
- * - Ensures type safety for `onNext` responses.
- * - Can restore previous answers when navigating back.
+ *
+ * @param props - Component props
+ * @param props.question - The question object containing type and content
+ * @param props.onNext - Callback function for when the question is answered
+ * @param props.onAutoAdvance - Optional callback for auto-advancing to the next question
+ * @param props.initialValue - Optional initial value for previously answered questions
+ * @returns The appropriate question component based on the question type
  */
 const QuestionRenderer = ({ 
   question, 

@@ -1,3 +1,10 @@
+/**
+ * @packageDocumentation
+ * @module BackgroundTaskAdapter
+ * @summary Provides an adapter between the platform-specific background services and the slot coordination system.
+ * @category Core Services
+ */
+
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
 import { createLogger } from '../../utils/logger';
@@ -8,6 +15,9 @@ const log = createLogger('BackgroundTaskAdapter');
 /**
  * Name of the background task for regular slot checking.
  * This name is used to identify the task in the operating system.
+ * 
+ * @constant
+ * @category Configuration
  */
 export const SLOT_CHECK_TASK_NAME = 'SLOT_CHECK_TASK';
 
@@ -17,6 +27,12 @@ export const SLOT_CHECK_TASK_NAME = 'SLOT_CHECK_TASK';
  * 
  * This serves as an adapter between the platform-specific background service
  * (expo-background-fetch) and our SlotCoordinator.
+ * 
+ * @example
+ * // The task is automatically registered when this module is imported
+ * // The implementation handles calling slotCoordinator.checkAndUpdateSlot()
+ * 
+ * @category Background Tasks
  */
 TaskManager.defineTask(SLOT_CHECK_TASK_NAME, async () => {
   try {
@@ -41,7 +57,20 @@ TaskManager.defineTask(SLOT_CHECK_TASK_NAME, async () => {
 /**
  * Registers the background task with the operating system.
  * 
+ * @remarks
+ * This function ensures the background task is registered with the operating system.
+ * It checks if the task is already registered before attempting registration.
+ * The task will run approximately every 15 minutes at minimum, but the exact timing
+ * is controlled by the operating system based on battery optimization and other factors.
+ * 
+ * @example
+ * ```typescript
+ * // Register the background task when the app starts
+ * await registerBackgroundTask();
+ * ```
+ * 
  * @returns Promise that resolves when registration is complete
+ * @category Background Tasks
  */
 export async function registerBackgroundTask(): Promise<void> {
   try {
@@ -69,7 +98,18 @@ export async function registerBackgroundTask(): Promise<void> {
 /**
  * Unregisters the background task from the operating system.
  * 
+ * @remarks
+ * This function completely removes the background task registration,
+ * preventing any future background executions until registered again.
+ * 
+ * @example
+ * ```typescript
+ * // Remove the background task when the user opts out
+ * await unregisterBackgroundTask();
+ * ```
+ * 
  * @returns Promise that resolves when unregistration is complete
+ * @category Background Tasks
  */
 export async function unregisterBackgroundTask(): Promise<void> {
   try {

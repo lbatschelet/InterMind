@@ -2,7 +2,10 @@
 
 credentials.json
 
+# Documentation
 .docs/
+docs/
+documentation/
 
 # dependencies
 node_modules/

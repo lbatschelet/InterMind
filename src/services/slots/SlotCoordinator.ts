@@ -1,3 +1,15 @@
+/**
+ * @packageDocumentation
+ * @module Services/Slots
+ * 
+ * @summary
+ * Central coordinator for the slot-based survey system.
+ * 
+ * @remarks
+ * Orchestrates the interaction between slot management, persistence, notifications, and event emission.
+ * Serves as the main entry point for the slot-based functionality of the application.
+ */
+
 import { createLogger } from "../../utils/logger";
 import { NotificationScheduler } from "./NotificationScheduler";
 import { SlotManager } from "./SlotManager";
@@ -32,15 +44,31 @@ import { EventEmitter } from "events";
  * - createNextSlot()
  * - onSurveyEvent()
  * - initialize()
+ * 
+ * @category Core Documentation
  */
 
 const log = createLogger("SlotCoordinator");
 
-/** Number of years the permanent "initial slot" should stay open. */
+/** 
+ * Number of years the permanent "initial slot" should stay open. 
+ * 
+ * @category Configuration
+ */
 const INITIAL_SLOT_YEARS = 100;
 
 /**
  * Events emitted by the slot coordinator.
+ * 
+ * @category Enums
+ * 
+ * @example
+ * ```typescript
+ * // Listen for slot changes
+ * slotCoordinator.on(SlotCoordinatorEvent.SLOT_CHANGED, (newSlot) => {
+ *   console.log(`Slot changed: ${newSlot.start} to ${newSlot.end}`);
+ * });
+ * ```
  */
 export enum SlotCoordinatorEvent {
   /** Emitted when the current slot changes */
@@ -61,9 +89,33 @@ export enum SlotCoordinatorEvent {
  * - Handles slot timing calculations
  * - Manages notification scheduling
  * - Emits events for slot lifecycle changes
+ * 
+ * @category Core Services
+ * 
+ * @example
+ * ```typescript
+ * // Create and initialize the coordinator
+ * const coordinator = new SlotCoordinator(
+ *   new SlotManager(),
+ *   new AsyncStorageSlotStateStore(),
+ *   new ExpoNotificationScheduler()
+ * );
+ * 
+ * // Initialize the system
+ * await coordinator.initialize();
+ * 
+ * // Listen for events
+ * coordinator.on(SlotCoordinatorEvent.SLOT_CHANGED, (slot) => {
+ *   console.log(`New slot: ${slot.start} to ${slot.end}`);
+ * });
+ * ```
  */
 export class SlotCoordinator {
-  /** EventEmitter for slot change events */
+  /** 
+   * EventEmitter for slot change events 
+   * 
+   * @private
+   */
   private readonly eventEmitter = new EventEmitter();
   
   /**
@@ -85,6 +137,13 @@ export class SlotCoordinator {
    * @param event - The event type to listen for
    * @param listener - The handler function to call when the event occurs
    * @returns This instance for chaining
+   * 
+   * @example
+   * ```typescript
+   * coordinator.on(SlotCoordinatorEvent.SLOT_CHANGED, (slot) => {
+   *   console.log(`Slot changed to ${slot.start}`);
+   * });
+   * ```
    */
   on(event: SlotCoordinatorEvent, listener: (...args: any[]) => void): this {
     this.eventEmitter.on(event, listener);
@@ -97,6 +156,17 @@ export class SlotCoordinator {
    * @param event - The event type 
    * @param listener - The handler to remove
    * @returns This instance for chaining
+   * 
+   * @example
+   * ```typescript
+   * const handler = (slot) => console.log(`Slot: ${slot.start}`);
+   * 
+   * // Add handler
+   * coordinator.on(SlotCoordinatorEvent.SLOT_CHANGED, handler);
+   * 
+   * // Later remove it
+   * coordinator.off(SlotCoordinatorEvent.SLOT_CHANGED, handler);
+   * ```
    */
   off(event: SlotCoordinatorEvent, listener: (...args: any[]) => void): this {
     this.eventEmitter.off(event, listener);
@@ -109,6 +179,14 @@ export class SlotCoordinator {
    * @param event - The event type
    * @param listener - The handler to call once
    * @returns This instance for chaining
+   * 
+   * @example
+   * ```typescript
+   * // Handler will only be called for the next slot change
+   * coordinator.once(SlotCoordinatorEvent.SLOT_CHANGED, (slot) => {
+   *   console.log(`One-time notification for slot: ${slot.start}`);
+   * });
+   * ```
    */
   once(event: SlotCoordinatorEvent, listener: (...args: any[]) => void): this {
     this.eventEmitter.once(event, listener);
@@ -121,6 +199,15 @@ export class SlotCoordinator {
    * 
    * @param event - The event to emit
    * @param args - Arguments for the event handler
+   * 
+   * @example
+   * ```typescript
+   * // Manually trigger a status change event
+   * coordinator.emitEvent(
+   *   SlotCoordinatorEvent.STATUS_CHANGED, 
+   *   SlotStatus.COMPLETED
+   * );
+   * ```
    */
   public emitEvent(event: SlotCoordinatorEvent, ...args: any[]): void {
     this.eventEmitter.emit(event, ...args);
@@ -137,6 +224,14 @@ export class SlotCoordinator {
    * Called once during app bootstrap but is idempotent and re-entrant safe.
    * 
    * @returns Promise that resolves when initialization is complete
+   * 
+   * @example
+   * ```typescript
+   * // Initialize the slot system at app startup
+   * await slotCoordinator.initialize();
+   * ```
+   * 
+   * @category Lifecycle
    */
   async initialize(): Promise<void> {
     if (this.initDone || this.initInProgress) {
@@ -236,10 +331,20 @@ export class SlotCoordinator {
    * -------------------------------------------------------------------*/
 
   /**
-   * Main entry when the survey frontend reports a user action.
+   * Handles survey events by updating the slot status and scheduling
+   * a new slot when necessary.
    * 
-   * @param evt - The survey event that occurred
-   * @returns Promise resolving to the next slot
+   * @param evt - The survey event (COMPLETED, EXPIRED, TERMINATED, etc.)
+   * @returns Promise resolving to the current/new slot
+   * 
+   * @example
+   * ```typescript
+   * // When user completes a survey
+   * const newSlot = await slotCoordinator.onSurveyEvent(SurveyEvent.COMPLETED);
+   * console.log(`Next survey at: ${newSlot.start}`);
+   * ```
+   * 
+   * @category Event Handlers
    */
   async onSurveyEvent(evt: SurveyEvent): Promise<Slot> {
     const now = new Date();
@@ -353,11 +458,13 @@ export class SlotCoordinator {
   }
 
   /**
-   * Creates the next slot after the current one has expired.
+   * Creates the next slot after a previous one.
+   * Handles the special case for INITIAL slots.
    * 
    * @param now - Current time
-   * @param lastMeta - Metadata from the last slot
-   * @returns Promise resolving to the new slot
+   * @param lastMeta - Metadata about the previous slot
+   * @returns Promise resolving to the newly created slot
+   * 
    * @private
    */
   private async createNextSlot(now: Date, lastMeta: SlotMeta | null): Promise<Slot> {
@@ -398,9 +505,19 @@ export class SlotCoordinator {
    * -------------------------------------------------------------------*/
   
   /**
-   * Checks if a survey is currently available.
+   * Checks if a survey is currently available for the user.
    * 
    * @returns Promise resolving to true if a survey is available
+   * 
+   * @example
+   * ```typescript
+   * if (await slotCoordinator.isSurveyAvailable()) {
+   *   // Show survey UI
+   *   showSurvey();
+   * }
+   * ```
+   * 
+   * @category Public API
    */
   async isSurveyAvailable(): Promise<boolean> {
     const meta = await this.slotStore.readLastMeta();
@@ -409,18 +526,22 @@ export class SlotCoordinator {
   }
 
   /**
-   * Gets the current active slot.
+   * Retrieves the current slot from storage.
    * 
    * @returns Promise resolving to the current slot or null if none exists
+   * 
+   * @category Public API
    */
   async getCurrentSlot(): Promise<Slot | null> {
     return this.slotStore.readCurrentSlot();
   }
 
   /**
-   * Gets the metadata from the last slot.
+   * Reads metadata about the last slot.
    * 
-   * @returns Promise resolving to the last slot's metadata or null
+   * @returns Promise resolving to the last slot metadata or null if none exists
+   * 
+   * @category Public API
    */
   async readLastMeta(): Promise<SlotMeta | null> {
     return this.slotStore.readLastMeta();
@@ -428,13 +549,20 @@ export class SlotCoordinator {
 
   /**
    * Cancels all scheduled notifications.
+   * 
+   * @returns Promise that resolves when cancellation is complete
+   * 
+   * @category Public API
    */
   async cancelAllNotifications(): Promise<void> {
     await this.notificationScheduler.cancelAll();
   }
 
-  /** 
-   * Allows a full reset during logout or debugging.
+  /**
+   * Resets the initialization state of the coordinator.
+   * Used when resetting the entire slot system.
+   * 
+   * @category Lifecycle
    */
   resetInitializationState(): void {
     this.initDone = false;
@@ -442,10 +570,12 @@ export class SlotCoordinator {
   }
 
   /**
-   * Sets the current slot to INITIAL status (permanent survey).
-   * Creates a 100-year duration slot starting from now.
+   * Sets the current slot status to INITIAL.
+   * Used when resetting the system to a permanent slot.
    * 
-   * @returns Promise resolving to the created permanent slot
+   * @returns Promise resolving to the created INITIAL slot
+   * 
+   * @category Public API
    */
   async setStatusToInitial(): Promise<Slot> {
     const now = new Date();
@@ -469,11 +599,21 @@ export class SlotCoordinator {
   }
 
   /**
-   * Central method that checks if the current slot needs to be updated.
-   * This method can be called by both the foreground app and background processes
-   * and should unify the logic for slot updates.
+   * Checks if the current slot has expired and updates it if necessary.
+   * Called periodically by background tasks.
    * 
-   * @returns Object with information about the current slot status and whether an update occurred
+   * @returns Promise resolving to an object with the update status
+   * 
+   * @example
+   * ```typescript
+   * // Check if slot needs updating (called by background task)
+   * const result = await slotCoordinator.checkAndUpdateSlot();
+   * if (result.updated) {
+   *   console.log(`Slot was updated: ${result.reason}`);
+   * }
+   * ```
+   * 
+   * @category Background Tasks
    */
   async checkAndUpdateSlot(): Promise<{
     updated: boolean;

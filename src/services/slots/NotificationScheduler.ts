@@ -1,3 +1,10 @@
+/**
+ * @packageDocumentation
+ * @module Services/Slots
+ * @summary Manages notification scheduling for the slot-based survey system.
+ * @category Core Services
+ */
+
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -15,17 +22,35 @@ import { languages } from "../../locales";
  * - getNextScheduledNotificationTime() - Gets the time of the next notification
  * - getScheduledNotificationsCount() - Counts scheduled notifications
  * - requestPermissions() - Requests notification permissions
+ * 
+ * @category Core Documentation
  */
 
 const log = createLogger("NotificationScheduler");
 
+/**
+ * Key used to store the next notification time
+ * @category Configuration
+ */
 const NEXT_NOTIFICATION_KEY = "next_notification";
+
+/**
+ * Key used to store the user's language preference
+ * @category Configuration
+ */
 const LANGUAGE_KEY = "app_language";
+
+/**
+ * Android notification channel identifier
+ * @category Configuration
+ */
 const ANDROID_CHANNEL_ID = "survey-reminders";
 
 /** 
  * Sets up the notification handler for the application.
  * Must be called once during app bootstrap.
+ * 
+ * @category Setup
  */
 export function setupNotifications() {
   Notifications.setNotificationHandler({
@@ -43,6 +68,8 @@ setupNotifications();
 /**
  * Interface defining the notification scheduling capabilities.
  * Provides methods to schedule, cancel, and query notification status.
+ * 
+ * @category Interface
  */
 export interface NotificationScheduler {
   /**
@@ -50,6 +77,15 @@ export interface NotificationScheduler {
    * 
    * @param slot - The slot to schedule notification for
    * @returns Promise resolving to true if scheduling was successful
+   * 
+   * @example
+   * ```typescript
+   * const scheduler = new ExpoNotificationScheduler();
+   * const success = await scheduler.schedule({
+   *   start: new Date(Date.now() + 3600000), // 1 hour from now
+   *   end: new Date(Date.now() + 7200000)    // 2 hours from now
+   * });
+   * ```
    */
   schedule(slot: Slot): Promise<boolean>;
   
@@ -57,6 +93,11 @@ export interface NotificationScheduler {
    * Cancels all scheduled notifications.
    * 
    * @returns Promise that resolves when cancellation is complete
+   * 
+   * @example
+   * ```typescript
+   * await scheduler.cancelAll();
+   * ```
    */
   cancelAll(): Promise<void>;
   
@@ -64,6 +105,14 @@ export interface NotificationScheduler {
    * Gets the time of the next scheduled notification.
    * 
    * @returns Promise resolving to the Date of the next notification or null if none
+   * 
+   * @example
+   * ```typescript
+   * const nextTime = await scheduler.getNextScheduledNotificationTime();
+   * if (nextTime) {
+   *   console.log(`Next notification at: ${nextTime.toLocaleString()}`);
+   * }
+   * ```
    */
   getNextScheduledNotificationTime(): Promise<Date | null>;
   
@@ -71,6 +120,12 @@ export interface NotificationScheduler {
    * Counts how many notifications are currently scheduled.
    * 
    * @returns Promise resolving to the number of scheduled notifications
+   * 
+   * @example
+   * ```typescript
+   * const count = await scheduler.getScheduledNotificationsCount();
+   * console.log(`${count} notifications scheduled`);
+   * ```
    */
   getScheduledNotificationsCount(): Promise<number>;
   
@@ -78,6 +133,15 @@ export interface NotificationScheduler {
    * Requests notification permissions from the user.
    * 
    * @returns Promise resolving to true if permissions were granted
+   * 
+   * @example
+   * ```typescript
+   * if (await scheduler.requestPermissions()) {
+   *   console.log('User granted notification permissions');
+   * } else {
+   *   console.log('User denied notification permissions');
+   * }
+   * ```
    */
   requestPermissions(): Promise<boolean>;
 }
@@ -85,6 +149,18 @@ export interface NotificationScheduler {
 /**
  * Implementation of NotificationScheduler using Expo Notifications.
  * Handles scheduling, cancellation, and permission management.
+ * 
+ * @category Implementation
+ * 
+ * @example
+ * ```typescript
+ * // Create a scheduler
+ * const scheduler = new ExpoNotificationScheduler();
+ * 
+ * // Schedule a notification for a slot
+ * const slot = { start: new Date(...), end: new Date(...) };
+ * await scheduler.schedule(slot);
+ * ```
  */
 export class ExpoNotificationScheduler implements NotificationScheduler {
   /**
@@ -93,6 +169,10 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
    * 
    * @param slot - The slot to schedule notification for
    * @returns Promise resolving to true if scheduling was successful
+   * 
+   * @remarks
+   * If the slot start time is in the past, the notification will be scheduled
+   * for 1 minute from now.
    */
   async schedule(slot: Slot): Promise<boolean> {
     try {
@@ -135,6 +215,9 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
    * Cancels all scheduled notifications and clears stored notification data.
    * 
    * @returns Promise that resolves when cancellation is complete
+   * 
+   * @remarks
+   * This clears both the actual scheduled notifications and the stored metadata.
    */
   async cancelAll(): Promise<void> {
     await Notifications.cancelAllScheduledNotificationsAsync();
@@ -145,6 +228,9 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
    * Gets the time of the next scheduled notification.
    * 
    * @returns Promise resolving to the Date of the next notification or null if none
+   * 
+   * @remarks
+   * This reads the stored notification time from AsyncStorage.
    */
   async getNextScheduledNotificationTime(): Promise<Date | null> {
     const s = await AsyncStorage.getItem(NEXT_NOTIFICATION_KEY);
@@ -155,6 +241,10 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
    * Counts how many notifications are currently scheduled.
    * 
    * @returns Promise resolving to the number of scheduled notifications
+   * 
+   * @remarks
+   * This queries the actual scheduled notifications rather than using
+   * stored metadata.
    */
   async getScheduledNotificationsCount(): Promise<number> {
     return (await Notifications.getAllScheduledNotificationsAsync()).length;
@@ -164,6 +254,9 @@ export class ExpoNotificationScheduler implements NotificationScheduler {
    * Requests notification permissions from the user.
    * 
    * @returns Promise resolving to true if permissions were granted
+   * 
+   * @remarks
+   * Delegates to the internal ensurePermissions method.
    */
   async requestPermissions(): Promise<boolean> {
     return this.ensurePermissions();
