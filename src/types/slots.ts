@@ -1,12 +1,12 @@
 /**
- * Slot-System Typdefinitionen
+ * Slot-System Type Definitions
  * ---------------------------
  * 
- * Enthält die Grundstrukturen für das Slot-Management-System.
+ * Contains the core structures for the Slot-Management-System.
  */
 
 /**
- * Ein Zeitfenster, in dem eine Umfrage verfügbar ist
+ * A time window during which a survey is available
  */
 export interface Slot {
   start: Date;
@@ -14,7 +14,7 @@ export interface Slot {
 }
 
 /**
- * Status des letzten Slots
+ * Status of the last slot
  */
 export enum SlotStatus {
   FIRST_COMPLETED = 'FIRST_COMPLETED',
@@ -24,7 +24,7 @@ export enum SlotStatus {
 }
 
 /**
- * Metadaten zum letzten Slot
+ * Metadata for the last slot
  */
 export interface SlotMeta {
   end: Date;
@@ -32,7 +32,7 @@ export interface SlotMeta {
 }
 
 /**
- * Zeitbereich für Tagesabschnitte
+ * Time range for day segments
  */
 export interface TimeRange {
   name: string;
@@ -43,7 +43,7 @@ export interface TimeRange {
 }
 
 /**
- * Konfiguration für den SlotManager
+ * Configuration for the SlotManager
  */
 export interface SlotManagerConfig {
   MORNING_RANGE: TimeRange;
@@ -56,16 +56,17 @@ export interface SlotManagerConfig {
 }
 
 /**
- * Segment des Tages (Morgen, Mittag, Abend)
+ * Day segment (Morning, Noon, Evening, Night)
  */
 export enum DaySegment {
   MORNING = 'MORNING',
   NOON = 'NOON',
   EVENING = 'EVENING',
+  NIGHT = 'NIGHT',
 }
 
 /**
- * Domain-Events für das Slot-System
+ * Domain events for the slot system
  */
 export enum SurveyEvent {
   SURVEY_COMPLETED = 'SURVEY_COMPLETED',
@@ -74,7 +75,7 @@ export enum SurveyEvent {
 }
 
 /**
- * Hilfsmethode, um SurveyEvent in SlotStatus umzuwandeln
+ * Helper method to convert SurveyEvent to SlotStatus
  */
 export function eventToStatus(event: SurveyEvent): SlotStatus {
   switch (event) {

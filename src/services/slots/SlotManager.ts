@@ -1,428 +1,219 @@
-import { createLogger } from "~/src/utils/logger";
-import { 
-  DaySegment, 
-  Slot, 
-  SlotManagerConfig, 
+import { createLogger } from "../../utils/logger";
+import {
+  DaySegment,
+  Slot,
+  SlotManagerConfig,
   SlotStatus,
-  TimeRange 
-} from "./types";
+  TimeRange,
+} from "../../types/slots";
+
+/**
+ * Default configuration for {@link SlotManager}. All times are in local device
+ * time. Adjust the ranges here if you want to move a segment boundary without
+ * touching any runtime code.
+ */
+export const DEFAULT_CONFIG: SlotManagerConfig = {
+  MORNING_RANGE: { name: "morning", startHour: 7, startMinute: 30, endHour: 11, endMinute: 0 },
+  NOON_RANGE:    { name: "noon",    startHour: 11, startMinute: 0, endHour: 17, endMinute: 0 },
+  EVENING_RANGE: { name: "evening", startHour: 17, startMinute: 0, endHour: 22, endMinute: 0 },
+  SLOT_LENGTH_MINUTES:       60,
+  TIME_GRANULARITY_MINUTES:  5,
+  MIN_GAP_COMPLETED_MINUTES: 180,
+  MIN_GAP_EXPIRED_MINUTES:   120,
+};
 
 const log = createLogger("SlotManager");
 
 /**
- * Standardkonfiguration für den SlotManager
- */
-export const DEFAULT_CONFIG: SlotManagerConfig = {
-  MORNING_RANGE: {
-    name: 'morning',
-    startHour: 7,
-    startMinute: 30,
-    endHour: 11,
-    endMinute: 0
-  },
-  NOON_RANGE: {
-    name: 'noon',
-    startHour: 11,
-    startMinute: 0,
-    endHour: 17,
-    endMinute: 0
-  },
-  EVENING_RANGE: {
-    name: 'evening',
-    startHour: 17, 
-    startMinute: 0,
-    endHour: 22,
-    endMinute: 0
-  },
-  SLOT_LENGTH_MINUTES: 60,
-  TIME_GRANULARITY_MINUTES: 5,
-  MIN_GAP_COMPLETED_MINUTES: 180,
-  MIN_GAP_EXPIRED_MINUTES: 120
-};
-
-/**
- * SlotManager
- * -----------
- * 
- * Zuständig für die Berechnung des nächsten Umfrage-Slots.
- * 
- * Diese Klasse ist zustandslos und berechnet slot-Zeiten
- * basierend auf der Konfiguration und den übergebenen Parametern.
+ * Pure utility class responsible for calculating **when** the *next* survey slot
+ * should start and end.  The class is **stateless** – all decisions are derived
+ * from the method arguments and the injected {@link SlotManagerConfig}.
+ *
+ * **What it does not do**: scheduling push notifications.  That is handled
+ *     by your `NotificationScheduler` implementation.
+ *
+ * ### Key design choices (vs. the legacy version)
+ * * **Four segments** – a new *NIGHT* segment (22 : 00‑07 : 29) prevents the
+ *   unwanted "EVENING ➜ MORNING (+1 day)" shift.
+ * * **Iterative search** – a `while`‑loop with a hard max depth replaces the
+ *   recursive fallback, eliminating any chance of stack overflow / endless
+ *   recursion.
+ * * **Deterministic random optional** – for reproducible slot times you can
+ *   swap the built‑in RNG with a seedable one (see `getRandomTimeInRange`).
  */
 export class SlotManager {
-  private config: SlotManagerConfig;
-
-  constructor(config: SlotManagerConfig = DEFAULT_CONFIG) {
-    this.config = config;
-  }
+  /**
+   * @param config   Slot generation parameters.  If omitted
+   *                 {@link DEFAULT_CONFIG} is used.
+   */
+  constructor(private readonly config: SlotManagerConfig = DEFAULT_CONFIG) {}
 
   /**
-   * Berechnet den nächsten Slot für eine Umfrage.
-   * 
-   * @param now Aktuelle Zeit
-   * @param lastEnd Ende des letzten Slots oder null, wenn es noch keinen gab
-   * @param lastStatus Status des letzten Slots oder null, wenn es noch keinen gab
-   * @returns Ein neuer Slot (start, end)
+   * Calculates the *next* usable slot.
+   *
+   * @param now        Current timestamp (normally `new Date()`).
+   * @param lastEnd    `Date` when the previous slot ended *or* `null` if there
+   *                   has never been a slot before.
+   * @param lastStatus Outcome of the previous slot (`COMPLETED`, `EXPIRED`, …)
+   *                   or `null` on first invocation.
+   * @returns          A {@link Slot} object containing the start and end time
+   *                   of the upcoming slot. The length equals
+   *                   `config.SLOT_LENGTH_MINUTES`.
    */
-  nextSlot(now: Date, lastEnd: Date | null, lastStatus: SlotStatus | null): Slot {
-    // Logge wesentliche Informationen kompakter
-    log.info("Calculating next slot", { 
-      now: now.toLocaleTimeString(),
-      lastEnd: lastEnd?.toLocaleTimeString(),
+  public nextSlot(now: Date, lastEnd: Date | null, lastStatus: SlotStatus | null): Slot {
+    log.info("nextSlot() called", {
+      now: now.toISOString(),
+      lastEnd: lastEnd?.toISOString(),
       lastStatus,
-      currentSegment: this.getSegmentForTime(now)
     });
 
-    // Spezialfall: Wenn die erste Umfrage vor der Morgen-Zeit abgeschlossen wird,
-    // und es sich um die erste Survey handelt (FIRST_COMPLETED),
-    // dann planen wir den Slot für den aktuellen Tag (nicht den nächsten)
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-    const currentHourMinutes = hour * 60 + minute;
-    const morningStartMinutes = this.config.MORNING_RANGE.startHour * 60 + this.config.MORNING_RANGE.startMinute;
-    
-    if (lastStatus === SlotStatus.FIRST_COMPLETED && 
-        currentHourMinutes < morningStartMinutes) {
-      log.info("First survey completed before morning hours, scheduling for current day's morning");
-      
-      // Verwende den aktuellen Tag für das Morning-Segment
-      const targetDate = new Date(now);
-      const nextSegment = DaySegment.MORNING;
-      
-      // Stelle sicher, dass wir innerhalb des Zielsegments sind
-      const segmentStart = this.getSegmentStartTime(nextSegment, targetDate);
-      
-      // Berechne die früheste mögliche Startzeit
-      // Mindestens 60 Minuten Puffer oder Segment-Start, je nachdem was später ist
-      let earliest = new Date(now);
-      const MIN_IMMEDIATE_BUFFER_MINUTES = 60;
-      earliest.setMinutes(earliest.getMinutes() + MIN_IMMEDIATE_BUFFER_MINUTES);
-      
-      if (segmentStart > earliest) {
-        earliest = segmentStart;
-      }
-      
-      // Runde auf das nächste Granularitätsintervall auf
-      earliest = this.roundUpToGranularity(earliest);
-      
-      // Spätester Start ist das Ende des Segments minus Slotlänge
-      const segmentEnd = this.getSegmentEndTime(nextSegment, targetDate);
-      const slotLengthMs = this.config.SLOT_LENGTH_MINUTES * 60 * 1000;
-      const latest = new Date(segmentEnd.getTime() - slotLengthMs);
-      
-      // Wenn das früheste Zeitfenster später als das späteste Zeitfenster ist,
-      // fallen wir zurück zur normalen Logik
-      if (earliest > latest) {
-        log.info("Cannot schedule in current day's morning segment, using standard logic");
-      } else {
-        // Wähle eine Zufallszeit im Bereich [earliest, latest]
-        const start = this.getRandomTimeInRange(earliest, latest, targetDate, nextSegment);
-        const end = new Date(start.getTime() + slotLengthMs);
-        
-        log.info(`Special case: Next slot for first survey completion: ${nextSegment} on ${targetDate.toLocaleDateString()} from ${start.toLocaleTimeString()} to ${end.toLocaleTimeString()}`);
-        
-        return { start, end };
-      }
-    }
-
-    // 0. Bestimme das Segment des vorherigen Slots
+    // ────────────────────────────────────────────────────────────────────────────
+    // 1.  Determine the previous segment & reference date
+    // ────────────────────────────────────────────────────────────────────────────
     let prevSegment: DaySegment;
-    let prevDate: Date;
+    let referenceDate = new Date(now);
 
-    if (lastEnd === null || lastStatus === null) {
-      // Erster Aufruf überhaupt
-      prevSegment = DaySegment.EVENING; // damit nextSegment zu MORNING wird
-      prevDate = new Date(now);
-      prevDate.setDate(prevDate.getDate() - 1);
+    if (!lastEnd) {
+      // First ever call – treat it as if we ended an EVENING slot yesterday so
+      // the algorithm starts at MORNING today.
+      prevSegment = DaySegment.EVENING;
+      referenceDate.setDate(referenceDate.getDate() - 1);
     } else {
       prevSegment = this.getSegmentForTime(lastEnd);
-      prevDate = new Date(lastEnd);
+      referenceDate = new Date(lastEnd);
     }
-    
-    // Nur wesentliche Daten loggen
-    log.debug(`Previous: ${prevSegment} at ${prevDate.toLocaleTimeString()}`);
 
-    // 1. Berechne das nächste Segment (zyklische Reihenfolge)
-    let nextSegment = this.getNextSegment(prevSegment);
-    
-    // Zieldatum - bei Abend -> Morgen geht es auf den nächsten Tag
-    let targetDate = new Date(prevDate);
-    if (prevSegment === DaySegment.EVENING) {
-      targetDate.setDate(targetDate.getDate() + 1);
-    }
-    
-    // WICHTIG: Überprüfe, ob das aktuelle Segment bereits das berechnete 'nextSegment' ist oder sogar darüber hinaus
-    // Wenn ja, müssen wir ein oder zwei Segmente weiter gehen
-    const currentSegment = this.getSegmentForTime(now);
-    
-    // Segmentanpassung bei Überlappungen
-    let segmentChanged = false;
-    
-    if (currentSegment === nextSegment) {
-      // Wir sind bereits im nächsten Segment. Gehe ein Segment weiter.
-      const oldSegment = nextSegment;
-      nextSegment = this.getNextSegment(nextSegment);
-      segmentChanged = true;
-      
-      // Anpassung des Datums, wenn wir von Abend zu Morgen wechseln
-      if (currentSegment === DaySegment.EVENING) {
-        targetDate = new Date(now);
-        targetDate.setDate(targetDate.getDate() + 1);
-      }
-      
-      log.info(`Time already in next segment (${oldSegment}), advancing to ${nextSegment}`);
-    } else if (
-      (prevSegment === DaySegment.MORNING && currentSegment === DaySegment.EVENING) ||
-      (prevSegment === DaySegment.NOON && currentSegment === DaySegment.MORNING)
-    ) {
-      // Wir haben das nächste Segment schon überschritten
-      const oldSegment = nextSegment;
-      nextSegment = currentSegment;
-      targetDate = new Date(now);
-      segmentChanged = true;
-      
-      log.info(`Time has passed beyond next segment (${oldSegment}), using current ${nextSegment}`);
-    } else if (currentSegment === DaySegment.EVENING && nextSegment === DaySegment.NOON) {
-      // Spezieller Fall: Umfrage wurde in der Nacht ausgefüllt (nach 22 Uhr)
-      // Das nächste Segment sollte Morgen sein
-      const oldSegment = nextSegment;
-      nextSegment = DaySegment.MORNING;
-      targetDate = new Date(now);
-      targetDate.setDate(targetDate.getDate() + 1);
-      segmentChanged = true;
-      
-      log.info(`Special case: Survey completed at night, skipping to MORNING segment for next day`);
-    }
-    
-    // Setze das Datum auf Mitternacht und füge dann die Startzeit hinzu
-    targetDate.setHours(0, 0, 0, 0);
+    // ────────────────────────────────────────────────────────────────────────────
+    // 2.  Build a *global* earliest date respecting:
+    //     • 60 min anti-spam buffer from *now*
+    //     • min. gap after the end of the previous slot
+    // ────────────────────────────────────────────────────────────────────────────
+    const gapMinutes =
+      lastStatus === SlotStatus.EXPIRED
+        ? this.config.MIN_GAP_EXPIRED_MINUTES
+        : this.config.MIN_GAP_COMPLETED_MINUTES;
 
-    // 2. Respektiere die Mindestabstände
-    const gap = lastStatus === SlotStatus.EXPIRED 
-      ? this.config.MIN_GAP_EXPIRED_MINUTES 
-      : this.config.MIN_GAP_COMPLETED_MINUTES;
-    
-    // Berechne die früheste mögliche Startzeit
-    let earliest = new Date(now);
-    
-    // WICHTIG: Stellen wir sicher, dass der nächste Slot mindestens 60 Minuten in der Zukunft liegt
-    // Dies verhindert sofortige oder zu schnelle Benachrichtigungen
-    const MIN_IMMEDIATE_BUFFER_MINUTES = 60;
-    earliest.setMinutes(earliest.getMinutes() + MIN_IMMEDIATE_BUFFER_MINUTES);
-    
-    // Anwendung der Mindestwartezeit
+    const earliestGlobal = new Date(now.getTime() + 60 * 60 * 1000); // +60 min
     if (lastEnd) {
-      const minWaitEnd = new Date(lastEnd);
-      minWaitEnd.setMinutes(minWaitEnd.getMinutes() + gap);
-      if (minWaitEnd > earliest) {
-        earliest = minWaitEnd;
+      const minAfterLast = lastEnd.getTime() + gapMinutes * 60 * 1000;
+      earliestGlobal.setTime(Math.max(earliestGlobal.getTime(), minAfterLast));
+    }
+
+    // ────────────────────────────────────────────────────────────────────────────
+    // 3.  Iterate over segments until a valid time window is found
+    // ────────────────────────────────────────────────────────────────────────────
+    let segment = this.getNextSegment(prevSegment);
+    let segmentDate = new Date(referenceDate);
+    const MAX_ITER = 10; // ~ 3 days => hard stop safety
+
+    for (let iter = 0; iter < MAX_ITER; iter++) {
+      // NIGHT is never scheduled, immediately skip to MORNING
+      if (segment === DaySegment.NIGHT) {
+        segment = DaySegment.MORNING;
+        segmentDate.setDate(segmentDate.getDate() + 1);
       }
+
+      const startOfSegment = this.getSegmentStartTime(segment, segmentDate);
+      const endOfSegment   = this.getSegmentEndTime(segment, segmentDate);
+
+      // Earliest candidate must satisfy all buffers *and* land inside segment
+      let earliest = new Date(Math.max(earliestGlobal.getTime(), startOfSegment.getTime()));
+      earliest = this.roundUpToGranularity(earliest);
+
+      const latestStart = new Date(endOfSegment.getTime() - this.config.SLOT_LENGTH_MINUTES * 60 * 1000);
+
+      if (earliest <= latestStart) {
+        const start = this.getRandomTimeInRange(earliest, latestStart);
+        const end   = new Date(start.getTime() + this.config.SLOT_LENGTH_MINUTES * 60 * 1000);
+
+        log.info("slot chosen", { segment, start: start.toISOString(), end: end.toISOString() });
+        return { start, end };
+      }
+
+      // No room in this segment – move to the next
+      segment = this.getNextSegment(segment);
+      if (segment === DaySegment.MORNING) segmentDate.setDate(segmentDate.getDate() + 1);
     }
 
-    // Stelle sicher, dass wir innerhalb des Zielsegments sind
-    const segmentStart = this.getSegmentStartTime(nextSegment, targetDate);
-    if (segmentStart > earliest) {
-      earliest = segmentStart;
-    }
-
-    // Runde auf das nächste Granularitätsintervall
-    earliest = this.roundUpToGranularity(earliest);
-
-    // Spätester Start ist das Ende des Segments minus Slotlänge
-    const segmentEnd = this.getSegmentEndTime(nextSegment, targetDate);
-    const slotLengthMs = this.config.SLOT_LENGTH_MINUTES * 60 * 1000;
-    const latest = new Date(segmentEnd.getTime() - slotLengthMs);
-
-    // Wenn das früheste Zeitfenster später als das späteste Zeitfenster ist,
-    // bedeutet das, dass wir das aktuelle Segment überspringen müssen
-    if (earliest > latest) {
-      log.info(`Segment ${nextSegment} can't accommodate next slot (${earliest.toLocaleTimeString()} > ${latest.toLocaleTimeString()})`);
-      
-      // Rekursiver Aufruf mit der Endzeit des aktuellen Segments als "lastEnd"
-      // Dies führt dazu, dass das nächste Segment ausgewählt wird
-      return this.nextSlot(now, segmentEnd, lastStatus);
-    }
-
-    // 3. Wähle eine reproduzierbare Zufallszeit im Bereich [earliest, latest]
-    const start = this.getRandomTimeInRange(earliest, latest, targetDate, nextSegment);
-    const end = new Date(start.getTime() + slotLengthMs);
-
-    log.info(`Next slot: ${nextSegment} on ${targetDate.toLocaleDateString()} from ${start.toLocaleTimeString()} to ${end.toLocaleTimeString()}`);
-
+    // Fallback (should never trigger)
+    log.error("Unable to find a slot within safety bounds; returning +2 h fallback");
+    const start = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const end   = new Date(start.getTime() + this.config.SLOT_LENGTH_MINUTES * 60 * 1000);
     return { start, end };
   }
 
+  // ────────────────────────────────────────────────────────────────────────────
+  // Helper methods – all internal, purely functional.
+  // ────────────────────────────────────────────────────────────────────────────
+
   /**
-   * Findet das Tagessegment (MORNING, NOON, EVENING) für eine gegebene Zeit
+   * Maps a timestamp to one of the four DaySegments.
    */
   public getSegmentForTime(time: Date): DaySegment {
-    const hour = time.getHours();
-    const minute = time.getMinutes();
-    
-    const inRange = (range: TimeRange): boolean => {
-      return (hour > range.startHour || (hour === range.startHour && minute >= range.startMinute)) &&
-             (hour < range.endHour || (hour === range.endHour && minute < range.endMinute));
-    };
+    const min = time.getHours() * 60 + time.getMinutes();
+    const toMin = (r: TimeRange) => r.startHour * 60 + r.startMinute;
 
-    if (inRange(this.config.MORNING_RANGE)) return DaySegment.MORNING;
-    if (inRange(this.config.NOON_RANGE)) return DaySegment.NOON;
-    if (inRange(this.config.EVENING_RANGE)) return DaySegment.EVENING;
-    
-    // Fallback, falls die Zeit in keinem Segment liegt
-    const currentHourMinutes = hour * 60 + minute;
-    const morningStartMinutes = this.config.MORNING_RANGE.startHour * 60 + this.config.MORNING_RANGE.startMinute;
-    const eveningEndMinutes = this.config.EVENING_RANGE.endHour * 60 + this.config.EVENING_RANGE.endMinute;
-    
-    // Nachts/früh morgens (nach Ende Abend und vor Beginn Morgen)
-    // d.h. zwischen 22:00 und 06:00
-    if (currentHourMinutes < morningStartMinutes) {
-      // Wir sind nach Mitternacht, aber vor dem Start des MORNING Segments
-      log.info(`Time ${time.toLocaleTimeString()} is in early morning hours (before ${this.config.MORNING_RANGE.startHour}:${this.config.MORNING_RANGE.startMinute})`);
-      return DaySegment.EVENING; // Gilt als später Abend des Vortags für Planungszwecke
-    } else if (currentHourMinutes >= eveningEndMinutes) {
-      // Wir sind nach dem Ende des EVENING Segments (nach 22:00 Uhr)
-      log.info(`Time ${time.toLocaleTimeString()} is after evening segment (after ${this.config.EVENING_RANGE.endHour}:${this.config.EVENING_RANGE.endMinute})`);
-      return DaySegment.EVENING; // Gilt als später Abend für Planungszwecke
-    }
-    
-    // Sollte nie erreicht werden, aber als Fallback
-    log.warn(`Time ${time.toLocaleTimeString()} couldn't be matched to any segment, using NOON as fallback`);
-    return DaySegment.NOON;
+    const mStart = toMin(this.config.MORNING_RANGE);
+    const mEnd   = this.config.MORNING_RANGE.endHour * 60 + this.config.MORNING_RANGE.endMinute;
+    const nEnd   = this.config.NOON_RANGE.endHour * 60 + this.config.NOON_RANGE.endMinute;
+    const eEnd   = this.config.EVENING_RANGE.endHour * 60 + this.config.EVENING_RANGE.endMinute;
+
+    if (min >= mStart && min < mEnd) return DaySegment.MORNING;
+    if (min >= mEnd   && min < nEnd) return DaySegment.NOON;
+    if (min >= nEnd   && min < eEnd) return DaySegment.EVENING;
+    return DaySegment.NIGHT; // 22:00‑07:29
   }
 
-  /**
-   * Bestimmt das nächste Segment in der zyklischen Reihenfolge
-   */
-  private getNextSegment(segment: DaySegment): DaySegment {
-    switch (segment) {
+  /** Returns the next segment in cyclical order. */
+  private getNextSegment(s: DaySegment): DaySegment {
+    switch (s) {
+      case DaySegment.NIGHT:   return DaySegment.MORNING;
       case DaySegment.MORNING: return DaySegment.NOON;
-      case DaySegment.NOON: return DaySegment.EVENING;
-      case DaySegment.EVENING: return DaySegment.MORNING;
+      case DaySegment.NOON:    return DaySegment.EVENING;
+      case DaySegment.EVENING: return DaySegment.NIGHT;
+      default:                 return DaySegment.MORNING;
     }
   }
 
-  /**
-   * Holt die Startzeit für ein bestimmtes Segment am gegebenen Datum
-   */
-  private getSegmentStartTime(segment: DaySegment, date: Date): Date {
-    const result = new Date(date);
-    let range: TimeRange;
-    
-    switch (segment) {
-      case DaySegment.MORNING:
-        range = this.config.MORNING_RANGE;
-        break;
-      case DaySegment.NOON:
-        range = this.config.NOON_RANGE;
-        break;
-      case DaySegment.EVENING:
-        range = this.config.EVENING_RANGE;
-        break;
+  private getSegmentStartTime(seg: DaySegment, date: Date): Date {
+    const d = new Date(date);
+    const r = this.rangeForSegment(seg);
+    d.setHours(r.startHour, r.startMinute, 0, 0);
+    return d;
+  }
+
+  private getSegmentEndTime(seg: DaySegment, date: Date): Date {
+    const d = new Date(date);
+    const r = this.rangeForSegment(seg);
+    d.setHours(r.endHour, r.endMinute, 0, 0);
+    return d;
+  }
+
+  private rangeForSegment(seg: DaySegment): TimeRange {
+    switch (seg) {
+      case DaySegment.MORNING: return this.config.MORNING_RANGE;
+      case DaySegment.NOON:    return this.config.NOON_RANGE;
+      case DaySegment.EVENING: return this.config.EVENING_RANGE;
+      default:                return this.config.MORNING_RANGE; // placeholder for NIGHT
     }
-    
-    result.setHours(range.startHour, range.startMinute, 0, 0);
-    return result;
+  }
+
+  /** Rounds *t* **upwards** to the closest `TIME_GRANULARITY_MINUTES` boundary. */
+  private roundUpToGranularity(t: Date): Date {
+    const gMs = this.config.TIME_GRANULARITY_MINUTES * 60 * 1000;
+    const rem = t.getTime() % gMs;
+    return rem === 0 ? t : new Date(t.getTime() + (gMs - rem));
   }
 
   /**
-   * Holt die Endzeit für ein bestimmtes Segment am gegebenen Datum
+   * Returns a random time on the configured granularity grid between two
+   * bounds (inclusive).  For reproducible schedules replace `Math.random()`
+   * with a seeded RNG.
    */
-  private getSegmentEndTime(segment: DaySegment, date: Date): Date {
-    const result = new Date(date);
-    let range: TimeRange;
-    
-    switch (segment) {
-      case DaySegment.MORNING:
-        range = this.config.MORNING_RANGE;
-        break;
-      case DaySegment.NOON:
-        range = this.config.NOON_RANGE;
-        break;
-      case DaySegment.EVENING:
-        range = this.config.EVENING_RANGE;
-        break;
-    }
-    
-    result.setHours(range.endHour, range.endMinute, 0, 0);
-    return result;
+  private getRandomTimeInRange(earliest: Date, latest: Date): Date {
+    const gMs   = this.config.TIME_GRANULARITY_MINUTES * 60 * 1000;
+    const steps = Math.floor((latest.getTime() - earliest.getTime()) / gMs);
+    const idx   = Math.floor(Math.random() * (steps + 1));
+    return new Date(earliest.getTime() + idx * gMs);
   }
-
-  /**
-   * Rundet eine Zeit auf das nächste Granularitätsintervall auf
-   */
-  private roundUpToGranularity(time: Date): Date {
-    const result = new Date(time);
-    const granularityMs = this.config.TIME_GRANULARITY_MINUTES * 60 * 1000;
-    
-    // Runde auf das nächste Granularitätsintervall auf
-    const remainder = result.getTime() % granularityMs;
-    if (remainder > 0) {
-      result.setTime(result.getTime() + (granularityMs - remainder));
-    }
-    
-    return result;
-  }
-
-  /**
-   * Wählt eine reproduzierbare Zufallszeit im Bereich [earliest, latest]
-   */
-  private getRandomTimeInRange(earliest: Date, latest: Date, targetDate: Date, segment: DaySegment): Date {
-    // Statt eines deterministischen Seeds verwenden wir echte Zufälligkeit
-    // Berechne die Anzahl der möglichen Zeitpunkte
-    const granularityMs = this.config.TIME_GRANULARITY_MINUTES * 60 * 1000;
-    
-    // Sicherheitsprüfung: Falls earliest > latest ist, nutzen wir die früheste Zeit
-    // Dies sollte eigentlich nicht vorkommen, aber als Absicherung
-    if (earliest > latest) {
-      log.warn("Invalid time range detected (earliest > latest), using earliest time", {
-        earliest: earliest.toLocaleTimeString(),
-        latest: latest.toLocaleTimeString(),
-        segment
-      });
-      return earliest;
-    }
-    
-    const rangeMs = latest.getTime() - earliest.getTime();
-    const numSteps = Math.floor(rangeMs / granularityMs) + 1;
-    
-    if (numSteps <= 0) {
-      log.warn("Invalid time range for random selection, using earliest time", {
-        earliest: earliest.toLocaleTimeString(),
-        latest: latest.toLocaleTimeString(),
-        segment
-      });
-      return earliest;
-    }
-    
-    // Verwende Math.random() für echte Zufälligkeit anstelle eines festen Seeds
-    const stepIndex = Math.floor(Math.random() * numSteps);
-    const result = new Date(earliest.getTime() + (stepIndex * granularityMs));
-    
-    log.debug(`Generated random time: ${result.toLocaleTimeString()} (from ${numSteps} possible time slots)`);
-    
-    return result;
-  }
-
-  /**
-   * Erstellt einen einfachen Hash für ein Datum
-   */
-  private hashDate(date: Date): number {
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear();
-    
-    return (year * 10000) + (month * 100) + day;
-  }
-
-  /**
-   * Konvertiert ein Segment in eine Ordinalzahl
-   */
-  private segmentToOrdinal(segment: DaySegment): number {
-    switch (segment) {
-      case DaySegment.MORNING: return 0;
-      case DaySegment.NOON: return 1;
-      case DaySegment.EVENING: return 2;
-      default: return 0;
-    }
-  }
-} 
+}

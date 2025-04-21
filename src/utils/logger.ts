@@ -5,6 +5,13 @@
  * - No manual filename passing.
  */
 
+// Define __DEV__ variable - typically this would be injected by the build system
+// In React Native, this is a global variable
+declare const __DEV__: boolean;
+
+// Ensure __DEV__ is available in all environments
+const IS_DEV = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV !== 'production';
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 /**
@@ -26,7 +33,7 @@ const ENABLED_LEVELS: Record<LogLevel, boolean> = {
  */
 const logMessage = (level: LogLevel, caller: string, message: string, data?: any) => {
   if (!ENABLED_LEVELS[level]) return; // Skip logging if level is disabled
-  if (!__DEV__) return; // Prevent logs in production builds
+  if (!IS_DEV) return; // Prevent logs in production builds
 
   const formattedMessage = `[${level.toUpperCase()}] [${caller}] → ${message}`;
 

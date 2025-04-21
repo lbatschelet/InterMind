@@ -59,6 +59,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   
   // Ref to track the last check time to avoid too frequent checks
   const lastCheckTimeRef = useRef<number>(0);
+  // Ref to track the periodic interval
+  const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   /**
    * Checks survey availability and updates the UI state accordingly.
@@ -85,9 +87,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     lastCheckTimeRef.current = now;
     
     try {
-      // Stellen wir zuerst sicher, dass der SlotCoordinator initialisiert ist
-      await slotCoordinator.initialize();
-      
       // Hole Daten direkt vom SlotCoordinator, um zu verstehen was passiert
       const currentSlot = await slotCoordinator.getCurrentSlot();
       const lastMeta = await slotCoordinator.readLastMeta();
@@ -166,47 +165,44 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   /**
-   * Initial and periodic availability checking
+   * Combined effect for availability checking
    * 
-   * This effect:
-   * 1. Performs an immediate availability check on component mount
-   * 2. Sets up a recurring check every AVAILABILITY_CHECK_INTERVAL (5 minutes)
-   * 3. Cleans up the interval when component unmounts
-   * 
-   * The periodic checks ensure the UI stays updated even if the user
-   * keeps the app open for extended periods.
-   */
-  useEffect(() => {
-    // Check immediately on first render
-    checkSurveyAvailability(true);
-    
-    // Then check with the specified interval
-    const interval = setInterval(() => checkSurveyAvailability(true), AVAILABILITY_CHECK_INTERVAL);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  /**
-   * Focus-triggered availability check
-   * 
-   * This effect runs whenever the screen comes into focus, ensuring that
-   * the survey availability is checked when:
-   * - User navigates back from another screen
-   * - App returns to foreground from background
-   * - User returns to this tab/screen
-   * 
-   * This is critical for refreshing the UI state after completing a survey
-   * or when returning to the app after a notification.
-   * 
-   * The check is still subject to throttling to prevent excessive API calls.
+   * This effect integrates both the initial/periodic check and focus-triggered check:
+   * 1. Sets up periodic check every AVAILABILITY_CHECK_INTERVAL
+   * 2. Triggers a check when the screen comes into focus
+   * 3. Cleans up interval when component unmounts
    */
   useFocusEffect(
     React.useCallback(() => {
-      // Force a check when returning to this screen, to catch any availability changes
-      // This is critical to update the UI after survey completion
+      // Check when screen comes into focus (including first render)
       checkSurveyAvailability(true);
+      
+      // Set up periodic check if it doesn't exist yet
+      if (!checkIntervalRef.current) {
+        checkIntervalRef.current = setInterval(() => {
+          checkSurveyAvailability(true);
+        }, AVAILABILITY_CHECK_INTERVAL);
+        
+        log.debug("Set up periodic availability check");
+      }
+      
+      // Clean up function for when screen loses focus
+      return () => {
+        // We don't clear the interval here, as we want it to continue in the background
+      };
     }, [])
   );
+  
+  // Clean up the interval when component unmounts
+  useEffect(() => {
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+        checkIntervalRef.current = null;
+        log.debug("Cleaned up periodic availability check");
+      }
+    };
+  }, []);
 
   /**
    * Formats the next survey time in a user-friendly way showing the actual time

@@ -14,6 +14,13 @@ import * as Notifications from 'expo-notifications';
 import { createLogger } from './utils/logger';
 import { slotCoordinator } from './services/slots';
 import { setupNotifications } from './services/slots/NotificationScheduler';
+import * as SplashScreen from 'expo-splash-screen';
+import { LoadingScreen } from './components/screens';
+
+// Splash-Screen wird manuell gehalten bis die App bereit ist
+SplashScreen.preventAutoHideAsync().catch(() => {
+  /* Falls preventAutoHideAsync fehlschlägt, ignorieren wir den Fehler */
+});
 
 const log = createLogger("App");
 
@@ -57,6 +64,8 @@ export default function App() {
   
   // Lokaler State, der den globalen Status spiegelt (für re-renders)
   const [isAppInitialized, setIsAppInitialized] = useState(globalInitStatus.isInitialized);
+  // State für die Steuerung der Anzeige des Loading-Screens und Splash-Screens
+  const [appIsReady, setAppIsReady] = useState(false);
   
   useEffect(() => {
     // Set up app state change listener
@@ -65,6 +74,10 @@ export default function App() {
     // Initialize app only once at startup across all component instances
     if (!globalInitStatus.isInitialized && !globalInitStatus.isInitializing) {
       initApp();
+    } else if (globalInitStatus.isInitialized) {
+      // App ist bereits initialisiert, verstecke Splash-Screen sofort
+      setAppIsReady(true);
+      SplashScreen.hideAsync().catch(log.error);
     }
     
     // Clean up on unmount
@@ -72,6 +85,13 @@ export default function App() {
       subscription.remove();
     };
   }, []);
+  
+  // Effekt zum Ausblenden des Splash-Screens, wenn die App bereit ist
+  useEffect(() => {
+    if (appIsReady) {
+      SplashScreen.hideAsync().catch(log.error);
+    }
+  }, [appIsReady]);
   
   /**
    * Handles app state changes (foreground/background/inactive)
@@ -116,17 +136,20 @@ export default function App() {
       
       log.info('App initialized successfully');
       
-      // Nach einer kurzen Verzögerung die Initialisierungsphase beenden
+      // Die App sofort als bereit markieren oder Verzögerung hinzufügen
       setTimeout(() => {
         globalInitStatus.isInitialized = true;
         globalInitStatus.isInitializing = false;
         setIsAppInitialized(true);
+        setAppIsReady(true);
         log.info("Initialization phase completed");
-      }, 2000); // Reduziert auf 2 Sekunden
+      }, 500); // Kurze Verzögerung für Übergang
     } catch (error) {
       log.error('Error during app initialization', error);
       globalInitStatus.isInitializing = false;
       globalInitStatus.isInitialized = false;
+      // Trotz Fehler die App anzeigen, damit der Benutzer nicht blockiert wird
+      setAppIsReady(true);
     }
   };
   
@@ -193,6 +216,13 @@ export default function App() {
       log.error('Error handling notification:', error);
     }
   };
+
+  // Wenn die App noch nicht bereit ist, zeige den Splash-Screen
+  if (!appIsReady) {
+    // Hier wird nichts gerendert, da wir den nativen Splash Screen verwenden,
+    // bis die App vollständig initialisiert ist
+    return null;
+  }
 
   return (
     <LanguageProvider>

@@ -2,9 +2,9 @@ import { SlotManager, DEFAULT_CONFIG } from './SlotManager';
 import { SlotStateStore, AsyncStorageSlotStateStore } from './SlotStateStore';
 import { NotificationScheduler, ExpoNotificationScheduler } from './NotificationScheduler';
 import { SlotCoordinator } from './SlotCoordinator';
-import { SurveyEvent, Slot, SlotStatus, SlotMeta, DaySegment } from './types';
+import { SurveyEvent, Slot, SlotStatus, SlotMeta, DaySegment } from '../../types/slots';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createLogger } from '~/src/utils/logger';
+import { createLogger } from '../../utils/logger';
 
 const log = createLogger("SlotSystem");
 
