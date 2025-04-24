@@ -105,7 +105,7 @@ All illustrations © 2025 Katerina Limpitsouni
 from the open source project [undraw.co](https://undraw.co)
 
 ## Version
-Version: 0.3.0
+Version: 0.3.1
 `,
     version: "Version",
     description: "InterMind is a research app designed to understand how urban environments affect wellbeing.",
