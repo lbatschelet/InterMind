@@ -9,14 +9,14 @@
  * - Allows the user to select **one** option.
  * - Supports **AutoAdvance**: Automatically navigates forward when an option is selected (only the first time).
  * - The actual navigation is handled by `SurveyScreen.tsx`.
+ * - Supports multi-line text in options.
+ * - Provides scrollable option list when needed.
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { View } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
-import { Button } from "../ui/button";
-import { Text } from "../ui/text";
+import OptionsSelector from "./OptionsSelector";
 
 const log = createLogger("SingleChoice");
 
@@ -99,20 +99,12 @@ const SingleChoice: React.FC<QuestionComponentProps<"single_choice"> & {
   };
 
   return (
-    <View className="w-full">
-      <View className="space-y-6 w-full">
-        {question.options.map(({ value, label }) => (
-          <Button
-            key={value}
-            variant={selected === value ? "default" : "outline"}
-            onPress={() => handleSelect(value)}
-            className="py-3"
-          >
-            <Text>{label}</Text>
-          </Button>
-        ))}
-      </View>
-    </View>
+    <OptionsSelector
+      options={question.options}
+      onSelect={handleSelect}
+      selectedValues={selected}
+      isMultipleChoice={false}
+    />
   );
 };
 

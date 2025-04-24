@@ -8,14 +8,14 @@
  * @remarks
  * - Allows users to select **multiple** options.
  * - Updates the parent component only when options change.
+ * - Supports multi-line text in options.
+ * - Provides scrollable option list when needed.
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { View } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
-import { Button } from "../ui/button";
-import { Text } from "../ui/text";
+import OptionsSelector from "./OptionsSelector";
 
 const log = createLogger("MultipleChoice");
 
@@ -86,20 +86,12 @@ const MultipleChoice: React.FC<QuestionComponentProps<"multiple_choice"> & {
   };
 
   return (
-    <View className="w-full">
-      <View className="space-y-6 w-full">
-        {question.options.map(({ value, label }) => (
-          <Button
-            key={value}
-            variant={selectedOptions.includes(value) ? "default" : "outline"}
-            onPress={() => handleSelect(value)}
-            className="py-3"
-          >
-            <Text>{label}</Text>
-          </Button>
-        ))}
-      </View>
-    </View>
+    <OptionsSelector
+      options={question.options}
+      onSelect={handleSelect}
+      selectedValues={selectedOptions}
+      isMultipleChoice={true}
+    />
   );
 };
 

@@ -358,12 +358,15 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
         <View className="flex-1">
           {/* Question Content - Only this part is animated */}
           <Animated.View 
-            className="flex-1"
-            style={{ transform: [{ translateX: slideAnim }] }}
+            style={{ flex: 1, transform: [{ translateX: slideAnim }] }}
           >
-            <View className="flex-1 px-6">
-              {/* Optimierte Verteilung mit flexiblem Abstand */}
+            <ScrollView
+              contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, flexGrow: 1 }}
+              showsVerticalScrollIndicator
+              keyboardShouldPersistTaps="handled"
+            >
               <View className="flex-1 flex-col justify-between">
+
                 {/* Oberhalb der Frage und Antworten: flexibler Abstand */}
                 <View className="flex-grow" />
                 
@@ -422,88 +425,73 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                 {/* Unterhalb der Antworten: flexibler Abstand */}
                 <View className="flex-grow" />
               </View>
-            </View>
+            </ScrollView>
           </Animated.View>
 
           {/* Navigation Buttons - Not animated */}
-          <View className="flex-row justify-between items-center w-full py-4 px-6">
-            <Button 
-              variant="outline" 
-              onPress={handleBack} 
-              className={currentIndex === 0 ? "opacity-50" : ""}
-              disabled={isAnimating}
-            >
-              <Text>{t('survey.back')}</Text>
-            </Button>
+          {/* Fixierter Footer mit weißem Hintergrund */}
+          <View className="border-t border-muted bg-background px-6 py-4">
+            <View className="flex-row justify-between items-center">
+              <Button 
+                variant="outline" 
+                onPress={handleBack} 
+                className={currentIndex === 0 ? "opacity-50" : ""}
+                disabled={isAnimating}
+              >
+                <Text>{t('survey.back')}</Text>
+              </Button>
 
-            {/* Next/Submit Button for all question types */}
-            <Button 
-              variant="default" 
-              className="bg-accent" 
-              onPress={async () => {
-                // Verhindere doppelte Klicks
-                if (isAnimating) return;
-                
-                log.info("Next/Submit button clicked", { 
-                  questionType: currentQuestion.type,
-                  hasAction: currentQuestion.type === "info_screen" && !!currentQuestion.options?.action,
-                  action: currentQuestion.type === "info_screen" ? currentQuestion.options?.action : null
-                });
-                
-                // Setze isAnimating temporär, um doppelte Klicks zu verhindern
-                setIsAnimating(true);
-                
-                try {
-                  // Schritt 1: Bei Info-Screens mit Aktionen zuerst die Berechtigung anfordern
-                  if (currentQuestion.type === "info_screen" && currentQuestion.options?.action) {
-                    const action = currentQuestion.options.action as 'request_notification_permission' | 'request_location_permission';
-                    log.info(`Executing InfoScreen action: ${action}`);
-                    
-                    // Benutze die importierte executeAction-Funktion
-                    log.debug("BEFORE executeAction call");
-                    const success = await executeAction(action);
-                    log.debug("AFTER executeAction call");
-                    log.info(`Action ${action} executed with result: ${success}`);
-                    
-                    // Kurze Pause, damit die Berechtigungsanfrage Zeit hat, abzuschließen
-                    await new Promise(resolve => setTimeout(resolve, 500));
+              <Button 
+                variant="default" 
+                className="bg-accent" 
+                onPress={async () => {
+                  if (isAnimating) return;
+
+                  log.info("Next/Submit button clicked", {
+                    questionType: currentQuestion.type,
+                    hasAction: currentQuestion.type === "info_screen" && !!currentQuestion.options?.action,
+                    action: currentQuestion.type === "info_screen" ? currentQuestion.options?.action : null
+                  });
+
+                  setIsAnimating(true);
+                  try {
+                    if (currentQuestion.type === "info_screen" && currentQuestion.options?.action) {
+                      const action = currentQuestion.options.action as 'request_notification_permission' | 'request_location_permission';
+                      log.info(`Executing InfoScreen action: ${action}`);
+                      const success = await executeAction(action);
+                      log.info(`Action ${action} executed with result: ${success}`);
+                      await new Promise(resolve => setTimeout(resolve, 500));
+                    }
+
+                    if (currentQuestion.type === "info_screen") {
+                      handleResponseUpdate(undefined);
+                    }
+
+                    await handleNext();
+                  } catch (error) {
+                    log.error("Error in Next button handler:", error);
+                    await handleNext(); // trotzdem weiter
+                  } finally {
+                    setIsAnimating(false);
                   }
-                  
-                  // Schritt 2: Bei Info-Screens manuell onNext aufrufen
-                  if (currentQuestion.type === "info_screen") {
-                    log.debug("Calling handleResponseUpdate for InfoScreen");
-                    handleResponseUpdate(undefined);
-                  }
-                  
-                  // Schritt 3: Zur nächsten Frage navigieren
-                  log.debug("Calling handleNext to navigate to next question");
-                  await handleNext();
-                  
-                } catch (error) {
-                  log.error("Error in Next button handler:", error);
-                  // Trotzdem weitergehen
-                  await handleNext();
-                } finally {
-                  // Setze isAnimating zurück
-                  setIsAnimating(false);
-                }
-              }}
-              disabled={isAnimating}
-            >
-              <Text className="text-primary">
-                {currentIndex === questions.length - 1 
-                  ? t('survey.submit')
-                  : currentQuestion.type === "info_screen" && currentQuestion.buttonText 
-                    ? (typeof currentQuestion.buttonText === 'string')
-                      ? (currentQuestion.buttonText.startsWith('survey.') || currentQuestion.buttonText.startsWith('general.'))
-                        ? t(currentQuestion.buttonText) 
-                        : currentQuestion.buttonText
-                      : (typeof currentQuestion.buttonText === 'object' && currentQuestion.buttonText)
-                        ? currentQuestion.buttonText[language] || t('survey.next')
-                        : t('survey.next')
-                    : t('survey.next')}
-              </Text>
-            </Button>
+                }}
+                disabled={isAnimating}
+              >
+                <Text className="text-primary">
+                  {currentIndex === questions.length - 1 
+                    ? t('survey.submit')
+                    : currentQuestion.type === "info_screen" && currentQuestion.buttonText 
+                      ? (typeof currentQuestion.buttonText === 'string')
+                        ? (currentQuestion.buttonText.startsWith('survey.') || currentQuestion.buttonText.startsWith('general.'))
+                          ? t(currentQuestion.buttonText) 
+                          : currentQuestion.buttonText
+                        : (typeof currentQuestion.buttonText === 'object' && currentQuestion.buttonText)
+                          ? currentQuestion.buttonText[language] || t('survey.next')
+                          : t('survey.next')
+                      : t('survey.next')}
+                </Text>
+              </Button>
+            </View>
           </View>
         </View>
       </View>
