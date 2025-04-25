@@ -42,6 +42,6 @@ export interface ITimeConfig {
   /** Mindestabstand zwischen Slots in Minuten */
   MIN_GAP_MINUTES: number;
 
-  /** Standard-Anzahl von Tagen für den Zeitplan */
-  DEFAULT_SCHEDULE_DAYS: number;
+  /** Standard-Anzahl von Umfragen, die zu planen sind */
+  DEFAULT_SURVEY_COUNT: number;
 } 

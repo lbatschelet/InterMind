@@ -120,10 +120,10 @@ export class SlotService implements ISlotService {
         await this.updateSlotStatuses();
       } else {
         // Neue Slots generieren, beginnend mit dem aktuellen Datum
-        log.info(`Generating new slots for ${this.timeConfig.DEFAULT_SCHEDULE_DAYS} days`);
+        log.info(`Generating new slots for ${this.timeConfig.DEFAULT_SURVEY_COUNT} surveys`);
         this.slots = this.slotGenerator.generateSchedule(
           new Date(), 
-          this.timeConfig.DEFAULT_SCHEDULE_DAYS, 
+          this.timeConfig.DEFAULT_SURVEY_COUNT, 
           this.timeConfig
         );
         
@@ -327,7 +327,7 @@ export class SlotService implements ISlotService {
     // Der SlotGenerator berücksichtigt jetzt alle Einschränkungen
     this.slots = this.slotGenerator.generateSchedule(
       earliestPossibleTime, // Starte von der frühesten möglichen Zeit
-      this.timeConfig.DEFAULT_SCHEDULE_DAYS,
+      this.timeConfig.DEFAULT_SURVEY_COUNT,
       this.timeConfig
     );
     

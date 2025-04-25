@@ -53,6 +53,6 @@ export const DEFAULT_TIME_CONFIG: ITimeConfig = {
   /** Mindestabstand zwischen Slots in Minuten */
   MIN_GAP_MINUTES: 180,
 
-  /** Standard-Anzahl von Tagen für den Zeitplan */
-  DEFAULT_SCHEDULE_DAYS: 14,
+  /** Standard-Anzahl von Umfragen, die zu planen sind */
+  DEFAULT_SURVEY_COUNT: 2
 }; 

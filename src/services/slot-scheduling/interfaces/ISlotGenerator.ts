@@ -15,12 +15,12 @@ import { ITimeConfig } from "../interfaces/ITimeConfig";
  */
 export interface ISlotGenerator {
   /**
-   * Erzeugt einen kompletten Zeitplan für einen bestimmten Zeitraum
+   * Erzeugt einen kompletten Zeitplan mit der angegebenen Anzahl von Umfragen
    * 
    * @param startDate Startdatum des Zeitplans
-   * @param days Anzahl der Tage, für die der Zeitplan erstellt werden soll
+   * @param surveyCount Anzahl der zu planenden Umfragen
    * @param config Zeitkonfiguration für die Slot-Erzeugung
-   * @returns Ein Array von Slots für den gesamten Zeitraum
+   * @returns Ein Array von Slots für die angeforderten Umfragen
    */
-  generateSchedule(startDate: Date, days: number, config: ITimeConfig): ISlot[];
+  generateSchedule(startDate: Date, surveyCount: number, config: ITimeConfig): ISlot[];
 } 

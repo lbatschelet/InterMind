@@ -10,9 +10,9 @@ const log = createLogger("SlotGenerator");
 const TICK_MS = 5 * 60_000;   // 5-minute grid
 
 export class SlotGenerator implements ISlotGenerator {
-  generateSchedule(firstSurveyEnd: Date, days: number, cfg: ITimeConfig): ISlot[] {
+  generateSchedule(firstSurveyEnd: Date, surveyCount: number, cfg: ITimeConfig): ISlot[] {
     log.info(
-      `Generating schedule for ${days} days starting from ${firstSurveyEnd.toISOString()}`
+      `Generating schedule for ${surveyCount} surveys starting from ${firstSurveyEnd.toISOString()}`
     );
 
     /* crypto-safe random int in [0,n) */
@@ -30,12 +30,12 @@ export class SlotGenerator implements ISlotGenerator {
       DaySegment.EVENING,
     ];
 
-    /* first frame we’re in */
+    /* first frame we're in */
     const currentSeg = toSegment(new Date(), cfg);
 
-    /* horizon = same frame N days later */
+    /* Calculate a generous horizon (30 days) to find slots within */
     const horizonDate = new Date();
-    horizonDate.setDate(horizonDate.getDate() + days);
+    horizonDate.setDate(horizonDate.getDate() + 30);
     horizonDate.setHours(0, 0, 0, 0);
     const horizonKey = key(horizonDate, currentSeg);
 
@@ -43,7 +43,7 @@ export class SlotGenerator implements ISlotGenerator {
 
     /* ----------------------------------------------------------------
      * lastEnd = end of previous slot
-     *  – For the first call we IGNORE any “future” timestamp that was
+     *  – For the first call we IGNORE any "future" timestamp that was
      *    passed in (now + slotLen) and pin it to *now*.
      * ---------------------------------------------------------------- */
     const nowMs  = Date.now();
@@ -52,10 +52,15 @@ export class SlotGenerator implements ISlotGenerator {
     /* iterate day-by-day                                            */
     let iter = new Date(); iter.setHours(0, 0, 0, 0); // today 00:00
 
-    while (true) {
+    while (slots.length < surveyCount) {
       for (const seg of ORDER) {
         if (key(iter, seg) > horizonKey) {
-          log.info(`Generated ${slots.length} slots`);
+          log.info(`Generated ${slots.length} slots (reached time horizon)`);
+          return slots;
+        }
+
+        if (slots.length >= surveyCount) {
+          log.info(`Generated ${slots.length} slots (reached requested count)`);
           return slots;
         }
 
@@ -98,6 +103,9 @@ export class SlotGenerator implements ISlotGenerator {
       }
       iter.setDate(iter.getDate() + 1);                   // next calendar day
     }
+    
+    log.info(`Generated ${slots.length} slots`);
+    return slots;
   }
 }
 
