@@ -2,7 +2,7 @@
   "expo": {
     "name": "InterMind",
     "slug": "intermind",
-    "version": "0.3.1",
+    "version": "0.4.0",
     "orientation": "portrait",
     "icon": "./assets/icons/icon.png",
     "userInterfaceStyle": "light",
