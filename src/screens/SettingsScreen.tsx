@@ -30,7 +30,7 @@ import { DeviceService } from "../services";
 import { SurveyService } from "~/src/services";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../navigation/AppNavigator";
-import { resetSlotSystem } from '../services/slots';
+import { slotService } from '../services/slot-scheduling';
 import { getImage } from "~/src/lib/images";
 import Markdown from 'react-native-markdown-display';
 import { getImageHeight, infoScreenStyles, markdownStyles } from "~/src/styles/infoScreenStyles";
@@ -123,7 +123,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
       const surveysDeleted = await SurveyService.deleteAllSurveys();
       
       try {
-        await resetSlotSystem();
+        await slotService.reset();
         log.info("Slot system successfully reset");
       } catch (slotError) {
         log.error("Error resetting slot system", slotError);

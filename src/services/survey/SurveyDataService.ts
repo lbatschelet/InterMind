@@ -1,7 +1,7 @@
 import { createLogger } from "~/src/utils/logger";
 import { DeviceService } from "../device";
 import SurveyAnsweredQuestionsService from "./SurveyAnsweredQuestionsService";
-import { resetSlotSystem } from "../slots";
+import { slotService } from "../slot-scheduling";
 
 const log = createLogger("SurveyDataService");
 
@@ -45,7 +45,7 @@ class SurveyDataService {
    * Resets all survey scheduling, notifications, and slot-related data.
    */
   static async resetSlotSystem(): Promise<void> {
-    await resetSlotSystem();
+    await slotService.reset();
     log.info("Reset slot system");
   }
 }

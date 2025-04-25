@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { AppState } from 'react-native';
-import { slotCoordinator, SlotStatus, SlotCoordinatorEvent, Slot } from '../services/slots';
+import { slotService, SlotStatus, SlotServiceEvent, ISlot } from '../services/slot-scheduling';
 import { SurveyService } from '../services';
 import { createLogger } from '../utils/logger';
 import { LanguageCode } from '../locales';
@@ -25,22 +25,24 @@ export const useSurveyAvailability = () => {
 
   /**
    * Checks for survey availability and updates the state
-   * This is the core function that communicates with the slotCoordinator
+   * This is the core function that communicates with the slotService
    */
   const checkAvailability = useCallback(async () => {
     log.debug('Checking survey availability');
     
     try {
-      // Verwende die zentrale checkAndUpdateSlot-Methode
-      const slotResult = await slotCoordinator.checkAndUpdateSlot();
+      // Prüfe, ob ein Slot aktiv ist
+      const isSlotActive = await slotService.isCurrentlyAvailable();
+      const activeSlot = isSlotActive ? await slotService.getActiveSlot() : null;
       
       log.debug('Slot system check result:', { 
-        hasCurrentSlot: !!slotResult.currentSlot,
-        slotStart: slotResult.currentSlot?.start?.toLocaleString(),
-        slotEnd: slotResult.currentSlot?.end?.toLocaleString(),
-        lastStatus: slotResult.lastStatus || 'N/A',
-        updated: slotResult.updated,
-        reason: slotResult.reason
+        isSlotActive,
+        activeSlot: activeSlot ? {
+          id: activeSlot.id,
+          start: activeSlot.start.toLocaleString(),
+          end: activeSlot.end.toLocaleString(),
+          status: activeSlot.status
+        } : null
       });
       
       // Prüfe die Verfügbarkeit über den SurveyService
@@ -48,7 +50,7 @@ export const useSurveyAvailability = () => {
       setIsAvailable(available);
       
       // Update next survey time
-      await updateNextSurveyTime(slotResult.currentSlot);
+      await updateNextSurveyTime(activeSlot);
       
     } catch (error) {
       log.error('Error checking availability', error);
@@ -60,10 +62,18 @@ export const useSurveyAvailability = () => {
   /**
    * Updates the next survey time based on current slot information
    */
-  const updateNextSurveyTime = async (currentSlot: any) => {
+  const updateNextSurveyTime = async (currentSlot: ISlot | null) => {
     try {
       if (!currentSlot) {
-        setNextTime(null);
+        const nextPendingSlot = slotService.getNextPendingSlot();
+        if (nextPendingSlot) {
+          log.debug('No active slot, showing next pending slot time', { 
+            startTime: nextPendingSlot.start.toLocaleString() 
+          });
+          setNextTime(nextPendingSlot.start);
+        } else {
+          setNextTime(null);
+        }
         return;
       }
       
@@ -73,17 +83,16 @@ export const useSurveyAvailability = () => {
         // Slot is in the future, show start time
         log.debug('Future slot, showing start time', { startTime: currentSlot.start.toLocaleString() });
         setNextTime(currentSlot.start);
-      } else if (now >= currentSlot.start && now < currentSlot.end) {
+      } else if (now >= currentSlot.start && now <= currentSlot.end) {
         // Active slot, no next time to show
         log.debug('In active slot, no next time to show');
         setNextTime(null);
       } else {
-        // Slot has expired, no need to create next, the SlotCoordinator handles this
-        // Just read the next slot that should be already created
+        // Slot has expired, check for next pending slot
         log.debug('Slot expired, checking for next');
-        const freshSlot = await slotCoordinator.getCurrentSlot();
-        if (freshSlot && freshSlot.start > now) {
-          setNextTime(freshSlot.start);
+        const nextPendingSlot = slotService.getNextPendingSlot();
+        if (nextPendingSlot) {
+          setNextTime(nextPendingSlot.start);
         } else {
           setNextTime(null);
         }
@@ -93,53 +102,6 @@ export const useSurveyAvailability = () => {
       setNextTime(null);
     }
   };
-
-  /**
-   * Slot-Änderungs-Handler
-   * Wird aufgerufen, wenn sich der Slot ändert
-   */
-  const handleSlotChanged = useCallback(async (
-    newSlot: Slot, 
-    newStatus: SlotStatus, 
-    oldSlot: Slot | null, 
-    oldStatus: SlotStatus | undefined
-  ) => {
-    log.debug('Slot changed event received', {
-      newStart: newSlot?.start?.toLocaleString(),
-      newEnd: newSlot?.end?.toLocaleString(),
-      newStatus,
-      oldStatus
-    });
-    
-    await checkAvailability();
-  }, [checkAvailability]);
-  
-  /**
-   * Status-Änderungs-Handler
-   * Wird aufgerufen, wenn sich der Status ändert
-   */
-  const handleStatusChanged = useCallback(async (
-    newStatus: SlotStatus, 
-    oldStatus: SlotStatus | undefined
-  ) => {
-    log.debug('Status changed event received', { newStatus, oldStatus });
-    await checkAvailability();
-  }, [checkAvailability]);
-  
-  /**
-   * Slot-Expired-Handler
-   * Wird aufgerufen, wenn ein Slot abläuft
-   */
-  const handleSlotExpired = useCallback(async (
-    expiredSlot: Slot, 
-    newSlot: Slot
-  ) => {
-    log.debug('Slot expired event received', {
-      expiredEnd: expiredSlot?.end?.toLocaleString(),
-      newStart: newSlot?.start?.toLocaleString()
-    });
-    await checkAvailability();
-  }, [checkAvailability]);
 
   /**
    * Starts a survey session
@@ -165,6 +127,14 @@ export const useSurveyAvailability = () => {
       log.info('Starting survey session');
       const { surveyId } = await SurveyService.startSurvey(false, language);
       
+      // Markiere den aktuellen Slot als abgeschlossen
+      try {
+        await slotService.markCurrentSlotCompleted();
+        log.info('Marked current slot as completed');
+      } catch (e) {
+        log.warn('Failed to mark slot as completed', e);
+      }
+      
       return !!surveyId;
     } catch (error) {
       log.error('Failed to start survey', error);
@@ -176,6 +146,38 @@ export const useSurveyAvailability = () => {
   };
 
   /**
+   * Handles slot activated event
+   */
+  const handleSlotActivated = useCallback((slot: ISlot) => {
+    log.debug('Slot activated event received', {
+      id: slot.id,
+      start: slot.start.toLocaleString(),
+      end: slot.end.toLocaleString()
+    });
+    checkAvailability();
+  }, [checkAvailability]);
+  
+  /**
+   * Handles slot completed event
+   */
+  const handleSlotCompleted = useCallback((slot: ISlot) => {
+    log.debug('Slot completed event received', {
+      id: slot.id
+    });
+    checkAvailability();
+  }, [checkAvailability]);
+  
+  /**
+   * Handles slot missed event
+   */
+  const handleSlotMissed = useCallback((slot: ISlot) => {
+    log.debug('Slot missed event received', {
+      id: slot.id
+    });
+    checkAvailability();
+  }, [checkAvailability]);
+
+  /**
    * Sets up the event listeners
    */
   useEffect(() => {
@@ -183,9 +185,9 @@ export const useSurveyAvailability = () => {
     checkAvailability();
     
     // Event-Listener für Slot-Änderungen registrieren
-    slotCoordinator.on(SlotCoordinatorEvent.SLOT_CHANGED, handleSlotChanged);
-    slotCoordinator.on(SlotCoordinatorEvent.STATUS_CHANGED, handleStatusChanged);
-    slotCoordinator.on(SlotCoordinatorEvent.SLOT_EXPIRED, handleSlotExpired);
+    slotService.on(SlotServiceEvent.SLOT_ACTIVATED, handleSlotActivated);
+    slotService.on(SlotServiceEvent.SLOT_COMPLETED, handleSlotCompleted);
+    slotService.on(SlotServiceEvent.SLOT_MISSED, handleSlotMissed);
     log.debug('Registered slot system event listeners');
     
     // Set up AppState listener to check availability when app comes to foreground
@@ -199,16 +201,16 @@ export const useSurveyAvailability = () => {
     // Clean up
     return () => {
       // Event-Listener entfernen
-      slotCoordinator.off(SlotCoordinatorEvent.SLOT_CHANGED, handleSlotChanged);
-      slotCoordinator.off(SlotCoordinatorEvent.STATUS_CHANGED, handleStatusChanged);
-      slotCoordinator.off(SlotCoordinatorEvent.SLOT_EXPIRED, handleSlotExpired);
+      slotService.off(SlotServiceEvent.SLOT_ACTIVATED, handleSlotActivated);
+      slotService.off(SlotServiceEvent.SLOT_COMPLETED, handleSlotCompleted);
+      slotService.off(SlotServiceEvent.SLOT_MISSED, handleSlotMissed);
       
       if (appStateSubscriptionRef.current) {
         appStateSubscriptionRef.current.remove();
         appStateSubscriptionRef.current = null;
       }
     };
-  }, [checkAvailability, handleSlotChanged, handleStatusChanged, handleSlotExpired]);
+  }, [checkAvailability, handleSlotActivated, handleSlotCompleted, handleSlotMissed]);
 
   return {
     isAvailable,

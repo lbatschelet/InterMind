@@ -21,8 +21,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "ch.intermind.app",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places. Your location is stored with reduced accuracy to protect your privacy.",
+        "NSLocationWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app requests access to your location to better understand how well-being is experienced in different places.",
         "UIBackgroundModes": [
           "fetch",
           "remote-notification"

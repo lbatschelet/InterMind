@@ -62,7 +62,6 @@ export enum DaySegment {
   MORNING = 'MORNING',
   NOON = 'NOON',
   EVENING = 'EVENING',
-  NIGHT = 'NIGHT',
 }
 
 /**

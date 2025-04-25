@@ -1,5 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useEffect } from "react";
 import { Dimensions, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgRegistry } from "~/src/lib/images";
@@ -10,6 +10,7 @@ import { RootStackParamList } from "~/src/navigation/AppNavigator";
 import { createLogger } from "~/src/utils/logger";
 import { formatSurveyTime } from "~/src/utils/formatSurveyTime";
 import { useSurveyAvailability } from "~/src/hooks/useSurveyAvailability";
+import { useCompletedSurveys } from "~/src/hooks/useCompletedSurveys";
 
 const log = createLogger("HomeScreen");
 
@@ -47,8 +48,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // Use the survey availability hook
   const { isAvailable, nextTime, startSurvey, isCreatingSurvey } = useSurveyAvailability();
   
+  // Use the completed surveys hook to check if all slots are done
+  const areAllSlotsCompleted = useCompletedSurveys();
+  
   // Get the SVG component from the registry
   const HomeIllustration = SvgRegistry["a-day-at-the-park"];
+
+  // If all slots are completed, navigate to the thank you screen
+  useEffect(() => {
+    if (areAllSlotsCompleted) {
+      log.info("All survey slots are completed or missed, navigating to thank you screen");
+      navigation.replace("ThankYou");
+    }
+  }, [areAllSlotsCompleted, navigation]);
 
   /**
    * Handles the start survey button press

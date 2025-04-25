@@ -2,7 +2,7 @@ import { createLogger } from "~/src/utils/logger";
 import { LanguageCode } from "../../locales";
 import { surveyRepository, questionRepository } from "../../repositories";
 import { Question } from "../../types/question";
-import { DeviceService } from "../device";
+import { DeviceIdService } from "../device";
 import SurveyQuestionService from "./SurveyQuestionService";
 
 const log = createLogger("SurveySessionService");
@@ -34,7 +34,7 @@ class SurveySessionService {
 
     try {
       // Parallelisiere die DeviceID-Abfrage und Fragenabruf, um Zeit zu sparen
-      const deviceId = await DeviceService.getDeviceId();
+      const deviceId = await DeviceIdService.getDeviceId();
 
       // Survey erstellen mit der jetzt bekannten Device-ID und Sprache
       const surveyId = await surveyRepository.createSurvey(deviceId, language);
