@@ -25,34 +25,34 @@ export const STORAGE_KEYS = {
 export const DEFAULT_TIME_CONFIG: ITimeConfig = {
   /** Zeitfenster für den Morgen (7:30 - 11:30) */
   MORNING_RANGE: { 
-    startHour: 13, 
-    startMinute: 35, 
-    endHour: 13, 
-    endMinute: 40 
+    startHour: 7, 
+    startMinute: 30, 
+    endHour: 11, 
+    endMinute: 0 
   },
   
   /** Zeitfenster für den Mittag (11:30 - 16:30) */
   NOON_RANGE: { 
-    startHour: 13, 
-    startMinute: 40, 
-    endHour: 13, 
-    endMinute: 45 
+    startHour: 11, 
+    startMinute: 30, 
+    endHour: 15, 
+    endMinute: 30 
   },
   
   /** Zeitfenster für den Abend (16:30 - 21:30) */
   EVENING_RANGE: { 
-    startHour: 13, 
-    startMinute: 45, 
-    endHour: 13, 
-    endMinute: 50
+    startHour: 17, 
+    startMinute: 0, 
+    endHour: 21, 
+    endMinute: 30
   },
   
   /** Länge eines Slots in Minuten */
-  SLOT_LENGTH_MINUTES: 2,
+  SLOT_LENGTH_MINUTES: 60,
   
   /** Mindestabstand zwischen Slots in Minuten */
-  MIN_GAP_MINUTES: 0,
+  MIN_GAP_MINUTES: 180,
 
   /** Standard-Anzahl von Umfragen, die zu planen sind */
-  DEFAULT_SURVEY_COUNT: 2
+  DEFAULT_SURVEY_COUNT: 15
 }; 
