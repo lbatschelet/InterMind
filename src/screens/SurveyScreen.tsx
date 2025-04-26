@@ -20,7 +20,8 @@ import { Question } from "../types/question";
 import { createLogger } from "../utils/logger";
 import QuestionImage from "../components/ui/question-image";
 import { executeAction } from '../components/QuestionTypes/InfoScreen';
-import { LoadingScreen, ErrorScreen } from '../components/screens';
+import { ErrorScreen } from '../screens';
+import LoadingScreen from '../screens/LoadingScreen';
 
 // Initialize logger for this module
 const log = createLogger("SurveyScreen");
@@ -306,12 +307,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
 
   // Show loading screen while survey questions are being fetched
   if (isLoading) {
-    return (
-      <LoadingScreen 
-        title={t('survey.loading') || 'Loading survey...'}
-        description={t('survey.loadingDescription') || 'Please wait while we prepare your survey questions.'}
-      />
-    );
+    return <LoadingScreen />;
   }
 
   // Show error screen if no questions are available

@@ -42,32 +42,22 @@ const ThankYouScreen: React.FC<ThankYouScreenProps> = ({ navigation }) => {
       <SafeAreaView edges={["top"]} className="flex-1">
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent={true} />
 
-        <View className="px-6 pt-4">
-          <H1 className="text-center">{t('thankyou.title')}</H1>
-        </View>
-
         {/* Centered SVG */}
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-          <ThankYouIllustration width={width * 0.8} height={width * 0.8} />
+          <ThankYouIllustration width={width * 0.6} />
         </View>
+
+        <H1 className="text-center text-primary mt-8 font-bold">
+          {t('thankyou.title')}
+        </H1>
 
         {/* Message */}
         <View className="px-6 pb-6">
-          <Text className="text-center text-lg mb-8">
+          <Text className="text-center text-primary text-lg mb-32">
             {t('thankyou.message')}
           </Text>
-          
-          {/* Settings Button */}
-          <Button 
-            variant="default" 
-            className="bg-accent w-full"
-            onPress={() => navigation.navigate("Settings")}
-          >
-            <Text className="text-primary text-lg font-bold">
-              {t('settings.title')}
-            </Text>
-          </Button>
         </View>
+
       </SafeAreaView>
     </View>
   );

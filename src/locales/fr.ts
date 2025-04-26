@@ -80,7 +80,9 @@ const fr: TranslationKeys = {
     dataDeleteError: "Erreur lors de la suppression des données du sondage",
     optional: "Optionnel",
     start: "Commencer le sondage",
-    title: "Sondage"
+    title: "Sondage",
+    loading: "Chargement...",
+    loadingDescription: "Veuillez patienter pendant que nous préparons vos questions de sondage..."
   },
   notifications: {
     title: "Un nouveau sondage vous attend.",
@@ -115,7 +117,8 @@ const fr: TranslationKeys = {
     invalidNumber: "Veuillez entrer un nombre valide"
   },
   errors: {
-    connectionError: "Erreur de connexion. Veuillez vérifier votre connexion internet et réessayer.",
+    connectionErrorMessage: "Veuillez vérifier votre connexion internet et réessayer.",
+    connectionError: "Erreur de connexion",
     serverError: "Erreur du serveur. Veuillez réessayer plus tard.",
     permissionDenied: "Permission refusée",
     notFound: "Non trouvé",

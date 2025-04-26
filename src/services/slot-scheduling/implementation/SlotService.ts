@@ -21,9 +21,6 @@ import { FIRST_SURVEY_CHECKED_KEY } from "../../../constants/storageKeys";
 
 const log = createLogger("SlotService");
 
-
-
-
 /**
  * Implementierung des Slot-Services
  * Koordiniert die verschiedenen Komponenten des Slot-Systems
@@ -40,6 +37,9 @@ export class SlotService implements ISlotService {
   
   /** Flag für die erste Umfrage */
   private firstSurveyMode = false;
+  
+  /** Timeouts für die Aktivierung und das Verpassen von Slots */
+  private scheduledTimeouts: Map<string, NodeJS.Timeout> = new Map();
   
   /**
    * Konstruktor für den Slot-Service
@@ -118,6 +118,9 @@ export class SlotService implements ISlotService {
         
         // Status der Slots aktualisieren (verpasste markieren, aktiven finden)
         await this.updateSlotStatuses();
+        
+        // Zeitgesteuerte Events für die verbleibenden Slots einrichten
+        this.scheduleSlotTimeEvents();
       } else {
         // Neue Slots generieren, beginnend mit dem aktuellen Datum
         log.info(`Generating new slots for ${this.timeConfig.DEFAULT_SURVEY_COUNT} surveys`);
@@ -131,6 +134,9 @@ export class SlotService implements ISlotService {
         
         // Benachrichtigungen für alle Slots planen
         await this.scheduleAllNotifications();
+        
+        // Zeitgesteuerte Events für alle Slots einrichten
+        this.scheduleSlotTimeEvents();
         
         // Erstes Slot-Erstellt-Event auslösen
         const firstSlot = this.slots.length > 0 ? this.slots[0] : null;
@@ -189,6 +195,9 @@ export class SlotService implements ISlotService {
     // Slot als abgeschlossen markieren
     activeSlot.status = SlotStatus.COMPLETED;
     await this.slotStorage.saveSlots(this.slots);
+    
+    // Lösche den geplanten Timeout für das Verpassen dieses Slots
+    this.clearTimeoutForSlot(activeSlot.id, 'end');
     
     this.eventEmitter.emit(SlotServiceEvent.SLOT_COMPLETED, activeSlot);
     
@@ -271,6 +280,9 @@ export class SlotService implements ISlotService {
     try {
       log.info("Starting slot system reset");
       
+      // Lösche alle geplanten Timeouts
+      this.clearAllTimeouts();
+      
       // Setze lokalen Status zurück
       this.initialized = false;
       this.firstSurveyMode = false;
@@ -300,6 +312,156 @@ export class SlotService implements ISlotService {
     } catch (e) {
       log.error("Failed to reset slot system", e);
       throw e;
+    }
+  }
+  
+  /**
+   * Plant zeitgesteuerte Events für alle anstehenden Slots.
+   * Für jeden Slot werden zwei Timeouts geplant:
+   * 1. Bei Start-Zeit: SLOT_ACTIVATED Event auslösen
+   * 2. Bei End-Zeit: SLOT_MISSED Event auslösen (falls der Slot nicht abgeschlossen wurde)
+   * 
+   * @private
+   */
+  private scheduleSlotTimeEvents(): void {
+    // Lösche zuerst alle vorhandenen Timeouts
+    this.clearAllTimeouts();
+    
+    const now = new Date();
+    
+    // Für jeden Slot Events planen
+    for (const slot of this.slots) {
+      // Überspringen von bereits abgeschlossenen Slots
+      if (slot.status === SlotStatus.COMPLETED) {
+        continue;
+      }
+      
+      // 1. Event für Slot-Aktivierung planen (wenn Start-Zeit in der Zukunft liegt)
+      if (slot.start > now && slot.status === SlotStatus.PENDING) {
+        const msUntilStart = slot.start.getTime() - now.getTime();
+        
+        const startTimeout = setTimeout(() => {
+          this.handleSlotActivation(slot);
+        }, msUntilStart);
+        
+        this.scheduledTimeouts.set(`${slot.id}_start`, startTimeout);
+        log.debug(`Scheduled SLOT_ACTIVATED event for ${slot.id} in ${msUntilStart / 1000}s`);
+      }
+      
+      // 2. Event für verpassten Slot planen (wenn End-Zeit in der Zukunft liegt)
+      if (slot.end > now && slot.status !== SlotStatus.MISSED) {
+        const msUntilEnd = slot.end.getTime() - now.getTime();
+        
+        const endTimeout = setTimeout(() => {
+          this.handleSlotMissed(slot);
+        }, msUntilEnd);
+        
+        this.scheduledTimeouts.set(`${slot.id}_end`, endTimeout);
+        log.debug(`Scheduled SLOT_MISSED event for ${slot.id} in ${msUntilEnd / 1000}s`);
+      }
+    }
+    
+    log.info(`Scheduled events for ${this.scheduledTimeouts.size / 2} slots`);
+  }
+  
+  /**
+   * Löscht alle geplanten Timeouts.
+   * 
+   * @private
+   */
+  private clearAllTimeouts(): void {
+    // Alle Timeouts löschen
+    for (const timeout of this.scheduledTimeouts.values()) {
+      clearTimeout(timeout);
+    }
+    
+    if (this.scheduledTimeouts.size > 0) {
+      log.debug(`Cleared ${this.scheduledTimeouts.size} scheduled timeouts`);
+    }
+    
+    // Map leeren
+    this.scheduledTimeouts.clear();
+  }
+  
+  /**
+   * Löscht den geplanten Timeout für einen bestimmten Slot und Event-Typ.
+   * 
+   * @private
+   * @param slotId ID des Slots
+   * @param eventType Typ des Events ('start' oder 'end')
+   */
+  private clearTimeoutForSlot(slotId: string, eventType: 'start' | 'end'): void {
+    const key = `${slotId}_${eventType}`;
+    const timeout = this.scheduledTimeouts.get(key);
+    
+    if (timeout) {
+      clearTimeout(timeout);
+      this.scheduledTimeouts.delete(key);
+      log.debug(`Cleared ${eventType} timeout for slot ${slotId}`);
+    }
+  }
+  
+  /**
+   * Handler für die Slot-Aktivierung.
+   * Wird aufgerufen, wenn ein Slot aktiv wird.
+   * 
+   * @private
+   * @param slot Der Slot, der aktiviert wird
+   */
+  private async handleSlotActivation(slot: ISlot): Promise<void> {
+    try {
+      // Überprüfen, ob der Slot bereits abgeschlossen oder verpasst wurde
+      if (slot.status === SlotStatus.COMPLETED || slot.status === SlotStatus.MISSED) {
+        log.debug(`Ignoring activation for slot ${slot.id}, status is ${slot.status}`);
+        return;
+      }
+      
+      // Slot als aktiv markieren
+      slot.status = SlotStatus.ACTIVE;
+      
+      // Änderungen speichern
+      await this.slotStorage.saveSlots(this.slots);
+      
+      // Event auslösen
+      this.eventEmitter.emit(SlotServiceEvent.SLOT_ACTIVATED, slot);
+      log.info(`Slot ${slot.id} activated at ${new Date().toLocaleString()}`);
+      
+      // Timer für den Start-Event löschen
+      this.clearTimeoutForSlot(slot.id, 'start');
+    } catch (error) {
+      log.error(`Error handling slot activation for ${slot.id}`, error);
+    }
+  }
+  
+  /**
+   * Handler für verpasste Slots.
+   * Wird aufgerufen, wenn ein Slot verpasst wurde (End-Zeit erreicht ohne Abschluss).
+   * 
+   * @private
+   * @param slot Der Slot, der verpasst wurde
+   */
+  private async handleSlotMissed(slot: ISlot): Promise<void> {
+    try {
+      // Überprüfen, ob der Slot bereits abgeschlossen wurde
+      if (slot.status === SlotStatus.COMPLETED) {
+        log.debug(`Ignoring missed event for slot ${slot.id}, already completed`);
+        return;
+      }
+      
+      // Slot als verpasst markieren
+      slot.status = SlotStatus.MISSED;
+      
+      // Änderungen speichern
+      await this.slotStorage.saveSlots(this.slots);
+      
+      // Event auslösen
+      this.eventEmitter.emit(SlotServiceEvent.SLOT_MISSED, slot);
+      log.info(`Slot ${slot.id} missed at ${new Date().toLocaleString()}`);
+      
+      // Timer für den End-Event löschen
+      this.clearTimeoutForSlot(slot.id, 'end');
+    } catch (error) {
+      log.error(`Error handling slot missed for ${slot.id}`, error);
     }
   }
   
@@ -351,6 +513,9 @@ export class SlotService implements ISlotService {
       log.info(`First slot scheduled for ${firstSlot.start.toLocaleString()} in segment ${firstSlot.daySegment}`);
       this.eventEmitter.emit(SlotServiceEvent.SCHEDULE_CREATED, firstSlot);
     }
+    
+    // Zeitgesteuerte Events für alle Slots einrichten
+    this.scheduleSlotTimeEvents();
     
     this.initialized = true;
   }
@@ -544,5 +709,8 @@ export class SlotService implements ISlotService {
     if (statusesChanged) {
       await this.slotStorage.saveSlots(this.slots);
     }
+    
+    // Nach der initialen Statusaktualisierung die zeitgesteuerten Events einrichten
+    this.scheduleSlotTimeEvents();
   }
 } 

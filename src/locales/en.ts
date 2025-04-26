@@ -78,7 +78,9 @@ export default {
     errorLoading: "Error loading survey",
     dataDeleteConfirm: "Are you sure you want to delete all survey data?",
     dataDeleteSuccess: "All survey data has been deleted",
-    dataDeleteError: "Error deleting survey data"
+    dataDeleteError: "Error deleting survey data",
+    loading: "Loading...",
+    loadingDescription: "Please wait while we prepare your survey questions."
   },
   notifications: {
     title: "A new survey is waiting for you.",
@@ -121,7 +123,8 @@ export default {
     invalidNumber: "Please enter a valid number"
   },
   errors: {
-    connectionError: "Connection error. Please check your internet connection and try again.",
+    connectionErrorMessage: "Please check your internet connection and try again.",
+    connectionError: "Connection error",
     serverError: "Server error. Please try again later.",
     permissionDenied: "Permission denied",
     notFound: "Not found",

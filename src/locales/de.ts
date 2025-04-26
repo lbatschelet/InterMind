@@ -80,7 +80,9 @@ const de: TranslationKeys = {
     dataDeleteError: "Fehler beim Löschen der Umfragedaten",
     optional: "Optional",
     start: "Umfrage starten",
-    title: "Umfrage"
+    title: "Umfrage",
+    loading: "Lädt...",
+    loadingDescription: "Bitte warte kurz, während die Umfrage geladen wird..."
   },
   notifications: {
     title: "Eine neue Umfrage wartet auf dich.",
@@ -123,7 +125,8 @@ const de: TranslationKeys = {
     invalidNumber: "Bitte gib eine gültige Zahl ein"
   },
   errors: {
-    connectionError: "Verbindungsfehler. Bitte überprüfe deine Internetverbindung und versuche es erneut.",
+    connectionErrorMessage: "Bitte überprüfe deine Internetverbindung und versuche es erneut.",
+    connectionError: "Verbindungsfehler",
     serverError: "Serverfehler. Bitte versuche es später noch einmal.",
     permissionDenied: "Berechtigung verweigert",
     notFound: "Nicht gefunden",

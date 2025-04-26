@@ -14,7 +14,7 @@ import * as Notifications from 'expo-notifications';
 import { createLogger } from './utils/logger';
 import { slotService } from './services/slot-scheduling';
 import * as SplashScreen from 'expo-splash-screen';
-import { LoadingScreen } from './components/screens';
+import { LoadingScreen } from './screens';
 import { FIRST_SURVEY_CHECKED_KEY } from './constants/storageKeys';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

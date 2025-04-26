@@ -1,5 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions, StatusBar, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgRegistry } from "~/src/lib/images";
@@ -11,6 +11,8 @@ import { createLogger } from "~/src/utils/logger";
 import { formatSurveyTime } from "~/src/utils/formatSurveyTime";
 import { useSurveyAvailability } from "~/src/hooks/useSurveyAvailability";
 import { useCompletedSurveys } from "~/src/hooks/useCompletedSurveys";
+import LoadingScreen from "~/src/screens/LoadingScreen";
+import ErrorScreen from "~/src/screens/ErrorScreen";
 
 const log = createLogger("HomeScreen");
 
@@ -44,6 +46,7 @@ interface HomeScreenProps {
  */
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t, language } = useLanguage();
+  const [connectionError, setConnectionError] = useState<Error | null>(null);
   
   // Use the survey availability hook
   const { isAvailable, nextTime, startSurvey, isCreatingSurvey } = useSurveyAvailability();
@@ -70,14 +73,58 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     // Don't allow starting survey if already creating one
     if (isCreatingSurvey) return;
     
-    log.info("Starting a new survey session...");
-    const success = await startSurvey(language);
+    setConnectionError(null);
     
-    if (success) {
-      log.info("Survey session started, navigating to survey screen");
-      navigation.navigate("SurveyScreen");
+    try {
+      log.info("Starting a new survey session...");
+      const success = await startSurvey(language);
+      
+      if (success) {
+        log.info("Survey session started, navigating to survey screen");
+        navigation.navigate("SurveyScreen");
+      } else {
+        // Wenn startSurvey false zurückgibt, aber keinen Fehler wirft,
+        // wurde wahrscheinlich keine Verbindung hergestellt
+        log.error("Failed to start survey but no error was thrown");
+        setConnectionError(new Error("Could not connect to the server"));
+      }
+    } catch (error) {
+      log.error("Error starting survey:", error);
+      setConnectionError(error instanceof Error ? error : new Error("Unknown error occurred"));
     }
   };
+
+  // Handle connection error retry
+  const handleRetry = () => {
+    setConnectionError(null);
+    // Leichte Verzögerung vor neuem Versuch
+    setTimeout(() => {
+      handleStartSurvey();
+    }, 500);
+  };
+
+  // Handle going back to home without retry
+  const handleGoBack = () => {
+    setConnectionError(null);
+  };
+
+  // If connection error occurred, show error screen
+  if (connectionError) {
+    return (
+      <ErrorScreen
+        title={t('errors.connectionError') || 'Connection Failed'}
+        description={t('errors.connectionErrorMessage') || 'Could not connect to the database. Please check your internet connection and try again.'}
+        buttonText={t('general.goBack')}
+        imageKey="page-not-found"
+        onAction={handleGoBack}
+      />
+    );
+  }
+
+  // If creating a survey, show the loader instead of the main UI
+  if (isCreatingSurvey) {
+    return <LoadingScreen />;
+  }
 
   return (
     <View style={{ flex: 1 }} className="bg-background">

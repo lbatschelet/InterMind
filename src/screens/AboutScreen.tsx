@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { ActivityIndicator, Dimensions, ScrollView, View } from "react-native";
+import { Dimensions, ScrollView, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Markdown from 'react-native-markdown-display';
 import { Text } from "~/src/components/ui/text";
@@ -19,7 +19,8 @@ import { platformStyles } from "~/src/styles/platformStyles";
 import { screenContentRepository } from "~/src/repositories/survey";
 import { ScreenContent } from "~/src/repositories/interfaces/IScreenContentRepository";
 import Constants from 'expo-constants';
-import ErrorScreen from "~/src/components/screens/ErrorScreen";
+import ErrorScreen from "~/src/screens/ErrorScreen";
+import LoadingScreen from "~/src/screens/LoadingScreen";
 import { useNavigation } from "@react-navigation/native";
 
 const log = createLogger("AboutScreen");
@@ -72,18 +73,14 @@ const AboutScreen: React.FC = () => {
   };
   
   if (loading) {
-    return (
-      <View className="flex-1 bg-background justify-center items-center">
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
+    return <LoadingScreen />;
   }
   
   if (error || !content) {
     return (
       <ErrorScreen
-        title={t('errors.contentNotFound')}
-        description={t('errors.contentLoadFailed')}
+        title={t('errors.connectionError') || 'Connection Failed'}
+        description={t('errors.connectionErrorMessage') || 'Could not connect to the database. Please check your internet connection and try again.'}
         buttonText={t('general.goBack')}
         imageKey="page-not-found"
         onAction={handleGoBack}
