@@ -2,16 +2,13 @@ import { createLogger } from "~/src/utils/logger";
 import { LanguageCode } from "../../locales";
 import { Question } from "../../types/question";
 import SurveySessionService from "./SurveySessionService";
-import SurveyLifecycleService from "./SurveyLifecycleService";
+import { SurveyLifecycleService } from "./SurveyLifecycleService";
 import SurveyAvailabilityService from "./SurveyAvailabilityService";
 import SurveyDataService from "./SurveyDataService";
+import { FIRST_SURVEY_CHECKED_KEY } from "../../constants/storageKeys";
 
 // Re-export für Abwärtskompatibilität
-export { FIRST_SURVEY_CHECKED_KEY } from "./SurveyLifecycleService";
-export { 
-  SURVEY_AVAILABILITY_DURATION_MS,
-  MIN_HOURS_BETWEEN_SURVEYS
-} from "./SurveyAvailabilityService";
+export { FIRST_SURVEY_CHECKED_KEY } from "../../constants/storageKeys";
 
 const log = createLogger("SurveyService");
 

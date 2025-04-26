@@ -12,10 +12,11 @@ import { PORTAL_HOST_NAME } from './lib/constants';
 import { PortalHost } from '@rn-primitives/portal';
 import * as Notifications from 'expo-notifications';
 import { createLogger } from './utils/logger';
-import { slotCoordinator } from './services/slots';
-import { setupNotifications } from './services/slots/NotificationScheduler';
+import { slotService } from './services/slot-scheduling';
 import * as SplashScreen from 'expo-splash-screen';
-import { LoadingScreen } from './components/screens';
+import { LoadingScreen } from './screens';
+import { FIRST_SURVEY_CHECKED_KEY } from './constants/storageKeys';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Splash-Screen wird manuell gehalten bis die App bereit ist
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -26,11 +27,6 @@ const log = createLogger("App");
 
 // Reduzierte Logging-Ebene in Produktion/Testversion
 const isVerboseLogging = __DEV__;
-
-// Stelle sicher, dass das Benachrichtigungssystem korrekt initialisiert ist
-// Diese Funktion wird bereits im NotificationScheduler.ts aufgerufen, aber
-// wir rufen sie hier explizit auf, um sicherzustellen, dass sie ausgeführt wird
-setupNotifications();
 
 // Einmalig gespeicherte Referenz auf den Initialisierungszustand
 // Wird app-global gespeichert, damit die Komponente neu-mounting nicht zum erneuten Initialisieren führt
@@ -130,9 +126,19 @@ export default function App() {
       
       log.info('Starting app initialization...');
       
-      // Initialisiere das Slot-System (nur einmal beim Start)
-      log.info('Initializing slot coordinator (one-time initialization)');
-      await slotCoordinator.initialize();
+      // Prüfen, ob die erste Umfrage bereits abgeschlossen wurde
+      const firstSurveyCompleted = await checkIfFirstSurveyCompleted();
+      
+      if (firstSurveyCompleted) {
+        // Wenn die erste Umfrage bereits abgeschlossen wurde, 
+        // initialisiere das reguläre Slot-System
+        log.info('First survey already completed, initializing slot service');
+        await slotService.initialize();
+      } else {
+        log.info('First survey not yet completed, slot scheduling will be initialized after completion');
+        // Keine Initialisierung des Slot-Systems notwendig, da die erste Umfrage
+        // immer verfügbar sein soll
+      }
       
       log.info('App initialized successfully');
       
@@ -150,6 +156,24 @@ export default function App() {
       globalInitStatus.isInitialized = false;
       // Trotz Fehler die App anzeigen, damit der Benutzer nicht blockiert wird
       setAppIsReady(true);
+    }
+  };
+  
+  /**
+   * Prüft, ob die erste Umfrage bereits abgeschlossen wurde.
+   */
+  const checkIfFirstSurveyCompleted = async (): Promise<boolean> => {
+    try {
+      if (!FIRST_SURVEY_CHECKED_KEY) {
+        log.error("FIRST_SURVEY_CHECKED_KEY is not defined");
+        return false;
+      }
+      
+      const value = await AsyncStorage.getItem(FIRST_SURVEY_CHECKED_KEY);
+      return value === 'true';
+    } catch (error) {
+      log.error("Error checking if first survey was completed", error);
+      return false;
     }
   };
   
@@ -209,9 +233,17 @@ export default function App() {
     }
     
     try {
-      // Check slot status on notification tap
-      const isAvailable = await slotCoordinator.isSurveyAvailable();
-      log.info(`Survey availability status: ${isAvailable ? 'Available' : 'Not available'}`);
+      // Prüfen, ob die erste Umfrage bereits abgeschlossen wurde
+      const firstSurveyCompleted = await checkIfFirstSurveyCompleted();
+      
+      if (firstSurveyCompleted) {
+        // Nur wenn die erste Umfrage abgeschlossen wurde, Slot-Status prüfen
+        const isAvailable = await slotService.isCurrentlyAvailable();
+        log.info(`Survey availability status: ${isAvailable ? 'Available' : 'Not available'}`);
+      } else {
+        // Die erste Umfrage ist immer verfügbar
+        log.info('First survey is available');
+      }
     } catch (error) {
       log.error('Error handling notification:', error);
     }

@@ -74,16 +74,54 @@ Your location data is:
    '{"buttonText": "general.ok"}'),
   
   -- Altersgruppe Frage
-  ('age_question', 'en', 'Age Group', 'In which age group do you find yourself?', NULL),
+  ('age_question', 'en', 'Age Group', 'In which age group do you find yourself?', 
+   '{"options": [
+        {"value": "0-17", "label": "Below 16"},
+        {"value": "18-24", "label": "16-25"},
+        {"value": "25-34", "label": "26-35"},
+        {"value": "35-44", "label": "36-45"},
+        {"value": "45-54", "label": "46-55"},
+        {"value": "55-64", "label": "56-65"},
+        {"value": "65-74", "label": "66-75"},
+        {"value": "75+", "label": "75+"},
+        {"value": "no_answer", "label": "No answer"}
+    ]}'),
   
   -- Geschlecht Frage
-  ('gender_question', 'en', 'Gender Identity', 'With which gender identity do you identify?', NULL),
+  ('gender_question', 'en', 'Gender Identity', 'With which gender identity do you identify?', 
+   '{"options": [
+        {"value": "female", "label": "Female"},
+        {"value": "male", "label": "Male"},
+        {"value": "diverse", "label": "Diverse"},
+        {"value": "other", "label": "Other"},
+        {"value": "no_answer", "label": "No answer"}
+    ]}'),
   
   -- Bildungsfrage
-  ('education_question', 'en', 'Education', 'What is your highest level of education?', NULL),
+  ('education_question', 'en', 'Education', 'What is your highest level of education?', 
+   '{"options": [
+        {"value": "none", "label": "No degree"},
+        {"value": "primary", "label": "Primary school"},
+        {"value": "secondary", "label": "Secondary school"},
+        {"value": "highschool", "label": "High school"},
+        {"value": "apprenticeship", "label": "Apprenticeship"},
+        {"value": "bachelor", "label": "Bachelor"},
+        {"value": "master", "label": "Master"},
+        {"value": "phd", "label": "Promotion"},
+        {"value": "no_answer", "label": "No answer"}
+    ]}'),
   
   -- Einkommensfrage
-  ('income_question', 'en', 'Income', 'In which income group do you roughly find yourself? (monthly net income)', NULL),
+  ('income_question', 'en', 'Income', 'In which income group do you roughly find yourself? (monthly net income)', 
+   '{"options": [
+        {"value": "below_1500", "label": "Below CHF 1.500"},
+        {"value": "1500_3000", "label": "CHF 1.500 - 3.000"},
+        {"value": "3000_4500", "label": "CHF 3.000 - 4.500"},
+        {"value": "4500_6000", "label": "CHF 4.500 - 6.000"},
+        {"value": "6000_7500", "label": "CHF 6.000 - 7.500"},
+        {"value": "above_7500", "label": "Above CHF 7.500"},
+        {"value": "no_answer", "label": "No answer"}
+    ]}'),
   
   -- Umgebungsinfo
   ('environment_info', 'en', 'Current environment', 
@@ -91,16 +129,49 @@ Your location data is:
    '{"buttonText": "general.continue"}'),
   
   -- Indoor/Outdoor
-  ('indoor_outdoor', 'en', 'Indoor or Outdoor?', 'Are you indoors or outdoors?', NULL),
+  ('indoor_outdoor', 'en', 'Indoor or Outdoor?', 'Are you indoors or outdoors?',
+   '{"options": [
+        {"value": "indoor", "label": "Indoors"},
+        {"value": "outdoor", "label": "Outdoors"}
+    ]}'),
   
   -- Aktueller Ort
-  ('current_place', 'en', 'Current Place', 'Where are you exactly?', NULL),
+  ('current_place', 'en', 'Current Place', 'Where are you exactly?',
+   '{"options": [
+        {"value": "home", "label": "Home"},
+        {"value": "work", "label": "Work"},
+        {"value": "school", "label": "School/University"},
+        {"value": "public_space", "label": "Public place (e.g. shop, bar, etc.)"},
+        {"value": "public_transport", "label": "Public transport"},
+        {"value": "park", "label": "Park"},
+        {"value": "other", "label": "Other"}
+    ]}'),
   
   -- Menschen in der Umgebung
-  ('people_around', 'en', 'People around you', 'Who is with you?', NULL),
+  ('people_around', 'en', 'People around you', 'Who is with you?',
+   '{"options": [
+        {"value": "nobody", "label": "Nobody"},
+        {"value": "acquaintances", "label": "Acquaintances"},
+        {"value": "colleagues", "label": "Colleagues"},
+        {"value": "family", "label": "Family"},
+        {"value": "partner", "label": "Partner"},
+        {"value": "children", "label": "Children"},
+        {"value": "friends", "label": "Friends"},
+        {"value": "pets", "label": "Pets"},
+        {"value": "strangers", "label": "Strangers"},
+        {"value": "other", "label": "Other"}
+    ]}'),
   
   -- Aktivität
-  ('activity', 'en', 'Activity', 'What are you doing?', NULL),
+  ('activity', 'en', 'Activity', 'What are you doing?',
+   '{"options": [
+        {"value": "leisure", "label": "Leisure/Relaxation"},
+        {"value": "traveling", "label": "Traveling"},
+        {"value": "working", "label": "Working/Studying"},
+        {"value": "shopping", "label": "Shopping"},
+        {"value": "housework", "label": "Housework"},
+        {"value": "other", "label": "Other"}
+    ]}'),
   
   -- Wohlbefindensinfo
   ('wellbeing_info', 'en', 'Well-Being Questions', 
@@ -108,28 +179,55 @@ Your location data is:
    '{"buttonText": "general.continue"}'),
   
   -- Allgemeines Wohlbefinden
-  ('overall_wellbeing', 'en', 'Overall Well-Being', 'How do you feel overall in your current surroundings?', NULL),
+  ('overall_wellbeing', 'en', 'Overall Well-Being', 'How do you feel overall in your current surroundings?',
+   '{"options": [
+        {"value": "very_good", "label": "Very good"},
+        {"value": "good", "label": "Good"},
+        {"value": "neutral", "label": "Neutral"},
+        {"value": "bad", "label": "Bad"},
+        {"value": "very_bad", "label": "Very bad"}
+    ]}'),
   
   -- Sicherheitsgefühl
-  ('safety', 'en', 'Safety', 'How safe do you feel here?', NULL),
+  ('safety', 'en', 'Safety', 'How safe do you feel here?',
+   '{"options": [
+        {"value": "very_safe", "label": "Very safe"},
+        {"value": "safe", "label": "Safe"},
+        {"value": "neutral", "label": "Neutral"},
+        {"value": "unsafe", "label": "Unsafe"},
+        {"value": "very_unsafe", "label": "Very unsafe"}
+    ]}'),
   
   -- Soziale Faktoren
-  ('social_factors', 'en', 'Social Factors', 'Which social factors matter most to your comfort in these surroundings?', NULL),
+  ('social_factors', 'en', 'Social Factors', 'Which social factors matter most to your comfort in these surroundings?',
+   '{"options": [
+        {"value": "gender", "label": "Gender identity"},
+        {"value": "age", "label": "Age / generation"},
+        {"value": "ethnicity", "label": "Ethnicity / origin"},
+        {"value": "finance", "label": "Socioeconomic status"},
+        {"value": "sexuality", "label": "Sexual orientation"},
+        {"value": "none", "label": "None / Not sure"}
+    ]}'),
   
   -- Geschlechtseinfluss
-  ('gender_impact', 'en', 'Gender Impact', 'How does your gender identity impact your well-being here?', NULL),
+  ('gender_impact', 'en', 'Gender Impact', 'How does your gender identity impact your well-being here?',
+   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
   
   -- Alterseinfluss
-  ('age_impact', 'en', 'Age Impact', 'How does your age or generation impact your well-being here?', NULL),
+  ('age_impact', 'en', 'Age Impact', 'How does your age or generation impact your well-being here?',
+   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
   
   -- Einfluss der ethnischen Herkunft
-  ('ethnicity_impact', 'en', 'Ethnicity Impact', 'How does your cultural/ethnic background impact your well-being here?', NULL),
+  ('ethnicity_impact', 'en', 'Ethnicity Impact', 'How does your cultural/ethnic background impact your well-being here?',
+   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
   
   -- Finanzieller Einfluss
-  ('financial_impact', 'en', 'Financial Impact', 'How does your socioeconomic status impact your well-being here?', NULL),
+  ('financial_impact', 'en', 'Financial Impact', 'How does your socioeconomic status impact your well-being here?',
+   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
   
   -- Einfluss der sexuellen Orientierung
-  ('sexual_orientation_impact', 'en', 'Sexual Orientation Impact', 'How does your sexual orientation impact your well-being here?', NULL),
+  ('sexual_orientation_impact', 'en', 'Sexual Orientation Impact', 'How does your sexual orientation impact your well-being here?',
+   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
   
   -- Textliche Reflexion
   ('reflection', 'en', 'Reflection', 'Would you like to share any thoughts on how your intersecting identities shape your experience here?', NULL);

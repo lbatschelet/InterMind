@@ -28,6 +28,11 @@ class SurveyAnsweredQuestionsService {
    */
   static async getAnsweredOnceQuestions(): Promise<string[]> {
     try {
+      if (!STORAGE_KEY) {
+        log.error("STORAGE_KEY is not defined");
+        return [];
+      }
+      
       const storedData = await AsyncStorage.getItem(STORAGE_KEY);
       if (!storedData) {
         log.debug('No answered once questions found in storage');
@@ -51,6 +56,11 @@ class SurveyAnsweredQuestionsService {
    */
   static async markQuestionAsAnswered(questionId: string): Promise<void> {
     try {
+      if (!STORAGE_KEY) {
+        log.error("STORAGE_KEY is not defined");
+        return;
+      }
+      
       const answeredQuestions = await this.getAnsweredOnceQuestions();
       
       // Skip if already marked as answered
@@ -84,6 +94,11 @@ class SurveyAnsweredQuestionsService {
    */
   static async resetAnsweredQuestions(): Promise<void> {
     try {
+      if (!STORAGE_KEY) {
+        log.error("STORAGE_KEY is not defined");
+        return;
+      }
+      
       await AsyncStorage.removeItem(STORAGE_KEY);
       log.info('Reset all answered questions');
     } catch (error) {

@@ -1,11 +1,9 @@
 import { createLogger } from "~/src/utils/logger";
-import { slotCoordinator } from "../slots";
+import { slotService } from "../slot-scheduling";
+import { FIRST_SURVEY_CHECKED_KEY } from "../../constants/storageKeys";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const log = createLogger("SurveyAvailabilityService");
-
-// Export für Abwärtskompatibilität
-export const SURVEY_AVAILABILITY_DURATION_MS = 60 * 60 * 1000;
-export const MIN_HOURS_BETWEEN_SURVEYS = 3;
 
 /**
  * Survey Availability Service
@@ -20,18 +18,48 @@ class SurveyAvailabilityService {
   /**
    * Checks if a survey is currently available.
    * 
-   * This delegates to the slot coordinator to determine if a survey
-   * can be presented to the user at the current time.
+   * Die erste Umfrage ist immer verfügbar.
+   * Spätere Umfragen werden durch das Slot-System gesteuert.
    * 
    * @returns Promise resolving to boolean indicating survey availability
    */
   static async isSurveyAvailable(): Promise<boolean> {
     try {
-      const available = await slotCoordinator.isSurveyAvailable();
-      log.debug(`Survey availability check: ${available ? 'available' : 'not available'}`);
+      // Prüfen, ob die erste Umfrage bereits abgeschlossen wurde
+      const firstSurveyCompleted = await this.isFirstSurveyCompleted();
+      
+      // Wenn die erste Umfrage noch nicht abgeschlossen wurde, ist eine Umfrage immer verfügbar
+      if (!firstSurveyCompleted) {
+        log.debug('First survey not yet completed - survey is available');
+        return true;
+      }
+      
+      // Bei allen weiteren Umfragen die Verfügbarkeit über das Slot-System prüfen
+      const available = await slotService.isCurrentlyAvailable();
+      log.debug(`Regular survey availability check: ${available ? 'available' : 'not available'}`);
       return available;
     } catch (error) {
       log.error("Error checking survey availability", error);
+      return false;
+    }
+  }
+  
+  /**
+   * Prüft, ob die erste Umfrage bereits abgeschlossen wurde.
+   * 
+   * @returns Promise mit boolean (true, wenn erste Umfrage bereits abgeschlossen wurde)
+   */
+  private static async isFirstSurveyCompleted(): Promise<boolean> {
+    try {
+      if (!FIRST_SURVEY_CHECKED_KEY) {
+        log.error("FIRST_SURVEY_CHECKED_KEY is not defined");
+        return false;
+      }
+      
+      const value = await AsyncStorage.getItem(FIRST_SURVEY_CHECKED_KEY);
+      return value === 'true';
+    } catch (error) {
+      log.error("Error checking if first survey was completed", error);
       return false;
     }
   }

@@ -1,6 +1,9 @@
 import { supabase } from "../../lib/supabase";
 import { SurveyResponse } from "../../types/response";
 import { createLogger } from "~/src/utils/logger";
+import { questionRepository } from "../../repositories";
+import SurveyAnsweredQuestionsService from "./SurveyAnsweredQuestionsService";
+
 const log = createLogger("SurveyResponseService");
 
 class SurveyResponseService {
@@ -14,6 +17,7 @@ class SurveyResponseService {
   static async submitResponse(surveyId: string, questionId: string, response: any): Promise<void> {
     log.debug("Submitting response", { surveyId, questionId, response });
 
+    // 1. Insert response into database
     const { error } = await supabase.from("responses").insert({
       survey_id: surveyId,
       question_id: questionId,
@@ -23,6 +27,20 @@ class SurveyResponseService {
     if (error) {
       log.error("Failed to submit response", error);
       throw new Error("Could not submit response.");
+    }
+
+    // 2. Check if this question has showOnce flag
+    try {
+      const allQuestions = await questionRepository.fetchQuestions(false);
+      const question = allQuestions.find(q => q.id === questionId);
+      
+      if (question && 'showOnce' in question && question.showOnce) {
+        log.debug("Question has showOnce flag, marking as answered", { questionId });
+        await SurveyAnsweredQuestionsService.markQuestionAsAnswered(questionId);
+      }
+    } catch (checkError) {
+      // Don't fail the response submission if the showOnce check fails
+      log.error("Error checking showOnce flag", checkError);
     }
 
     log.info(`Response saved for question ${questionId}`);

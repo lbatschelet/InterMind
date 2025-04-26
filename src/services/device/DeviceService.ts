@@ -1,12 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createLogger } from "~/src/utils/logger";
 import { supabase } from "../../lib/supabase";
-import { SurveyAnsweredQuestionsService } from "../survey";
-import { resetSlotSystem } from "../slots";
+import { DEVICE_ID_KEY, FIRST_SURVEY_CHECKED_KEY } from "../../constants/storageKeys";
+import { DataResetService } from "../reset";
+import { slotService } from "../slot-scheduling";
 
 const log = createLogger("DeviceService");
-
-const DEVICE_ID_KEY = "device_id";
 
 /**
  * Generates a human-readable unique device identifier.
@@ -34,6 +33,10 @@ class DeviceService {
    */
   static async getDeviceId(): Promise<string> {
     try {
+      if (!DEVICE_ID_KEY) {
+        throw new Error("DEVICE_ID_KEY is not defined");
+      }
+      
       let deviceId = await AsyncStorage.getItem(DEVICE_ID_KEY);
       if (!deviceId) {
         deviceId = generateReadableId();
@@ -50,6 +53,21 @@ class DeviceService {
   }
 
   /**
+   * Generates a new device ID and saves it.
+   * @returns {Promise<string>} The newly generated device ID.
+   */
+  static async generateNewDeviceId(): Promise<string> {
+    if (!DEVICE_ID_KEY) {
+      throw new Error("DEVICE_ID_KEY is not defined");
+    }
+    
+    const newDeviceId = generateReadableId();
+    await AsyncStorage.setItem(DEVICE_ID_KEY, newDeviceId);
+    log.info(`Generated new device ID: ${newDeviceId}`);
+    return newDeviceId;
+  }
+
+  /**
    * Deletes all device data from the database and resets local storage.
    * This will also reset all answered questions so they will be shown again.
    */
@@ -57,33 +75,9 @@ class DeviceService {
     try {
       // Get current device ID
       const deviceId = await this.getDeviceId();
-      log.info(`Deleting all data for device: ${deviceId}`);
-
-      // Delete all device data from database
-      const { error } = await supabase
-        .from("surveys")
-        .delete()
-        .eq("device_id", deviceId);
-
-      if (error) {
-        log.error("Error deleting device data from database", error);
-        return false;
-      }
-
-      // Reset answered questions in AsyncStorage
-      await SurveyAnsweredQuestionsService.resetAnsweredQuestions();
-      log.info("Reset answered questions after data deletion");
-
-      // Reset slot system (handles notification cancellation, and slot storage)
-      await resetSlotSystem();
-      log.info("Slot system reset completed after data deletion");
       
-      // Generate a new device ID
-      const newDeviceId = generateReadableId();
-      await AsyncStorage.setItem(DEVICE_ID_KEY, newDeviceId);
-      log.info(`Generated new device ID after data deletion: ${newDeviceId}`);
-
-      return true;
+      // Use the DataResetService to perform the data deletion with a callback for device ID generation
+      return await DataResetService.deleteAllUserData(deviceId, () => this.generateNewDeviceId());
     } catch (error) {
       log.error("Failed to delete device data", error);
       return false;

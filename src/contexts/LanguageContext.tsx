@@ -89,6 +89,12 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   useEffect(() => {
     const loadLanguage = async () => {
       try {
+        if (!LANGUAGE_STORAGE_KEY) {
+          log.error("LANGUAGE_STORAGE_KEY is not defined");
+          setLanguageState(DEFAULT_LANGUAGE);
+          return;
+        }
+        
         // Gespeicherte Spracheinstellung prüfen
         const savedLanguage = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
         
@@ -114,6 +120,12 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   // Set language and save to storage
   const setLanguage = async (lang: LanguageCode) => {
     try {
+      if (!LANGUAGE_STORAGE_KEY) {
+        log.error("LANGUAGE_STORAGE_KEY is not defined");
+        setLanguageState(lang);
+        return;
+      }
+      
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
       setLanguageState(lang);
       log.debug("Language changed", { newLanguage: lang });

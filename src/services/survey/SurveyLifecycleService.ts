@@ -1,79 +1,108 @@
-import { createLogger } from "~/src/utils/logger";
-import { Question } from "../../types/question";
-import SurveyAnsweredQuestionsService from "./SurveyAnsweredQuestionsService";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { slotCoordinator, SurveyEvent } from "../slots";
+/**
+ * @packageDocumentation
+ * @module Services
+ * 
+ * @summary
+ * Implementierung des Survey Lifecycle Service
+ */
+
+import { injectable } from 'inversify';
+import { ISurveyLifecycleService } from './interfaces/ISurveyLifecycleService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createLogger } from '../../utils/logger';
+import { slotService } from '../slot-scheduling';
+import { FIRST_SURVEY_CHECKED_KEY } from '../../constants/storageKeys';
 
 const log = createLogger("SurveyLifecycleService");
 
-// Key für die Speicherung, ob die erste Umfrage bereits überprüft wurde
-export const FIRST_SURVEY_CHECKED_KEY = 'first_survey_checked';
+// Definiere SurveyType direkt hier, bis Typendefinitionen behoben sind
+export enum SurveyType {
+  /**
+   * Keine Umfrage verfügbar
+   */
+  NONE = 'none',
+
+  /**
+   * Die erste Umfrage, die beim ersten Start der App angezeigt wird
+   */
+  FIRST = 'first',
+
+  /**
+   * Reguläre Umfragen, die nach einem Zeitplan angezeigt werden
+   */
+  REGULAR = 'regular'
+}
 
 /**
- * Survey Lifecycle Management Service
- * ----------------------------------
- * 
- * This service is responsible for:
- * 1. Managing the survey lifecycle events
- * 2. Handling the first survey special case
- * 3. Tracking and coordinating with the slot system
+ * Implementierung des Survey Lifecycle Service
+ * Verwaltet den Lebenszyklus von Umfragen im System
  */
-class SurveyLifecycleService {
+@injectable()
+export class SurveyLifecycleService implements ISurveyLifecycleService {
+  private firstSurveyShown: boolean = false;
+  private lastSurveyCompletedTimestamp: number | null = null;
+  
   /**
-   * Processes a completed survey and triggers relevant events.
-   * 
-   * This method:
-   * 1. Processes answered questions to update "showOnce" status
-   * 2. Determines if this was the first completed survey
-   * 3. Notifies the SlotCoordinator of the appropriate event
-   * 
-   * @param answeredQuestions Array of Question objects that were answered
+   * Prüft, ob die erste Umfrage angezeigt werden soll
+   * @returns True, wenn die erste Umfrage angezeigt werden soll, sonst false
    */
-  static async processSurveyCompletion(answeredQuestions?: Question[]): Promise<void> {
-    log.info("Processing survey completion");
-    
-    // Process answered "showOnce" questions
-    if (answeredQuestions && answeredQuestions.length > 0) {
-      const showOnceQuestions = answeredQuestions.filter(q => 'showOnce' in q && q.showOnce);
-      
-      for (const question of showOnceQuestions) {
-        await SurveyAnsweredQuestionsService.markQuestionAsAnswered(question.id);
-      }
-      
-      log.debug("Marked showOnce questions as answered", { 
-        count: showOnceQuestions.length
-      });
-    }
-
-    // Check if this is the first completed survey
-    const firstSurveyCompleted = await this.isFirstSurveyCompleted();
-    
-    // Notify SlotCoordinator of the appropriate event
-    if (!firstSurveyCompleted) {
-      // It's the first survey
-      await this.markFirstSurveyAsCompleted();
-      await slotCoordinator.onSurveyEvent(SurveyEvent.FIRST_SURVEY_COMPLETED);
-      log.info("First survey completion processed");
-    } else {
-      // Regular survey
-      await slotCoordinator.onSurveyEvent(SurveyEvent.SURVEY_COMPLETED);
-      log.info("Regular survey completion processed");
-    }
+  public shouldShowFirstSurvey(): boolean {
+    return !this.firstSurveyShown;
   }
 
   /**
-   * Handles a survey expiration event.
+   * Bestimmt den Typ der nächsten Umfrage
+   * @returns Den Typ der nächsten anzuzeigenden Umfrage
    */
-  static async handleSurveyExpired(): Promise<void> {
-    log.info("Handling expired survey");
-    await slotCoordinator.onSurveyEvent(SurveyEvent.SURVEY_EXPIRED);
+  public getNextSurveyType(): SurveyType {
+    // Wenn die erste Umfrage noch nicht angezeigt wurde, zeige sie an
+    if (!this.firstSurveyShown) {
+      return SurveyType.FIRST;
+    }
+
+    // Wenn die letzte Umfrage weniger als 24 Stunden her ist, zeige keine Umfrage an
+    if (this.lastSurveyCompletedTimestamp) {
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+      const now = Date.now();
+      if (now - this.lastSurveyCompletedTimestamp < twentyFourHoursInMs) {
+        return SurveyType.NONE;
+      }
+    }
+
+    // Ansonsten zeige eine reguläre Umfrage an
+    return SurveyType.REGULAR;
+  }
+
+  /**
+   * Markiert die aktuelle Umfrage als abgeschlossen
+   * @param type Typ der abgeschlossenen Umfrage
+   */
+  public markCurrentSurveyCompleted(type: SurveyType): void {
+    if (type === SurveyType.FIRST) {
+      this.firstSurveyShown = true;
+    }
+    
+    this.lastSurveyCompletedTimestamp = Date.now();
+  }
+
+  /**
+   * Setzt den Service zurück (für Tests)
+   */
+  public reset(): void {
+    this.firstSurveyShown = false;
+    this.lastSurveyCompletedTimestamp = null;
   }
   
   /**
-   * Checks if the first survey has already been completed.
+   * Überprüft, ob die erste Umfrage bereits abgeschlossen wurde.
    */
-  static async isFirstSurveyCompleted(): Promise<boolean> {
+  public static async isFirstSurveyCompleted(): Promise<boolean> {
     try {
+      if (!FIRST_SURVEY_CHECKED_KEY) {
+        log.error("FIRST_SURVEY_CHECKED_KEY is not defined");
+        return false;
+      }
+      
       const value = await AsyncStorage.getItem(FIRST_SURVEY_CHECKED_KEY);
       return value === 'true';
     } catch (error) {
@@ -83,16 +112,80 @@ class SurveyLifecycleService {
   }
   
   /**
-   * Marks the first survey as completed.
+   * Markiert die erste Umfrage als abgeschlossen.
+   * Setzt auch das Slot-System zurück, um den regulären Zeitplan zu starten.
    */
-  static async markFirstSurveyAsCompleted(): Promise<void> {
+  public static async markFirstSurveyAsCompleted(): Promise<void> {
     try {
+      log.info("Marking first survey as completed");
+      
+      if (!FIRST_SURVEY_CHECKED_KEY) {
+        log.error("FIRST_SURVEY_CHECKED_KEY is not defined");
+        throw new Error("FIRST_SURVEY_CHECKED_KEY is not defined");
+      }
+      
       await AsyncStorage.setItem(FIRST_SURVEY_CHECKED_KEY, 'true');
-      log.info("First survey marked as completed");
+      
+      // Slot-System zurücksetzen, um den regulären Zeitplan zu starten
+      // Dies triggert auch die Initialisierung nach der ersten Umfrage
+      await slotService.reset();
+      
+      log.info("First survey marked as completed and slot system initialized");
     } catch (error) {
       log.error("Error marking first survey as completed", error);
+      throw error;
     }
   }
-}
-
-export default SurveyLifecycleService; 
+  
+  /**
+   * Verarbeitet den Abschluss einer Umfrage.
+   * Prüft, ob es sich um die erste Umfrage handelt und markiert diese entsprechend.
+   * 
+   * @param answeredQuestions Die beantworteten Fragen (optional)
+   */
+  public static async processSurveyCompletion(answeredQuestions?: any[]): Promise<void> {
+    try {
+      log.info("Processing survey completion");
+      
+      // Prüfen, ob es sich um die erste Umfrage handelt
+      const isFirstCompleted = await this.isFirstSurveyCompleted();
+      
+      if (!isFirstCompleted) {
+        log.info("First survey completed - initializing slot system");
+        // Markiere die erste Umfrage als abgeschlossen und initialisiere das Slot-System
+        await this.markFirstSurveyAsCompleted();
+      } else {
+        log.info("Regular survey completed");
+        // Bei regulären Umfragen markieren wir den aktuellen Slot als abgeschlossen
+        await slotService.markCurrentSlotCompleted();
+      }
+    } catch (error) {
+      log.error("Error processing survey completion", error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Behandelt den Ablauf einer Umfrage ohne Abschluss.
+   */
+  public static async handleSurveyExpired(): Promise<void> {
+    try {
+      log.info("Handling survey expiration");
+      
+      // Prüfen, ob es sich um die erste Umfrage handelt
+      const isFirstCompleted = await this.isFirstSurveyCompleted();
+      
+      if (!isFirstCompleted) {
+        // Bei der ersten Umfrage tun wir nichts
+        log.info("First survey expired - no action needed");
+      } else {
+        // Bei regulären Umfragen markieren wir den aktuellen Slot als abgeschlossen
+        log.info("Regular survey expired - marking slot as completed");
+        await slotService.markCurrentSlotCompleted();
+      }
+    } catch (error) {
+      log.error("Error handling survey expiration", error);
+      throw error;
+    }
+  }
+} 
