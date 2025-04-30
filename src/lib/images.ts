@@ -20,6 +20,7 @@ import Art from "~/assets/art.svg";
 import Baby from "~/assets/baby.svg";
 import Barista from "~/assets/barista.svg";
 import BeachDay from "~/assets/beach-day.svg";
+import BestPlace from "~/assets/best-place.svg";
 import Blooming from "~/assets/blooming.svg";
 import BreakingBarriers from "~/assets/breaking-barriers.svg";
 import Buddies from "~/assets/buddies.svg";
@@ -51,6 +52,7 @@ import Hiking from "~/assets/hiking.svg";
 import ICanFly from "~/assets/i-can-fly.svg";
 import InTheOffice from "~/assets/in-the-office.svg";
 import InThought from "~/assets/in-thought.svg";
+import InformationTab from "~/assets/information-tab.svg";
 import Injured from "~/assets/injured.svg";
 import LateAtNight from "~/assets/late-at-night.svg";
 import LearningSketchingsh from "~/assets/learning-sketchingsh.svg";
@@ -62,11 +64,16 @@ import Logic from "~/assets/logic.svg";
 import Login from "~/assets/login.svg";
 import Lost from "~/assets/lost.svg";
 import MakingArt from "~/assets/making-art.svg";
+import MapDark from "~/assets/map-dark.svg";
+import Map from "~/assets/map.svg";
 import Mindfulness from "~/assets/mindfulness.svg";
+import MobileTesting from "~/assets/mobile-testing.svg";
 import Motherhood from "~/assets/motherhood.svg";
+import MyCodeSnippets from "~/assets/my-code-snippets.svg";
 import MyCurrentLocation from "~/assets/my-current-location.svg";
 import MyUniverse from "~/assets/my-universe.svg";
 import Neighbors from "~/assets/neighbors.svg";
+import NewMessage from "~/assets/new-message.svg";
 import OnTheWay from "~/assets/on-the-way.svg";
 import OnlineLearning from "~/assets/online-learning.svg";
 import OpenSource from "~/assets/open-source.svg";
@@ -80,6 +87,8 @@ import People from "~/assets/people.svg";
 import PizzaSharing from "~/assets/pizza-sharing.svg";
 import PlayTime from "~/assets/play-time.svg";
 import PlayingFetch from "~/assets/playing-fetch.svg";
+import Programming from "~/assets/programming.svg";
+import PushNotifications from "~/assets/push-notifications.svg";
 import QualityTime from "~/assets/quality-time.svg";
 import Questions from "~/assets/questions.svg";
 import QuietStreet from "~/assets/quiet-street.svg";
@@ -89,6 +98,7 @@ import ReadingTime from "~/assets/reading-time.svg";
 import RelaxMode from "~/assets/relax-mode.svg";
 import Relaxation from "~/assets/relaxation.svg";
 import RelaxedReading from "~/assets/relaxed-reading.svg";
+import Reminder from "~/assets/reminder.svg";
 import Reminders from "~/assets/reminders.svg";
 import RideABicycle from "~/assets/ride-a-bicycle.svg";
 import RoadSign from "~/assets/road-sign.svg";
@@ -99,6 +109,7 @@ import Skateboard from "~/assets/skateboard.svg";
 import Studying from "~/assets/studying.svg";
 import SuperThankYou from "~/assets/super-thank-you.svg";
 import TakingSelfie from "~/assets/taking-selfie.svg";
+import Testimonials from "~/assets/testimonials.svg";
 import Thoughts from "~/assets/thoughts.svg";
 import ThroughThePark from "~/assets/through-the-park.svg";
 import ToyCar from "~/assets/toy-car.svg";
@@ -110,6 +121,7 @@ import WalkingOutside from "~/assets/walking-outside.svg";
 import WalkingTogether from "~/assets/walking-together.svg";
 import Walking from "~/assets/walking.svg";
 import Welcoming from "~/assets/welcoming.svg";
+import World from "~/assets/world.svg";
 import Yoga from "~/assets/yoga.svg";
 
 /**
@@ -124,6 +136,7 @@ export type ImageKey =
   | 'baby'
   | 'barista'
   | 'beach-day'
+  | 'best-place'
   | 'blooming'
   | 'breaking-barriers'
   | 'buddies'
@@ -155,6 +168,7 @@ export type ImageKey =
   | 'i-can-fly'
   | 'in-the-office'
   | 'in-thought'
+  | 'information-tab'
   | 'injured'
   | 'late-at-night'
   | 'learning-sketchingsh'
@@ -166,11 +180,16 @@ export type ImageKey =
   | 'login'
   | 'lost'
   | 'making-art'
+  | 'map-dark'
+  | 'map'
   | 'mindfulness'
+  | 'mobile-testing'
   | 'motherhood'
+  | 'my-code-snippets'
   | 'my-current-location'
   | 'my-universe'
   | 'neighbors'
+  | 'new-message'
   | 'on-the-way'
   | 'online-learning'
   | 'open-source'
@@ -184,6 +203,8 @@ export type ImageKey =
   | 'pizza-sharing'
   | 'play-time'
   | 'playing-fetch'
+  | 'programming'
+  | 'push-notifications'
   | 'quality-time'
   | 'questions'
   | 'quiet-street'
@@ -193,6 +214,7 @@ export type ImageKey =
   | 'relax-mode'
   | 'relaxation'
   | 'relaxed-reading'
+  | 'reminder'
   | 'reminders'
   | 'ride-a-bicycle'
   | 'road-sign'
@@ -203,6 +225,7 @@ export type ImageKey =
   | 'studying'
   | 'super-thank-you'
   | 'taking-selfie'
+  | 'testimonials'
   | 'thoughts'
   | 'through-the-park'
   | 'toy-car'
@@ -214,6 +237,7 @@ export type ImageKey =
   | 'walking-together'
   | 'walking'
   | 'welcoming'
+  | 'world'
   | 'yoga'
   | 'placeholder';
 
@@ -230,6 +254,7 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'baby': Baby,
   'barista': Barista,
   'beach-day': BeachDay,
+  'best-place': BestPlace,
   'blooming': Blooming,
   'breaking-barriers': BreakingBarriers,
   'buddies': Buddies,
@@ -261,6 +286,7 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'i-can-fly': ICanFly,
   'in-the-office': InTheOffice,
   'in-thought': InThought,
+  'information-tab': InformationTab,
   'injured': Injured,
   'late-at-night': LateAtNight,
   'learning-sketchingsh': LearningSketchingsh,
@@ -272,11 +298,16 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'login': Login,
   'lost': Lost,
   'making-art': MakingArt,
+  'map-dark': MapDark,
+  'map': Map,
   'mindfulness': Mindfulness,
+  'mobile-testing': MobileTesting,
   'motherhood': Motherhood,
+  'my-code-snippets': MyCodeSnippets,
   'my-current-location': MyCurrentLocation,
   'my-universe': MyUniverse,
   'neighbors': Neighbors,
+  'new-message': NewMessage,
   'on-the-way': OnTheWay,
   'online-learning': OnlineLearning,
   'open-source': OpenSource,
@@ -290,6 +321,8 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'pizza-sharing': PizzaSharing,
   'play-time': PlayTime,
   'playing-fetch': PlayingFetch,
+  'programming': Programming,
+  'push-notifications': PushNotifications,
   'quality-time': QualityTime,
   'questions': Questions,
   'quiet-street': QuietStreet,
@@ -299,6 +332,7 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'relax-mode': RelaxMode,
   'relaxation': Relaxation,
   'relaxed-reading': RelaxedReading,
+  'reminder': Reminder,
   'reminders': Reminders,
   'ride-a-bicycle': RideABicycle,
   'road-sign': RoadSign,
@@ -309,6 +343,7 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'studying': Studying,
   'super-thank-you': SuperThankYou,
   'taking-selfie': TakingSelfie,
+  'testimonials': Testimonials,
   'thoughts': Thoughts,
   'through-the-park': ThroughThePark,
   'toy-car': ToyCar,
@@ -320,6 +355,7 @@ export const SvgRegistry: Record<ImageKey, React.ComponentType<any>> = {
   'walking-together': WalkingTogether,
   'walking': Walking,
   'welcoming': Welcoming,
+  'world': World,
   'yoga': Yoga,
   'placeholder': ADayAtThePark, // Platzhalter (später durch echtes Bild ersetzen)
 };
