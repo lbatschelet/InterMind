@@ -39,7 +39,7 @@ INSERT INTO questions (id, type, category, sequence_number, image_source, option
  '{"values": ["Very tired", "Neutral", "Very awake"]}'),
 
 -- Belonging
-('place_belonging', 'slider', 'environment', 750, NULL,
+('wellbeing_belonging', 'slider', 'environment', 750, NULL,
  '{"values": ["Very out of place", "Neutral", "Very much at home"]}'),
 
 ('factors_sense_of_belonging', 'multiple_choice', 'well-being', 760, NULL, '{"options": [{"value": "factors_sense_of_belonging_yes_because_of_my_gender"}, {"value": "factors_sense_of_belonging_yes_because_of_my_age"}, {"value": "factors_sense_of_belonging_yes_because_of_my_background"}, {"value": "factors_sense_of_belonging_yes_because_of_my_skin_colour_or_appearance"}, {"value": "factors_sense_of_belonging_yes_because_of_my_language_or_accent"}, {"value": "factors_sense_of_belonging_yes_because_of_my_social_or_financial_situation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_clothing_or_style"}, {"value": "factors_sense_of_belonging_yes_because_of_my_sexual_orientation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_health_condition_or_a_disability"}, {"value": "factors_sense_of_belonging_yes_for_another_reason"}, {"value": "factors_sense_of_belonging_no"}]}'),

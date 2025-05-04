@@ -143,19 +143,19 @@ INSERT INTO translations (question_id, language, title, text, options_content) V
 ('info_well-being', 'fr', 'Ton bien-être actuel', 'Pour finir, nous aimerions savoir comment tu te sens en ce moment – et comment tu perçois l’endroit où tu te trouves.', '{}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('general_well-being', 'fr', '', 'Comment te sens-tu globalement en ce moment ?', '{"options": [{"value": "general_well-being_slider_very_unwell__very_well", "label": "Curseur : très mal – très bien"}]}');
+('wellbeing_general', 'fr', '', 'Comment te sens-tu globalement en ce moment ?', '{"values": ["Très mal", "Neutral", "Très bien"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('content', 'fr', '', 'À quel point te sens-tu satisfait·e en ce moment ?', '{"options": [{"value": "content_slider_very_discontent__very_content", "label": "Curseur : très insatisfait·e – très satisfait·e"}]}');
+('wellbeing_content', 'fr', '', 'À quel point te sens-tu satisfait·e en ce moment ?', '{"values": ["Très insatisfait·e", "Neutral", "Très satisfait·e"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('tense_relaxed', 'fr', '', 'Te sens-tu tendu·e ou détendu·e ?', '{"options": [{"value": "tense_relaxed_slider_very_tense__very_relaxed", "label": "Curseur : très tendu·e – très détendu·e"}]}');
+('wellbeing_relaxation', 'fr', '', 'Te sens-tu tendu·e ou détendu·e ?', '{"values": ["Très tendu·e", "Neutral", "Très détendu·e"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('awake', 'fr', '', 'À quel point te sens-tu éveillé·e en ce moment ?', '{"options": [{"value": "awake_slider_very_tired__very_awake", "label": "Curseur : très fatigué·e – très éveillé·e"}]}');
+('wellbeing_awake', 'fr', '', 'À quel point te sens-tu éveillé·e en ce moment ?', '{"values": ["Très fatigué·e", "Neutral", "Très éveillé·e"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('sense_of_belonging', 'fr', '', 'Te sens-tu plutôt à ta place ou étranger·ère à cet endroit ?', '{"options": [{"value": "sense_of_belonging_slider_very_out_of_place__very_much_at_home", "label": "Curseur : très étranger·ère – tout à fait à ta place"}]}');
+('wellbeing_belonging', 'fr', '', 'Te sens-tu plutôt à ta place ou étranger·ère à cet endroit ?', '{"values": ["Très étranger·ère", "Neutral", "Très à ta place"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
 ('factors_sense_of_belonging', 'fr', '', 'Penses-tu que ton sentiment d’appartenance ou d’étrangeté à cet endroit soit lié à la manière dont tu es perçu·e en tant que personne ?', '{"options": [{"value": "factors_sense_of_belonging_yes_because_of_my_gender", "label": "Oui, en raison de mon genre"}, {"value": "factors_sense_of_belonging_yes_because_of_my_age", "label": "Oui, en raison de mon âge"}, {"value": "factors_sense_of_belonging_yes_because_of_my_background", "label": "Oui, en raison de mon origine"}, {"value": "factors_sense_of_belonging_yes_because_of_my_skin_colour_or_appearance", "label": "Oui, en raison de ma couleur de peau ou de mon apparence"}, {"value": "factors_sense_of_belonging_yes_because_of_my_language_or_accent", "label": "Oui, en raison de ma langue ou de mon accent"}, {"value": "factors_sense_of_belonging_yes_because_of_my_social_or_financial_situation", "label": "Oui, en raison de ma situation sociale ou financière"}, {"value": "factors_sense_of_belonging_yes_because_of_my_clothing_or_style", "label": "Oui, en raison de mes vêtements ou de mon style"}, {"value": "factors_sense_of_belonging_yes_because_of_my_sexual_orientation", "label": "Oui, en raison de mon orientation sexuelle"}, {"value": "factors_sense_of_belonging_yes_because_of_my_health_condition_or_a_disability", "label": "Oui, en raison de ma santé ou d’un handicap"}, {"value": "factors_sense_of_belonging_yes_for_another_reason", "label": "Oui, pour une autre raison"}, {"value": "factors_sense_of_belonging_no", "label": "Non"}]}');

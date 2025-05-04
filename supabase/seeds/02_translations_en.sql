@@ -1,11 +1,11 @@
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+INSERT INTO translations (question_id, language, title, text) VALUES
 ('welcome', 'en', 'Hi!', 'Nice to have you here!
 
 This app invites you to take part in a one-week study by answering a few short questions about your current well-being and surroundings — three times a day.
 
-Your responses will help us better understand how people experience different places — and how these experiences relate to different life situations.', '{}');
+Your responses will help us better understand how people experience different places — and how these experiences relate to different life situations.');
 
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+INSERT INTO translations (question_id, language, title, text) VALUES
 ('about_this_study', 'en', 'What is this study about?', 'How we feel in a place is strongly influenced by our surroundings. Some places feel calming, familiar or welcoming. Others can make us feel uneasy, exposed or out of place.
 
 But these experiences are not the same for everyone. They may depend on how we are perceived and treated in a space – for example, based on gender, origin, language, appearance or other characteristics that shape our position in society.
@@ -37,9 +37,9 @@ The study runs for one week. During that time, you’ll be asked to complete a s
 
 Each survey is available for one hour and then expires. The time slots are slightly randomised during the day, so that you don’t always respond at the same place and time.
 
-If you miss a survey, that’s no problem – you can simply respond to the next one.', '{}');
+If you miss a survey, that’s no problem – you can simply respond to the next one.');
 
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+INSERT INTO translations (question_id, language, title, text) VALUES
 ('consent', 'en', 'Consent to Participate', 'Before starting the survey, we ask for your consent to take part in this study.
 
 Participation is voluntary.  
@@ -61,18 +61,18 @@ You can also delete your data at any point via the app settings.
 
 By tapping "I agree", you confirm that you have read and understood this information and that you are taking part in the study voluntarily. You can withdraw at any time and delete your data via the app settings.
 
-You can find more information in our [Privacy Policy](https://intermind.ch/privacy-policy.html).', '{}');
+You can find more information in our [Privacy Policy](https://intermind.ch/privacy-policy.html).');
 
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+INSERT INTO translations (question_id, language, title, text) VALUES
 ('notifications', 'en', 'Notifications', 'To help you keep track of the surveys, we’ll send you notifications.
 
 These reminders appear automatically whenever a new survey slot becomes available. You’ll then have one hour to respond.
 
 Notifications are important because each time slot is short. You can disable them in your device settings – but this increases the chance of missing surveys.
 
-We recommend allowing notifications so you can capture a wide range of everyday situations.', '{}');
+We recommend allowing notifications so you can capture a wide range of everyday situations.');
 
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+INSERT INTO translations (question_id, language, title, text) VALUES
 ('location_acces', 'en', 'Location Access', 'To help us better understand your responses and identify spatial patterns, we ask you to allow location access.
 
 This lets us see, for example, whether experiences differ between busy areas and quieter places – without ever knowing your name or exact address.
@@ -81,12 +81,12 @@ Your location data helps us complement your answers with additional context abou
 
 All data is stored anonymously and is never tracked continuously.
 
-You can disable location access at any time in your device settings.', '{}');
+You can disable location access at any time in your device settings.');
 
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+INSERT INTO translations (question_id, language, title, text) VALUES
 ('info_questions_about_you', 'en', 'A few questions about you', 'Before we start the daily surveys, we’ll ask you a few questions about yourself – for example, your age, gender, education, and living situation.
 
-You can skip any question if you prefer not to answer.', '{}');
+You can skip any question if you prefer not to answer.');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
 ('age_group', 'en', 'Age Group', 'Which age group do you belong to?', '{"options": [{"value": "age_group_under_16", "label": "Under 16"}, {"value": "age_group_1625", "label": "16–25"}, {"value": "age_group_2635", "label": "26–35"}, {"value": "age_group_3645", "label": "36–45"}, {"value": "age_group_4655", "label": "46–55"}, {"value": "age_group_5665", "label": "56–65"}, {"value": "age_group_6675", "label": "66–75"}, {"value": "age_group_75", "label": "75+"}]}');
@@ -143,27 +143,6 @@ INSERT INTO translations (question_id, language, title, text, options_content) V
 ('info_well-being', 'en', 'Your current well-being', 'Finally, we’ll ask you how you’re feeling right now – and how you experience the place you’re currently in.', '{}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('general_well-being', 'en', 'General Well-being', 'How are you feeling overall right now?', '{"values": ["Slider: very unwell – very well"]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('content', 'en', 'Content', 'How content do you feel at the moment?', '{"values": ["Slider: very discontent – very content"]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('tense_relaxed', 'en', 'Tension', 'How tense or relaxed do you feel?', '{"values": ["Slider: very tense – very relaxed"]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('awake', 'en', 'Wakenes', 'How awake do you feel right now?', '{"values": ["Slider: very tired – very awake"]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('sense_of_belonging', 'en', 'Sense of Belonging', 'How much do you feel a sense of belonging or not at this place?', '{"options": [{"value": "sense_of_belonging_slider_very_out_of_place__very_much_at_home", "label": "Slider: very out of place – very much at home"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('factors_sense_of_belonging', 'en', 'Factors of sense of Belonging', 'Do you think your sense of belonging or feeling out of place at this location is related to how you are perceived as a person?', '{"options": [{"value": "factors_sense_of_belonging_yes_because_of_my_gender", "label": "Yes, because of my gender"}, {"value": "factors_sense_of_belonging_yes_because_of_my_age", "label": "Yes, because of my age"}, {"value": "factors_sense_of_belonging_yes_because_of_my_background", "label": "Yes, because of my background"}, {"value": "factors_sense_of_belonging_yes_because_of_my_skin_colour_or_appearance", "label": "Yes, because of my skin colour or appearance"}, {"value": "factors_sense_of_belonging_yes_because_of_my_language_or_accent", "label": "Yes, because of my language or accent"}, {"value": "factors_sense_of_belonging_yes_because_of_my_social_or_financial_situation", "label": "Yes, because of my social or financial situation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_clothing_or_style", "label": "Yes, because of my clothing or style"}, {"value": "factors_sense_of_belonging_yes_because_of_my_sexual_orientation", "label": "Yes, because of my sexual orientation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_health_condition_or_a_disability", "label": "Yes, because of my health condition or a disability"}, {"value": "factors_sense_of_belonging_yes_for_another_reason", "label": "Yes, for another reason"}, {"value": "factors_sense_of_belonging_no", "label": "No"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('other_factors', 'en', 'Other Factors', 'Are there any other things that influence your well-being at this place?', '{"options": [{"value": "other_factors_open_text_entry", "label": "[open text entry]"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
 ('wellbeing_general', 'en', 'Overall Well-Being', 'How are you feeling overall right now?', '{"values": ["Very unwell", "Neutral", "Very well"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
@@ -176,4 +155,10 @@ INSERT INTO translations (question_id, language, title, text, options_content) V
 ('wellbeing_awake', 'en', 'Wakefulness', 'How awake do you feel right now?', '{"values": ["Very tired", "Neutral", "Very awake"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('place_belonging', 'en', 'Sense of Belonging', 'How much do you feel a sense of belonging or not at this place?', '{"values": ["Very out of place", "Neutral", "Very much at home"]}');
+('wellbeing_belonging', 'en', 'Sense of Belonging', 'How much do you feel a sense of belonging or not at this place?', '{"values": ["Very out of place", "Neutral", "Very much at home"]}');
+
+INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+('factors_sense_of_belonging', 'en', 'Factors of sense of Belonging', 'Do you think your sense of belonging or feeling out of place at this location is related to how you are perceived as a person?', '{"options": [{"value": "factors_sense_of_belonging_yes_because_of_my_gender", "label": "Yes, because of my gender"}, {"value": "factors_sense_of_belonging_yes_because_of_my_age", "label": "Yes, because of my age"}, {"value": "factors_sense_of_belonging_yes_because_of_my_background", "label": "Yes, because of my background"}, {"value": "factors_sense_of_belonging_yes_because_of_my_skin_colour_or_appearance", "label": "Yes, because of my skin colour or appearance"}, {"value": "factors_sense_of_belonging_yes_because_of_my_language_or_accent", "label": "Yes, because of my language or accent"}, {"value": "factors_sense_of_belonging_yes_because_of_my_social_or_financial_situation", "label": "Yes, because of my social or financial situation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_clothing_or_style", "label": "Yes, because of my clothing or style"}, {"value": "factors_sense_of_belonging_yes_because_of_my_sexual_orientation", "label": "Yes, because of my sexual orientation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_health_condition_or_a_disability", "label": "Yes, because of my health condition or a disability"}, {"value": "factors_sense_of_belonging_yes_for_another_reason", "label": "Yes, for another reason"}, {"value": "factors_sense_of_belonging_no", "label": "No"}]}');
+
+INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+('other_factors', 'en', 'Other Factors', 'Are there any other things that influence your well-being at this place?', '{"options": [{"value": "other_factors_open_text_entry", "label": "[open text entry]"}]}');

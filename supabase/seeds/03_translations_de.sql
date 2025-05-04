@@ -143,27 +143,6 @@ INSERT INTO translations (question_id, language, title, text, options_content) V
 ('info_well-being', 'de', 'Wohlbefinden', 'Zum Schluss geht es darum, wie es dir gerade geht – also wie du dich fühlst und wie du den Ort erlebst, an dem du dich gerade befindest.', '{}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('general_well-being', 'de', '', 'Wie fühlst du dich gerade insgesamt?', '{"options": [{"value": "general_well-being_slider_very_unwell__very_well", "label": "(Slider: sehr unwohl – sehr wohl)"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('content', 'de', '', 'Wie zufrieden fühlst du dich im Moment?', '{"options": [{"value": "content_slider_very_discontent__very_content", "label": "(Slider: sehr unzufrieden – sehr zufrieden)"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('tense_relaxed', 'de', '', 'Wie angespannt oder entspannt fühlst du dich?', '{"options": [{"value": "tense_relaxed_slider_very_tense__very_relaxed", "label": "(Slider: sehr angespannt – sehr entspannt)"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('awake', 'de', '', 'Wie wach fühlst du dich im Moment?', '{"options": [{"value": "awake_slider_very_tired__very_awake", "label": "(Slider: sehr müde – sehr wach)"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('sense_of_belonging', 'de', '', 'Wie zugehörig oder fremd fühlst du dich an diesem Ort?', '{"options": [{"value": "sense_of_belonging_slider_very_out_of_place__very_much_at_home", "label": "(Slider: sehr fremd - sehr zugehörig)"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('factors_sense_of_belonging', 'de', '', 'Glaubst du, dass dein Gefühl von Zugehörigkeit oder Fremdheit an diesem Ort damit zu tun hat, wie du als Person wahrgenommen wirst?', '{"options": [{"value": "factors_sense_of_belonging_yes_because_of_my_gender", "label": "Ja, wegen meines Geschlechts"}, {"value": "factors_sense_of_belonging_yes_because_of_my_age", "label": "Ja, wegen meines Alters"}, {"value": "factors_sense_of_belonging_yes_because_of_my_background", "label": "Ja, wegen meiner Herkunft"}, {"value": "factors_sense_of_belonging_yes_because_of_my_skin_colour_or_appearance", "label": "Ja, wegen meiner Hautfarbe oder meines Aussehens"}, {"value": "factors_sense_of_belonging_yes_because_of_my_language_or_accent", "label": "Ja, wegen meiner Sprache oder meines Akzents"}, {"value": "factors_sense_of_belonging_yes_because_of_my_social_or_financial_situation", "label": "Ja, wegen meiner sozialen oder finanziellen Situation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_clothing_or_style", "label": "Ja, wegen meiner Kleidung oder meines Stils"}, {"value": "factors_sense_of_belonging_yes_because_of_my_sexual_orientation", "label": "Ja, wegen meiner sexuellen Orientierung"}, {"value": "factors_sense_of_belonging_yes_because_of_my_health_condition_or_a_disability", "label": "Ja, wegen meines Gesundheitszustands oder einer Behinderung"}, {"value": "factors_sense_of_belonging_yes_for_another_reason", "label": "Ja, aus einem anderen Grund"}, {"value": "factors_sense_of_belonging_no", "label": "Nein"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('other_factors', 'de', '', 'Gibt es andere Dinge die dein Wohlbefinden an diesem Ort beeinflussen?', '{"options": [{"value": "other_factors_open_text_entry", "label": "[offene Texteingabe]"}]}');
-
-INSERT INTO translations (question_id, language, title, text, options_content) VALUES
 ('wellbeing_general', 'de', 'Allgemeines Wohlbefinden', 'Wie geht es dir im Moment insgesamt?', '{"values": ["Sehr schlecht", "Neutral", "Sehr gut"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
@@ -176,4 +155,11 @@ INSERT INTO translations (question_id, language, title, text, options_content) V
 ('wellbeing_awake', 'de', 'Wachheit', 'Wie wach fühlst du dich im Moment?', '{"values": ["Sehr müde", "Neutral", "Sehr wach"]}');
 
 INSERT INTO translations (question_id, language, title, text, options_content) VALUES
-('place_belonging', 'de', 'Zugehörigkeit', 'Wie sehr fühlst du dich an diesem Ort zugehörig oder fremd?', '{"values": ["Sehr fremd", "Neutral", "Sehr zugehörig"]}');
+('wellbeing_belonging', 'de', 'Zugehörigkeit', 'Wie sehr fühlst du dich an diesem Ort zugehörig oder fremd?', '{"values": ["Sehr fremd", "Neutral", "Sehr zugehörig"]}');
+
+INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+('factors_sense_of_belonging', 'de', '', 'Glaubst du, dass dein Gefühl von Zugehörigkeit oder Fremdheit an diesem Ort damit zu tun hat, wie du als Person wahrgenommen wirst?', '{"options": [{"value": "factors_sense_of_belonging_yes_because_of_my_gender", "label": "Ja, wegen meines Geschlechts"}, {"value": "factors_sense_of_belonging_yes_because_of_my_age", "label": "Ja, wegen meines Alters"}, {"value": "factors_sense_of_belonging_yes_because_of_my_background", "label": "Ja, wegen meiner Herkunft"}, {"value": "factors_sense_of_belonging_yes_because_of_my_skin_colour_or_appearance", "label": "Ja, wegen meiner Hautfarbe oder meines Aussehens"}, {"value": "factors_sense_of_belonging_yes_because_of_my_language_or_accent", "label": "Ja, wegen meiner Sprache oder meines Akzents"}, {"value": "factors_sense_of_belonging_yes_because_of_my_social_or_financial_situation", "label": "Ja, wegen meiner sozialen oder finanziellen Situation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_clothing_or_style", "label": "Ja, wegen meiner Kleidung oder meines Stils"}, {"value": "factors_sense_of_belonging_yes_because_of_my_sexual_orientation", "label": "Ja, wegen meiner sexuellen Orientierung"}, {"value": "factors_sense_of_belonging_yes_because_of_my_health_condition_or_a_disability", "label": "Ja, wegen meines Gesundheitszustands oder einer Behinderung"}, {"value": "factors_sense_of_belonging_yes_for_another_reason", "label": "Ja, aus einem anderen Grund"}, {"value": "factors_sense_of_belonging_no", "label": "Nein"}]}');
+
+INSERT INTO translations (question_id, language, title, text, options_content) VALUES
+('other_factors', 'de', '', 'Gibt es andere Dinge die dein Wohlbefinden an diesem Ort beeinflussen?', '{"options": [{"value": "other_factors_open_text_entry", "label": "[offene Texteingabe]"}]}');
+
