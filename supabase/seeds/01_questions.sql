@@ -1,177 +1,46 @@
--- Hauptseed-Datei
--- Alle SQL-Anweisungen in einer Datei
-
--- ================================================
--- TEIL 1: BASISSTRUKTUR (FRAGEN)
--- ================================================
-
--- Fragen-Metadaten (ohne sprachabhängige Inhalte)
 INSERT INTO questions (id, type, category, sequence_number, image_source, options_structure) VALUES
-  -- Willkommensbildschirm
-  ('welcome_screen', 'info_screen', 'welcome', 0, 'welcoming', '{"buttonText": "general.continue", "showOnce": true}'),
-  
-  -- Einwilligungsbildschirm
-  ('consent_screen', 'info_screen', 'welcome', 10, 'contract', '{"buttonText": "general.agree", "showOnce": true}'),
-  
-  -- Benachrichtigungsberechtigungen-Screen (neu)
-  ('notifications_permission', 'info_screen', 'permissions', 20, 'reminders', 
-   '{"buttonText": "general.ok", "action": "request_notification_permission", "showOnce": true}'),
-  
-  -- Standortberechtigungen-Screen (neu)
-  ('location_permission', 'info_screen', 'permissions', 30, 'my-current-location', 
-   '{"buttonText": "general.ok", "action": "request_location_permission", "showOnce": true}'),
-  
-  -- Altersgruppen Frage
-  ('age_question', 'single_choice', 'demographic', 100, NULL, 
-   '{"options": [
-        {"value": "0-17", "label": "Below 16"},
-        {"value": "18-24", "label": "16-25"},
-        {"value": "25-34", "label": "26-35"},
-        {"value": "35-44", "label": "36-45"},
-        {"value": "45-54", "label": "46-55"},
-        {"value": "55-64", "label": "56-65"},
-        {"value": "65-74", "label": "66-75"},
-        {"value": "75+", "label": "75+"},
-        {"value": "no_answer", "label": "No answer"}
-    ], "showOnce": true, "autoAdvance": true}'),
-  
-  -- Geschlecht Frage
-  ('gender_question', 'single_choice', 'demographic', 110, NULL,
-   '{"options": [
-        {"value": "female", "label": "Female"},
-        {"value": "male", "label": "Male"},
-        {"value": "diverse", "label": "Diverse"},
-        {"value": "other", "label": "Other"},
-        {"value": "no_answer", "label": "No answer"}
-    ], "showOnce": true, "autoAdvance": true}'),
-  
-  -- Bildungsstand
-  ('education_question', 'single_choice', 'demographic', 120, NULL,
-   '{"options": [
-        {"value": "none", "label": "No degree"},
-        {"value": "primary", "label": "Primary school"},
-        {"value": "secondary", "label": "Secondary school"},
-        {"value": "highschool", "label": "High school"},
-        {"value": "apprenticeship", "label": "Apprenticeship"},
-        {"value": "bachelor", "label": "Bachelor"},
-        {"value": "master", "label": "Master"},
-        {"value": "phd", "label": "Promotion"},
-        {"value": "no_answer", "label": "No answer"}
-    ], "showOnce": true, "autoAdvance": true}'),
-  
-  -- Einkommen (optional)
-  ('income_question', 'single_choice', 'demographic', 130, NULL,
-   '{"options": [
-        {"value": "below_1500", "label": "Below CHF 1.500"},
-        {"value": "1500_3000", "label": "CHF 1.500 - 3.000"},
-        {"value": "3000_4500", "label": "CHF 3.000 - 4.500"},
-        {"value": "4500_6000", "label": "CHF 4.500 - 6.000"},
-        {"value": "6000_7500", "label": "CHF 6.000 - 7.500"},
-        {"value": "above_7500", "label": "Above CHF 7.500"},
-        {"value": "no_answer", "label": "No answer"}
-    ], "showOnce": true, "autoAdvance": true}'),
+('welcome', 'info_screen', 'first-info', 10, 'welcoming', '{"showOnce": true}'),
+('about_this_study', 'info_screen', 'first-info', 20, 'questions', '{"showOnce": true}'),
+('consent', 'info_screen', 'first-info', 30, 'contract', '{"showOnce": true, "buttonText": "general.agree"}'),
+('notifications', 'info_screen', 'first-info', 40, 'reminders', '{"showOnce": true, "buttonText": "general.ok", "action": "request_notification_permission"}'),
+('location_acces', 'info_screen', 'first-info', 50, 'my-current-location', '{"showOnce": true, "buttonText": "general.ok", "action": "request_location_permission"}'),
+('info_questions_about_you', 'info_screen', 'personal_data', 100, 'thoughts', '{"showOnce": true}'),
+('age_group', 'single_choice', 'personal_data', 110, NULL, '{"showOnce": true, "options": [{"value": "age_group_under_16"}, {"value": "age_group_1625"}, {"value": "age_group_2635"}, {"value": "age_group_3645"}, {"value": "age_group_4655"}, {"value": "age_group_5665"}, {"value": "age_group_6675"}, {"value": "age_group_75"}]}'),
+('gender', 'single_choice', 'personal_data', 120, NULL, '{"showOnce": true, "options": [{"value": "gender_female"}, {"value": "gender_male"}, {"value": "gender_nonbinary"}, {"value": "gender_trans"}, {"value": "gender_intersex"}, {"value": "gender_other"}, {"value": "gender_prefer_not_to_say"}]}'),
+('education', 'single_choice', 'personal_data', 130, NULL, '{"showOnce": true, "options": [{"value": "education_no_diploma_or_certificate"}, {"value": "education_vocational_training_or_apprenticeship"}, {"value": "education_maturafmshms_or_equivalent"}, {"value": "education_university_of_applied_sciences_fhhf"}, {"value": "education_university_degree"}]}'),
+('household_members', 'single_choice', 'personal_data', 140, NULL, '{"showOnce": true, "options": [{"value": "household_members_1_living_alone"}, {"value": "household_members_2"}, {"value": "household_members_3"}, {"value": "household_members_4"}, {"value": "household_members_5"}, {"value": "household_members_6"}, {"value": "household_members_7"}, {"value": "household_members_8"}, {"value": "household_members_9"}, {"value": "household_members_10_or_more"}]}'),
+('household_members_financing', 'single_choice', 'personal_data', 150, NULL, '{"showOnce": true, "options": [{"value": "household_members_financing_1_person_myself_only"}, {"value": "household_members_financing_2_people"}, {"value": "household_members_financing_3_people"}, {"value": "household_members_financing_4_people"}, {"value": "household_members_financing_5_people"}, {"value": "household_members_financing_6_people"}, {"value": "household_members_financing_7_people"}, {"value": "household_members_financing_8_people"}, {"value": "household_members_financing_9_people"}, {"value": "household_members_financing_10_or_more"}]}'),
+('monthly_household_income', 'single_choice', 'personal_data', 160, NULL, '{"showOnce": true, "options": [{"value": "monthly_household_income_less_than_chf_1500"}, {"value": "monthly_household_income_chf_15003000"}, {"value": "monthly_household_income_chf_30004500"}, {"value": "monthly_household_income_chf_45006000"}, {"value": "monthly_household_income_chf_60007500"}, {"value": "monthly_household_income_chf_750010000"}, {"value": "monthly_household_income_more_than_chf_10000"}, {"value": "monthly_household_income_dont_know"}]}'),
+('employment_status', 'multiple_choice', 'personal_data', 170, NULL, '{"showOnce": true, "options": [{"value": "employment_status_pupil__student"}, {"value": "employment_status_employed"}, {"value": "employment_status_selfemployed"}, {"value": "employment_status_retired"}, {"value": "employment_status_unemployed"}]}'),
+('disabilities', 'single_choice', 'personal_data', 180, NULL, '{"showOnce": true, "options": [{"value": "disabilities_yes"}, {"value": "disabilities_no"}]}'),
+('different_country_than_born_in', 'single_choice', 'personal_data', 190, NULL, '{"showOnce": true, "options": [{"value": "different_country_than_born_in_yes"}, {"value": "different_country_than_born_in_no"}]}'),
+('axis_of_opression', 'multiple_choice', 'personal_data', 200, NULL, '{"showOnce": true, "options": [{"value": "axis_of_opression_yes_because_of_my_skin_colour_or_appearance"}, {"value": "axis_of_opression_yes_because_of_my_name_or_language"}, {"value": "axis_of_opression_yes_because_of_my_religion_or_background"}, {"value": "axis_of_opression_yes_for_another_reason"}, {"value": "axis_of_opression_no"}]}'),
+('info_current_location', 'info_screen', 'location', 500, 'our-neighborhood', NULL),
+('indoors_outdoors', 'single_choice', 'location', 510, NULL, '{"options": [{"value": "indoors_outdoors_indoors"}, {"value": "indoors_outdoors_outdoors"}]}'),
+('location_category', 'single_choice', 'location', 520, NULL, '{"options": [{"value": "location_category_at_home"}, {"value": "location_category_at_someone_elses_home"}, {"value": "location_category_workplace"}, {"value": "location_category_school__university"}, {"value": "location_category_shopping_or_services"}, {"value": "location_category_café__restaurant__bar"}, {"value": "location_category_leisure_or_sports_facility"}, {"value": "location_category_park_or_green_space"}, {"value": "location_category_cultural_or_religious_place"}, {"value": "location_category_health_or_therapy_setting"}, {"value": "location_category_on_the_move_walking_cycling_driving"}, {"value": "location_category_public_transport"}, {"value": "location_category_other_place"}]}'),
+('people_with_you', 'multiple_choice', 'location', 530, NULL, '{"options": [{"value": "people_with_you_no_one"}, {"value": "people_with_you_partner"}, {"value": "people_with_you_children"}, {"value": "people_with_you_family"}, {"value": "people_with_you_friends"}, {"value": "people_with_you_colleagues"}, {"value": "people_with_you_acquaintances"}, {"value": "people_with_you_animalspets"}, {"value": "people_with_you_strangers"}, {"value": "people_with_you_other"}]}'),
+('activity', 'multiple_choice', 'location', 540, NULL, '{"options": [{"value": "activity_leisure_or_relaxation"}, {"value": "activity_travelling_or_commuting"}, {"value": "activity_working_or_studying"}, {"value": "activity_shopping_or_running_errands"}, {"value": "activity_housework_or_tidying_up"}, {"value": "activity_cooking_or_eating"}, {"value": "activity_care_responsibilities"}, {"value": "activity_social_activities"}, {"value": "activity_using_media"}, {"value": "activity_resting_or_sleeping"}, {"value": "activity_other"}]}'),
+('surroundings_attributes', 'multiple_choice', 'location', 550, NULL, '{"options": [{"value": "surroundings_attributes_heavy_traffic_or_noise"}, {"value": "surroundings_attributes_pleasant_soundscape"}, {"value": "surroundings_attributes_visible_nature_or_greenery"}, {"value": "surroundings_attributes_high_diversity_of_natural_elements"}, {"value": "surroundings_attributes_crowds_or_lively_atmosphere"}, {"value": "surroundings_attributes_quiet_environment_few_people"}, {"value": "surroundings_attributes_pleasant_temperature"}, {"value": "surroundings_attributes_unpleasant_temperature"}, {"value": "surroundings_attributes_good_air_quality"}, {"value": "surroundings_attributes_poor_air_quality"}, {"value": "surroundings_attributes_nice_view"}, {"value": "surroundings_attributes_unpleasant_surroundings"}]}'),
+('surroundings_state', 'multiple_choice', 'location', 560, NULL, '{"options": [{"value": "surroundings_state_lively_and_busy"}, {"value": "surroundings_state_few_people_calm_atmosphere"}, {"value": "surroundings_state_i_meet_familiar_people_here"}, {"value": "surroundings_state_the_space_is_pleasantly_designed"}, {"value": "surroundings_state_conversations_are_easy_here"}, {"value": "surroundings_state_i_feel_safe_here"}, {"value": "surroundings_state_the_place_is_clean"}, {"value": "surroundings_state_the_place_is_easily_accessible"}, {"value": "surroundings_state_there_are_plants_or_greenery_in_the_space"}, {"value": "surroundings_state_water_is_visible_nearby_eg_river_pond"}, {"value": "surroundings_state_pleasant_natural_light_eg_sunlight_through_windows"}, {"value": "surroundings_state_pleasant_artificial_lighting_eg_colours_arrangement_of_lights"}, {"value": "surroundings_state_there_are_places_to_sit_eg_benches_chairs"}, {"value": "surroundings_state_pleasant_sounds_or_music"}]}'),
+('info_well-being', 'info_screen', 'well-being', 700, 'relaxation', NULL),
+('wellbeing_general', 'slider', 'well-being', 710, NULL,
+ '{"values": ["Very unwell", "Neutral", "Very well"]}'),
 
-  -- Info Screen für Umgebungsfragen
-  ('environment_info', 'info_screen', 'well-being', 200, 'our-neighborhood', '{"buttonText": "general.continue", "showOnce": false}'),
+-- Contentment
+('wellbeing_content', 'slider', 'well-being',   720, NULL,
+ '{"values": ["Very discontent", "Neutral", "Very content"]}'),
 
-  -- Indoor oder Outdoor
-  ('indoor_outdoor', 'single_choice', 'well-being', 210, NULL,
-   '{"options": [
-        {"value": "indoor", "label": "Indoors"},
-        {"value": "outdoor", "label": "Outdoors"}
-    ], "showOnce": false, "autoAdvance": true}'),
+-- Tension/Relaxation
+('wellbeing_relaxation', 'slider', 'well-being', 730, NULL,
+ '{"values": ["Very tense", "Neutral", "Very relaxed"]}'),
 
-  -- Aktueller Ort
-  ('current_place', 'single_choice', 'well-being', 220, NULL,
-   '{"options": [
-        {"value": "home", "label": "Home"},
-        {"value": "work", "label": "Work"},
-        {"value": "school", "label": "School/University"},
-        {"value": "public_space", "label": "Public place (e.g. shop, bar, etc.)"},
-        {"value": "public_transport", "label": "Public transport"},
-        {"value": "park", "label": "Park"},
-        {"value": "other", "label": "Other"}
-    ], "showOnce": false, "autoAdvance": true}'),
+-- Wakefulness
+('wellbeing_awake', 'slider', 'well-being', 740, NULL,
+ '{"values": ["Very tired", "Neutral", "Very awake"]}'),
 
-  -- Menschen in der Umgebung
-  ('people_around', 'multiple_choice', 'well-being', 230, NULL,
-   '{"options": [
-        {"value": "nobody", "label": "Nobody"},
-        {"value": "acquaintances", "label": "Acquaintances"},
-        {"value": "colleagues", "label": "Colleagues"},
-        {"value": "family", "label": "Family"},
-        {"value": "partner", "label": "Partner"},
-        {"value": "children", "label": "Children"},
-        {"value": "friends", "label": "Friends"},
-        {"value": "pets", "label": "Pets"},
-        {"value": "strangers", "label": "Strangers"},
-        {"value": "other", "label": "Other"}
-    ], "showOnce": false, "autoAdvance": false}'),
+-- Belonging
+('place_belonging', 'slider', 'environment', 750, NULL,
+ '{"values": ["Very out of place", "Neutral", "Very much at home"]}'),
 
-  -- Aktivität
-  ('activity', 'single_choice', 'well-being', 240, NULL,
-   '{"options": [
-        {"value": "leisure", "label": "Leisure/Relaxation"},
-        {"value": "traveling", "label": "Traveling"},
-        {"value": "working", "label": "Working/Studying"},
-        {"value": "shopping", "label": "Shopping"},
-        {"value": "housework", "label": "Housework"},
-        {"value": "other", "label": "Other"}
-    ], "showOnce": false, "autoAdvance": true}'),
-
-  -- Info Screen für Wohlbefindensfragen
-  ('wellbeing_info', 'info_screen', 'well-being', 300, 'relaxation', '{"buttonText": "general.continue", "showOnce": false}'),
-
-  -- Allgemeines Wohlbefinden
-  ('overall_wellbeing', 'single_choice', 'well-being', 310, NULL,
-   '{"options": [
-        {"value": "very_good", "label": "Very good"},
-        {"value": "good", "label": "Good"},
-        {"value": "neutral", "label": "Neutral"},
-        {"value": "bad", "label": "Bad"},
-        {"value": "very_bad", "label": "Very bad"}
-    ], "autoAdvance": true}'),
-
-  -- Sicherheitsgefühl
-  ('safety', 'single_choice', 'well-being', 320, NULL,
-   '{"options": [
-        {"value": "very_safe", "label": "Very safe"},
-        {"value": "safe", "label": "Safe"},
-        {"value": "neutral", "label": "Neutral"},
-        {"value": "unsafe", "label": "Unsafe"},
-        {"value": "very_unsafe", "label": "Very unsafe"}
-    ], "autoAdvance": true}'),
-
-  -- Soziale Faktoren
-  ('social_factors', 'multiple_choice', 'well-being', 330, NULL,
-   '{"options": [
-        {"value": "gender", "label": "Gender identity"},
-        {"value": "age", "label": "Age / generation"},
-        {"value": "ethnicity", "label": "Ethnicity / origin"},
-        {"value": "finance", "label": "Socioeconomic status"},
-        {"value": "sexuality", "label": "Sexual orientation"},
-        {"value": "none", "label": "None / Not sure"}
-    ]}'),
-
-  -- Geschlechtseinfluss
-  ('gender_impact', 'slider', 'well-being', 340, NULL,
-   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
-
-  -- Alterseinfluss
-  ('age_impact', 'slider', 'well-being', 350, NULL,
-   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
-
-  -- Einfluss der ethnischen Herkunft
-  ('ethnicity_impact', 'slider', 'well-being', 360, NULL,
-   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
-
-  -- Finanzieller Einfluss
-  ('financial_impact', 'slider', 'well-being', 370, NULL,
-   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
-
-  -- Einfluss der sexuellen Orientierung
-  ('sexual_orientation_impact', 'slider', 'well-being', 380, NULL,
-   '{"values": ["Negative impact", "No or neutral impact", "Positive impact"]}'),
-
-  -- Textliche Reflexion
-  ('reflection', 'text', 'well-being', 500, NULL, NULL);
+('factors_sense_of_belonging', 'multiple_choice', 'well-being', 760, NULL, '{"options": [{"value": "factors_sense_of_belonging_yes_because_of_my_gender"}, {"value": "factors_sense_of_belonging_yes_because_of_my_age"}, {"value": "factors_sense_of_belonging_yes_because_of_my_background"}, {"value": "factors_sense_of_belonging_yes_because_of_my_skin_colour_or_appearance"}, {"value": "factors_sense_of_belonging_yes_because_of_my_language_or_accent"}, {"value": "factors_sense_of_belonging_yes_because_of_my_social_or_financial_situation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_clothing_or_style"}, {"value": "factors_sense_of_belonging_yes_because_of_my_sexual_orientation"}, {"value": "factors_sense_of_belonging_yes_because_of_my_health_condition_or_a_disability"}, {"value": "factors_sense_of_belonging_yes_for_another_reason"}, {"value": "factors_sense_of_belonging_no"}]}'),
+('other_factors', 'text', 'well-being', 770, NULL, '{"options": [{"value": "other_factors_open_text_entry"}]}');
