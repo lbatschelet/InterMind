@@ -6,6 +6,7 @@ import { SurveyLifecycleService } from "./SurveyLifecycleService";
 import SurveyAvailabilityService from "./SurveyAvailabilityService";
 import SurveyDataService from "./SurveyDataService";
 import { FIRST_SURVEY_CHECKED_KEY } from "../../constants/storageKeys";
+import SurveyResponseService from "./SurveyResponseService";
 
 // Re-export für Abwärtskompatibilität
 export { FIRST_SURVEY_CHECKED_KEY } from "../../constants/storageKeys";
@@ -61,7 +62,13 @@ class SurveyService {
     // 1. Mark survey as completed in the repository via SessionService
     await SurveySessionService.completeSurvey(surveyId);
     
-    // 2. Process completion events via LifecycleService
+    // 2. If we have answered questions, mark showOnce questions as answered
+    if (answeredQuestions && answeredQuestions.length > 0) {
+      const questionIds = answeredQuestions.map(q => q.id);
+      await SurveyResponseService.markShowOnceQuestionsAsAnswered(questionIds);
+    }
+    
+    // 3. Process completion events via LifecycleService
     await SurveyLifecycleService.processSurveyCompletion(answeredQuestions);
     
     log.info("Survey completed successfully");
