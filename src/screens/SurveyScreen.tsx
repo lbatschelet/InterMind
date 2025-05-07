@@ -53,6 +53,9 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
 
   // Animation values
   const slideAnim = useRef(new Animated.Value(0)).current;
+  
+  // Ref for the inner ScrollView to reset scroll position
+  const questionScrollViewRef = useRef<ScrollView>(null);
 
   /**
    * Initializes the survey session and loads questions.
@@ -114,6 +117,9 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
     
     // Update index immediately
     setCurrentIndex(nextIndex);
+    
+    // Scroll to top of the new question
+    questionScrollViewRef.current?.scrollTo({ y: 0, animated: false });
     
     // Very fast animation
     Animated.timing(slideAnim, {
@@ -366,6 +372,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                 {/* Mittlerer Bereich: Frage */}
                 <View>
                   <ScrollView
+                    ref={questionScrollViewRef}
                     className="w-full"
                     contentContainerStyle={{
                       paddingVertical: 8, 
