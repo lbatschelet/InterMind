@@ -4,6 +4,7 @@ export * from './survey';
 // Services re-exports von jedem Untermodul
 export * from './device';
 export * from './location';
+export * from './auth';
 
 // Slot-Scheduling-System
 // Vermeide Namenskonflikte mit survey-Exporten

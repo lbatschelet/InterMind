@@ -82,7 +82,8 @@ const fr: TranslationKeys = {
     start: "Commencer le sondage",
     title: "Sondage",
     loading: "Chargement...",
-    loadingDescription: "Veuillez patienter pendant que nous préparons vos questions de sondage..."
+    loadingDescription: "Veuillez patienter pendant que nous préparons vos questions de sondage...",
+    textInputPlaceholder: "Entrez votre réponse..."
   },
   notifications: {
     title: "Un nouveau sondage vous attend.",
