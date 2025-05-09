@@ -80,7 +80,8 @@ export default {
     dataDeleteSuccess: "All survey data has been deleted",
     dataDeleteError: "Error deleting survey data",
     loading: "Loading...",
-    loadingDescription: "Please wait while we prepare your survey questions."
+    loadingDescription: "Please wait while we prepare your survey questions.",
+    textInputPlaceholder: "Enter your answer..."
   },
   notifications: {
     title: "A new survey is waiting for you.",

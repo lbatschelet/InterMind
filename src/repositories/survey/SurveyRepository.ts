@@ -1,7 +1,9 @@
 import { createLogger } from "~/src/utils/logger";
 import { LanguageCode } from "../../locales";
-import { IDatabaseClient, ISurveyRepository } from "../interfaces";
+import { IDatabaseClient, IDatabaseQuery, ISurveyRepository } from "../interfaces";
 import { databaseClient } from "../database";
+import { AuthService } from "../../services/auth";
+import { supabase } from "~/src/lib/supabase";
 
 const log = createLogger("SurveyRepository");
 
@@ -25,9 +27,21 @@ export class SurveyRepository implements ISurveyRepository {
     log.info("Creating new survey for device", { deviceId, language });
 
     try {
-      const { data, error } = await this.dbClient
+      // We need to ensure we're authenticated before DB operations
+      const userId = await AuthService.getCurrentUserId();
+      if (!userId) {
+        // Sign in anonymously if not already signed in
+        await AuthService.signInAnonymously();
+      }
+      
+      // Direct use of supabase instead of going through the abstraction to avoid TS issues
+      const { data, error } = await supabase
         .from("surveys")
-        .insert([{ device_id: deviceId, completed: false, language }])
+        .insert([{ 
+          device_id: deviceId, // Use the actual device ID
+          completed: false, 
+          language
+        }])
         .select("id")
         .single();
 
@@ -55,7 +69,8 @@ export class SurveyRepository implements ISurveyRepository {
   async completeSurvey(surveyId: string): Promise<void> {
     log.info("Marking survey as completed", { surveyId });
 
-    const { error } = await this.dbClient
+    // Direct use of supabase instead of going through the abstraction to avoid TS issues
+    const { error } = await supabase
       .from("surveys")
       .update({ completed: true })
       .eq("id", surveyId);
@@ -74,18 +89,23 @@ export class SurveyRepository implements ISurveyRepository {
   async deleteAllSurveys(deviceId: string): Promise<boolean> {
     log.info("Deleting all surveys for device", { deviceId });
 
-    // Lösche alle Antworten für diese Device-ID (cascade delete)
-    const { error } = await this.dbClient
-      .from("surveys")
-      .delete()
-      .eq("device_id", deviceId);
+    try {
+      // Direct use of supabase instead of going through the abstraction to avoid TS issues
+      const { error } = await supabase
+        .from("surveys")
+        .delete()
+        .eq("device_id", deviceId);
 
-    if (error) {
+      if (error) {
+        log.error("Error deleting surveys", error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
       log.error("Error deleting surveys", error);
       return false;
     }
-
-    return true;
   }
 
   /**
@@ -94,21 +114,24 @@ export class SurveyRepository implements ISurveyRepository {
    * @returns True, wenn das Gerät mindestens eine abgeschlossene Umfrage hat
    */
   async hasCompletedSurveys(deviceId: string): Promise<boolean> {
+    log.debug("Checking if device has completed surveys", { deviceId });
+
     try {
-      const { data, error } = await this.dbClient
+      // Direct use of supabase instead of going through the abstraction to avoid TS issues
+      const { data, error } = await supabase
         .from("surveys")
         .select("id")
         .eq("device_id", deviceId)
         .eq("completed", true);
-      
+
       if (error) {
-        log.error("Error checking completed surveys", error);
-        throw new Error("Failed to check completed surveys");
+        log.error("Error checking for completed surveys", error);
+        return false;
       }
-      
-      return Array.isArray(data) && data.length > 0;
+
+      return data && data.length > 0;
     } catch (error) {
-      log.error("Error in hasCompletedSurveys", error);
+      log.error("Error checking for completed surveys", error);
       return false;
     }
   }

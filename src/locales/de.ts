@@ -82,7 +82,8 @@ const de: TranslationKeys = {
     start: "Umfrage starten",
     title: "Umfrage",
     loading: "Lädt...",
-    loadingDescription: "Bitte warte kurz, während die Umfrage geladen wird..."
+    loadingDescription: "Bitte warte kurz, während die Umfrage geladen wird...",
+    textInputPlaceholder: "Gib deine Antwort ein..."
   },
   notifications: {
     title: "Eine neue Umfrage wartet auf dich.",

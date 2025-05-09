@@ -1,5 +1,9 @@
 import { supabase } from "../../lib/supabase";
 import { IDatabaseClient, IDatabaseQuery } from "../interfaces";
+import { AuthService } from "../../services/auth";
+import { createLogger } from "~/src/utils/logger";
+
+const log = createLogger("SupabaseClient");
 
 /**
  * Adapter für Supabase als Datenbank-Client
@@ -9,11 +13,27 @@ import { IDatabaseClient, IDatabaseQuery } from "../interfaces";
  */
 export class SupabaseClient implements IDatabaseClient {
   /**
+   * Ensures a user is authenticated before DB operations
+   * @private
+   */
+  private async ensureAuthenticated(): Promise<void> {
+    const isAuthenticated = await AuthService.isAuthenticated();
+    
+    if (!isAuthenticated) {
+      log.debug("No authenticated session, signing in anonymously");
+      await AuthService.signInAnonymously();
+    }
+  }
+
+  /**
    * Führt eine Abfrage auf einer Tabelle aus
    * @param table Name der Tabelle
    * @returns Query-Builder
    */
-  from(table: string): IDatabaseQuery {
+  async from(table: string): Promise<IDatabaseQuery> {
+    // Ensure we have an authenticated session before DB operations
+    await this.ensureAuthenticated();
+    
     return new SupabaseQuery(supabase.from(table));
   }
 }

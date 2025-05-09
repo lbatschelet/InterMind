@@ -15,6 +15,7 @@ import { TextInput, View } from "react-native";
 import { Input } from "~/src/components/ui/input";
 import type { QuestionComponentProps } from "~/src/types/question";
 import { createLogger } from "~/src/utils/logger";
+import { useLanguage } from "~/src/contexts/LanguageContext";
 
 // Logger for debugging purposes
 const log = createLogger("TextInputQuestion");
@@ -37,6 +38,7 @@ const TextInputQuestion: React.FC<QuestionComponentProps<"text"> & {
 }) => {
   // Initialize with previous answer if available
   const [text, setText] = useState(initialValue || "");
+  const { t } = useLanguage();
 
   // Submit the initial value if one exists
   useEffect(() => {
@@ -60,7 +62,7 @@ const TextInputQuestion: React.FC<QuestionComponentProps<"text"> & {
     <View className="space-y-4 w-full">
       {/* Texteingabefeld darunter */}
       <Input
-        placeholder="Geben Sie Ihre Antwort ein..."
+        placeholder={t('survey.textInputPlaceholder')}
         value={text}
         onChangeText={handleTextChange}
         multiline={true}

@@ -35,6 +35,8 @@ import { getImage } from "~/src/lib/images";
 import Markdown from 'react-native-markdown-display';
 import { getImageHeight, infoScreenStyles, markdownStyles } from "~/src/styles/infoScreenStyles";
 import { platformStyles } from "~/src/styles/platformStyles";
+import { AuthService } from "../services/auth";
+import { surveyRepository } from "../repositories/survey";
 
 const log = createLogger("SettingsScreen");
 
@@ -131,6 +133,32 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
 
       if (surveysDeleted) {
         log.info("All data successfully deleted.");
+        
+        // Verify nothing remains in the database with this device ID
+        const hasAnyData = await surveyRepository.hasCompletedSurveys(currentDeviceId);
+        if (hasAnyData) {
+          log.warn("Some data still exists after deletion, but proceeding with identity reset");
+        }
+        
+        // Sign out current anonymous user
+        try {
+          log.info("Signing out current anonymous user");
+          await AuthService.signOut();
+          
+          // Generate new device ID
+          const newDeviceId = await DeviceService.generateNewDeviceId();
+          log.info("Generated new device ID after user reset", { newDeviceId });
+          
+          // Sign in with a new anonymous account
+          log.info("Creating new anonymous user");
+          await AuthService.signInAnonymously();
+          
+          log.info("Identity reset completed successfully");
+        } catch (authError) {
+          log.error("Error during auth reset", authError);
+          // Continue anyway since data is deleted
+        }
+        
         setDeleteStatus("success");
         
         setTimeout(() => {

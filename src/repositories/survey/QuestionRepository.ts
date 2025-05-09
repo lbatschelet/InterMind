@@ -3,6 +3,8 @@ import { LanguageCode } from "../../locales";
 import { Question } from "../../types/question";
 import { IDatabaseClient, IQuestionRepository } from "../interfaces";
 import { databaseClient } from "../database";
+import { supabase } from "~/src/lib/supabase";
+import { AuthService } from "../../services/auth";
 
 const log = createLogger("QuestionRepository");
 
@@ -104,7 +106,7 @@ export class QuestionRepository implements IQuestionRepository {
    */
   clearCache(language?: LanguageCode): void {
     this.questionCache.clear(language);
-    log.info(`Question cache cleared ${language ? `for language ${language}` : 'for all languages'}`);
+    log.info("Question cache cleared", { language: language || 'all' });
   }
 
   /**
@@ -127,8 +129,16 @@ export class QuestionRepository implements IQuestionRepository {
     log.info("Fetching survey questions from database", { language });
     
     try {
-      // Join der Basistabelle mit Übersetzungstabelle für die spezifische Sprache
-      const { data, error } = await this.dbClient
+      // Ensure we are authenticated
+      const isAuthenticated = await AuthService.isAuthenticated();
+      
+      if (!isAuthenticated) {
+        log.info("Not authenticated, signing in anonymously");
+        await AuthService.signInAnonymously();
+      }
+      
+      // Now use the supabase client
+      const { data, error } = await supabase
         .from('questions')
         .select(`
           id,
@@ -143,7 +153,7 @@ export class QuestionRepository implements IQuestionRepository {
 
       if (error) {
         log.error("Error fetching questions", error);
-        throw new Error("Failed to fetch questions.");
+        throw new Error("Failed to fetch questions: " + error.message);
       }
 
       if (!data || data.length === 0) {
@@ -177,7 +187,7 @@ export class QuestionRepository implements IQuestionRepository {
     const formattedQuestions = data.map(item => {
       // Finde die Übersetzung für die aktuelle Sprache
       const translation = item.translations.find(t => t.language === language) || 
-                          { title: '', text: '', options_content: null };
+                        { title: '', text: '', options_content: null };
       
       // Basisdaten
       const baseQuestion = {
@@ -199,7 +209,7 @@ export class QuestionRepository implements IQuestionRepository {
         const baseOptions = typeof item.options_structure === 'string' 
           ? JSON.parse(item.options_structure) 
           : item.options_structure;
-        
+          
         // Versuche, die language-spezifischen options_content zu parsen
         const langOptions = translation.options_content 
           ? (typeof translation.options_content === 'string' 
@@ -211,7 +221,7 @@ export class QuestionRepository implements IQuestionRepository {
         if (baseOptions) {
           if ('showOnce' in baseOptions) {
             showOnce = !!baseOptions.showOnce;
-          }
+        }
           if ('autoAdvance' in baseOptions) {
             autoAdvance = !!baseOptions.autoAdvance;
           }
@@ -233,7 +243,7 @@ export class QuestionRepository implements IQuestionRepository {
               options = { values: langOptions.values };
             } else if (baseOptions && 'values' in baseOptions) {
               options = { values: baseOptions.values };
-            }
+          }
             break;
             
           case 'info_screen':

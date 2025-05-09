@@ -10,7 +10,7 @@ export interface IDatabaseClient {
    * @param table Name der Tabelle
    * @returns Query-Builder
    */
-  from(table: string): IDatabaseQuery;
+  from(table: string): IDatabaseQuery | Promise<IDatabaseQuery>;
 }
 
 /**

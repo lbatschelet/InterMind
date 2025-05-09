@@ -17,6 +17,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { LoadingScreen } from './screens';
 import { FIRST_SURVEY_CHECKED_KEY } from './constants/storageKeys';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AuthService } from './services/auth';
 
 // Splash-Screen wird manuell gehalten bis die App bereit ist
 SplashScreen.preventAutoHideAsync().catch(() => {
@@ -125,6 +126,14 @@ export default function App() {
       globalInitStatus.isInitializing = true;
       
       log.info('Starting app initialization...');
+      
+      // Initialize authentication - sign in anonymously if needed
+      try {
+        await AuthService.signInAnonymously();
+        log.info('Authentication initialized');
+      } catch (authError) {
+        log.error('Error initializing authentication, continuing anyway', authError);
+      }
       
       // Prüfen, ob die erste Umfrage bereits abgeschlossen wurde
       const firstSurveyCompleted = await checkIfFirstSurveyCompleted();

@@ -2,6 +2,8 @@ import { createLogger } from "~/src/utils/logger";
 import { IDatabaseClient } from "../interfaces";
 import { IScreenContentRepository, ScreenContent } from "../interfaces/IScreenContentRepository";
 import { databaseClient } from "../database";
+import { supabase } from "~/src/lib/supabase";
+import { AuthService } from "~/src/services/auth";
 
 const log = createLogger("ScreenContentRepository");
 
@@ -33,8 +35,15 @@ export class ScreenContentRepository implements IScreenContentRepository {
         return this.contentCache[cacheKey];
       }
       
-      // Query the database for screen content with translations
-      const { data, error } = await this.dbClient
+      // Ensure we're authenticated
+      const isAuthenticated = await AuthService.isAuthenticated();
+      if (!isAuthenticated) {
+        log.info("Not authenticated, signing in anonymously");
+        await AuthService.signInAnonymously();
+      }
+      
+      // Query the database for screen content with translations using direct supabase client
+      const { data, error } = await supabase
         .from('screen_content')
         .select(`
           id, 
@@ -84,7 +93,15 @@ export class ScreenContentRepository implements IScreenContentRepository {
    */
   async getAllContentIds(): Promise<string[]> {
     try {
-      const { data, error } = await this.dbClient
+      // Ensure we're authenticated
+      const isAuthenticated = await AuthService.isAuthenticated();
+      if (!isAuthenticated) {
+        log.info("Not authenticated, signing in anonymously");
+        await AuthService.signInAnonymously();
+      }
+      
+      // Use direct supabase client
+      const { data, error } = await supabase
         .from('screen_content')
         .select('id')
         .eq('is_active', true);
