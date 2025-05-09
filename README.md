@@ -30,6 +30,39 @@ InterMind is a survey application designed for gathering and analyzing user feed
 2. Install dependencies: `yarn install` or `npm install`
 3. Start the development server: `yarn start` or `npm start`
 
+### Build
+
+#### Android
+
+```bash
+eas build --platform android --profile production --local    
+```
+
+For the first upload to the Play Store Dashboard you need to upload the build manually.
+
+For every subsequent upload you can use EAS.
+
+```bash
+eas submit --platform android --profile beta --path <path-to-build>
+```
+
+
+
+
+#### iOS
+
+To build the iOS app, you need to have Xcode installed.
+
+Open the project in Xcode:
+
+```bash
+xed ios
+```
+
+In the menu go to `Product` -> `Archive`. This will start the build process.
+
+After the build is finished you can distribute it directly from Xcode.
+
 ### Documentation
 
 InterMind uses [TypeDoc](https://typedoc.org/) to generate comprehensive API documentation from JSDoc comments in the source code.
