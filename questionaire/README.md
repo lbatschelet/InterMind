@@ -13,12 +13,11 @@
 ## Importing the questionaire into the database
 
 1. Use the script 'excel_to_sql.py' to convert the questionaire into a SQL file.
-2. Run the script with the following command: (Keep in mind that for this command to directly work, you need to set the working directory to the questionaire folder)
+2. Run the script with the following command:
 
 ```bash
-python excel_to_sql.py questionaire.xlsx -o questionaire.sql
+python questionnaire/excel_to_sql.py questionnaire/Questionnaire.xlsx -d supabase/seeds
 ```
 
-3. Import the generated SQL file into the database.
-
+3. Import the generated SQL file into the database using the common Supabase workflow using the 'supabase/seeds' folder.
 
