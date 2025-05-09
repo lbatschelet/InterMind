@@ -53,6 +53,10 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
 
   // Animation values
   const slideAnim = useRef(new Animated.Value(0)).current;
+  
+  // Refs for both ScrollViews to reset scroll position
+  const outerScrollViewRef = useRef<ScrollView>(null);
+  const questionScrollViewRef = useRef<ScrollView>(null);
 
   /**
    * Initializes the survey session and loads questions.
@@ -114,6 +118,10 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
     
     // Update index immediately
     setCurrentIndex(nextIndex);
+    
+    // Reset scroll positions for both ScrollViews
+    outerScrollViewRef.current?.scrollTo({ y: 0, animated: false });
+    questionScrollViewRef.current?.scrollTo({ y: 0, animated: false });
     
     // Very fast animation
     Animated.timing(slideAnim, {
@@ -354,18 +362,19 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
             style={{ flex: 1, transform: [{ translateX: slideAnim }] }}
           >
             <ScrollView
+              ref={outerScrollViewRef}
               contentContainerStyle={{ paddingHorizontal: 24, paddingVertical: 16, flexGrow: 1 }}
               showsVerticalScrollIndicator
               keyboardShouldPersistTaps="handled"
             >
               <View className="flex-1 flex-col justify-between">
-
                 {/* Oberhalb der Frage und Antworten: flexibler Abstand */}
                 <View className="flex-grow" />
                 
                 {/* Mittlerer Bereich: Frage */}
                 <View>
                   <ScrollView
+                    ref={questionScrollViewRef}
                     className="w-full"
                     contentContainerStyle={{
                       paddingVertical: 8, 
