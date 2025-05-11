@@ -1,111 +1,62 @@
 # Contributing to InterMind
 
-Thank you for your interest in contributing to InterMind! This document provides guidelines and instructions for contributing to this project.
+Thank you for your interest in contributing to **InterMind**!
 
-## Table of Contents
+This project began as part of a Bachelor's thesis at the University of Bern and is being gradually generalized for broader use. Contributions are welcome in many forms — whether you're improving code, writing documentation, or sharing ideas.
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Environment](#development-environment)
-- [Project Structure](#project-structure)
-- [Coding Standards](#coding-standards)
-- [Documentation](#documentation)
-- [Pull Request Process](#pull-request-process)
-- [Adding New Features](#adding-new-features)
+## 1. Code Structure and Conventions
 
-## Code of Conduct
+- The codebase is written in **TypeScript** using **React Native** (with Expo).
+- Components are located in `src/` and organized by purpose (questions, screens, services, etc.).
+- Please follow consistent naming and structure.
+- Use **JSDoc** to document your functions, components, and types.
 
-We expect all contributors to follow our [Code of Conduct](CODE_OF_CONDUCT.md). Please make sure you read and understand it.
+If you're adding a **new question type**, please:
 
-## Getting Started
+1. Create a component under `src/components/questions/`
+2. Extend the type definitions in `src/types/questions.ts`
+3. Add it to the question renderer in `SurveyScreen`
+4. Document it in `src/docs/developer/adding-question-types.md`
 
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR-USERNAME/InterMind.git`
-3. Create a branch for your work: `git checkout -b your-feature-name`
-4. Set up the development environment (see below)
+## 2. Documentation
 
-## Development Environment
+We use [TypeDoc](https://typedoc.org/) to generate API documentation:
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Start the development server:
-   ```bash
-   npm start
-   ```
-
-## Project Structure
-
-The repository is organized as follows:
-
-- `/src` - Source code
-  - `/components` - React components
-    - `/ui` - UI components
-    - `/QuestionTypes` - Question type components
-  - `/contexts` - React contexts
-  - `/hooks` - Custom hooks
-  - `/lib` - Utility libraries
-  - `/screens` - Screen components
-  - `/services` - Backend service integrations
-  - `/types` - TypeScript type definitions
-  - `/utils` - Utility functions
-
-## Coding Standards
-
-- Use TypeScript for all new code
-- Follow the existing coding style in the project
-- Use JSDoc comments for all public functions, classes, and interfaces
-- Use named exports instead of default exports when possible
-- Write tests for all new features
-
-## Documentation
-
-Documentation is a critical part of the project. Please follow these guidelines:
-
-1. Use JSDoc comments for all public API elements
-2. Document all components, props, and state
-3. Include examples where appropriate
-4. Update docs when you change code
-
-Example JSDoc format:
-
-```typescript
-/**
- * @packageDocumentation
- * @module Components/QuestionTypes
- * 
- * @summary
- * Brief description of the component.
- * 
- * @remarks
- * - More detailed information
- * - Multiple bullet points for key information
- */
-
-/**
- * Component description.
- * 
- * @component
- * @param {ComponentProps} props - Component props
- * @param {string} props.id - Description of the id prop
- * @returns JSX Element
- */
+```bash
+npm run docs
 ```
 
-## Pull Request Process
+Output will appear in the `docs/` directory. Additional technical notes live in `src/docs/`.
 
-1. Ensure all tests pass
-2. Update documentation if needed
-3. Add detailed description of changes
-4. Link to any relevant issues
-5. Get at least one review before merging
+## 3. Submitting Pull Requests
 
-## Adding New Features
+* Fork the repo and create a branch from `main`
+* Keep commits focused and clear
+* Ensure your code builds and runs
+* Open a Pull Request with a short summary and motivation
 
-For adding major features or new question types, please refer to:
+If you're unsure where to start, feel free to open a draft PR or start a discussion.
 
-- [Adding New Question Types](src/docs/developer/adding-question-types.md)
+## 4. Good First Ideas
 
-Thank you for contributing! 
+Some areas that need improvement or extension:
+
+1. **Refactoring:**
+   Several parts of the codebase are still messy or inconsistent. The goal is to move toward clean, modular structure following the **SOLID principles**.
+
+2. **Testing:**
+   Only a few unit tests exist. Improving test coverage and creating a robust testing setup would be a great contribution.
+
+3. **Conditional Logic Between Questions:**
+   Currently, there’s no way to show/hide questions based on previous answers (e.g. “If selected option A, then skip next question”).
+   Adding support for **question branching/logic rules** would be a major improvement.
+
+## 5. License and Contribution Terms
+
+This project is licensed under the **GNU AGPL v3.0**.
+
+By contributing:
+
+* You agree to publish your code under the same license
+* You retain authorship and will be credited in the repo history
+* Please avoid submitting code with AGPL-incompatible dependencies without discussion
