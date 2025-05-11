@@ -63,7 +63,7 @@ This creates a new file `survey_translated.xlsx` with translated sheets (`en-us`
 Convert the translated Excel file into SQL seed files:
 
 ```bash
-python excel_to_sql.py survey_translated.xlsx -d supabase/seeds
+python questionnaire/excel_to_sql.py questionnaire/survey_translated.xlsx -d supabase/seeds
 ```
 
 This creates:

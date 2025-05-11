@@ -1,115 +1,58 @@
 # InterMind
 
-InterMind is a survey application designed for gathering and analyzing user feedback through various question types.
+[![Expo](https://img.shields.io/badge/built%20with-Expo-1f2026?logo=expo)](https://expo.dev/)
+[![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e?logo=supabase)](https://supabase.io/)
+[![License: AGPL v3](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.html)
+[![TypeScript](https://img.shields.io/badge/code-TypeScript-3178c6?logo=typescript)](https://www.typescriptlang.org/)
+
+**InterMind** is a mobile survey tool developed as part of a Bachelor's thesis at the Institute of Geography, University of Bern. The app is designed to collect repeated, location-based responses to a variety of question types and supports multilingual content structures.
+
+> [!NOTE] 
+> A more generic version of InterMind is planned to make it easily reusable for other studies. Currently, the code is tailored to the needs of the "InterMind" study.
+
+> [!WARNING]
+> Due to App store review processes and technical setup, releasing a publicly available version typically requires **at least one month** of lead time.
 
 ## Features
 
-- Multiple question types: single-choice, multiple-choice, slider, text input, and info screens
-- Support for image integration in questions
-- Multilingual content with translation system
-- User response tracking and data persistence
+- Repeated survey prompts with geolocation
+- Supports single-choice, multiple-choice, sliders, free-text input, and info screens
+- Optional image integration in questions
+- Translation system for multilingual surveys
+- Response tracking and anonymous persistence using Supabase
 
 ## Technology Stack
 
-- React Native for mobile application
-- Supabase as Backend-as-a-Service
-- TypeScript for type-safe development
-- Expo for streamlined development and deployment
+- [Expo](https://docs.expo.dev/) for React Native development
+- [TypeScript](https://www.typescriptlang.org/) for safe and scalable code
+- [Supabase](https://supabase.io/) for backend, database, and authentication
+- [EAS Build](https://docs.expo.dev/build/introduction/) for app publishing
 
-## Development
+## Getting Started
 
-### Prerequisites
+To run the app locally, you will need:
 
-- Node.js (16+)
-- Yarn or npm
-- React Native development environment
+- [Node.js (≥16)](https://nodejs.org/)
+- [Expo CLI](https://docs.expo.dev/get-started/installation/)
+- A configured [Supabase project](https://supabase.com/docs/guides/getting-started)
 
-### Setup
+See [Expo’s Getting Started Guide](https://docs.expo.dev/get-started/installation/) for setup instructions.
 
-1. Clone the repository
-2. Install dependencies: `yarn install` or `npm install`
-3. Start the development server: `yarn start` or `npm start`
+## Contributing & Reuse
 
-### Build
+InterMind is licensed under the [GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.html), which means that any public use of a modified version (e.g. hosted as a web service or app) must also make its source code available under the same license.
 
-#### Android
+### Adapting for Your Own Study
 
-```bash
-eas build --platform android --profile production --local    
-```
+If you would like to use InterMind for a different research project:
 
-For the first upload to the Play Store Dashboard you need to upload the build manually.
+- See [ADAPTING.md](ADAPTING.md) for guidance on customization and setup
+- You are free to fork and modify the project under the terms of the AGPL license
+- If you publish a hosted version, you must make your code available as well
 
-For every subsequent upload you can use EAS.
+### Contributing Code
 
-```bash
-eas submit --platform android --profile beta --path <path-to-build>
-```
+We welcome improvements and extensions to the base project.
 
-
-
-
-#### iOS
-
-To build the iOS app, you need to have Xcode installed.
-
-Open the project in Xcode:
-
-```bash
-xed ios
-```
-
-In the menu go to `Product` -> `Archive`. This will start the build process.
-
-After the build is finished you can distribute it directly from Xcode.
-
-### Documentation
-
-InterMind uses [TypeDoc](https://typedoc.org/) to generate comprehensive API documentation from JSDoc comments in the source code.
-
-To generate the documentation:
-
-```bash
-npm run docs
-```
-
-The documentation will be available in the `docs` directory.
-
-#### Documentation Resources
-
-- [API Documentation](docs/api) - API reference and integration details
-- [Adding New Question Types](src/docs/developer/adding-question-types.md) - Guide for implementing new question types
-
-#### JSDoc Format
-
-We use a standardized JSDoc format throughout the codebase:
-
-```typescript
-/**
- * @packageDocumentation
- * @module [ModuleName]
- * 
- * @summary
- * Brief description of the component or module.
- * 
- * @remarks
- * - Additional detailed information
- * - Multiple points can be listed here
- */
-
-/**
- * Component or function description.
- * 
- * @component or @function
- * @param {Type} name - Description of the parameter
- * @returns Description of the return value
- */
-```
-
-## Contributing
-
-Please see [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+- See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on code contributions, documentation, and structure
+- If you adapt this project for your own study, please provide appropriate attribution.
