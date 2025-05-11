@@ -11,17 +11,44 @@ VALUES (
   'about',
   'en',
   'About InterMind',
-  '**InterMind** is a research app developed by Lukas Batschelet at the Institute of Geography, University of Bern. It collects data on wellbeing from an intersectional and spatial perspective. The app is part of a Bachelor''s thesis and is used exclusively for academic research.
+  '**InterMind** was developed by Lukas Batschelet at the Institute of Geography, University of Bern. The app is part of a Bachelor''s thesis supervised by Prof. Dr. Carolin Schurr and Dr. Moritz Gubler. It is used exclusively for academic research to investigate how our immediate environment influences momentary wellbeing.
+
+## What Do We Mean by Wellbeing?
+
+Wellbeing can mean many things. Sometimes it refers to something long-term – for example, how satisfied we are with our lives, how healthy we feel, or whether we feel safe and supported in everyday life.
+
+However, this study focuses on **momentary wellbeing**: How are you feeling **right now**, in this place, in this situation?
+
+Wellbeing is understood holistically – it includes both **physical** aspects (e.g. fatigue, warmth, calm) and **psychological** feelings (e.g. satisfaction, safety, belonging). These impressions are often fleeting and strongly depend on where we are, what we are doing, and how we are perceived.
+
+## Why Are We Investigating This?
+
+How we feel in a place depends heavily on our surroundings. Some places feel calming, familiar, or welcoming. Others make us feel uneasy, excluded, or out of place.
+
+These experiences are not the same for everyone. They may depend on how we are perceived and treated – for example, based on gender, origin, language, appearance, or other characteristics that shape our social position.
+
+We are interested in how various characteristics – alone or in combination – affect momentary wellbeing. For example: Does a young woman with a migration background feel differently in a public space than an older man at the same place and time?
+
+This study explores why places affect people differently. We aim to understand how feelings of belonging, safety, or exclusion arise – and how these experiences are related to everyday life, social attribution, and personal circumstances.
+
+## How Does Participation Work?
+
+The study lasts for one week. During this time, you will be asked to complete a short survey on your smartphone three times a day. The questions cover:
+
+* the place you are currently in  
+* what you are doing there  
+* how you are feeling  
+* and whether you feel a sense of belonging or exclusion
+
+Each survey is available for one hour and then expires automatically. The time points are slightly randomized across the day to avoid repetition.
+
+If you miss a survey, no problem – just take part in the next one.
 
 ## Licences
 
 **App source code**  
-Licensed under the GNU AGPL 3.0  
-Available at: [github.com/lbatschelet/InterMind](https://github.com/lbatschelet/InterMind)
-
-**Publications**  
-Licensed under Creative Commons CC BY-SA-NC 4.0  
-Available at: [intermind.ch](https://intermind.ch)
+Available on [GitHub](https://github.com/lbatschelet/InterMind)  
+Licensed under the [GNU AGPL 3.0](https://www.gnu.org/licenses/agpl-3.0.html)
 
 ## Graphics
 
@@ -35,13 +62,15 @@ VALUES (
   'privacy',
   'en',
   'Privacy Policy',
-  '**InterMind** is a research app developed as part of a Bachelor''s thesis at the Institute of Geography, University of Bern. The project is supervised by Prof. Dr. Carolin Schurr and Dr. Moritz Gubler. This Privacy Policy explains what data we collect, how it is processed, and your rights as a participant.
+  'InterMind is part of a scientific study conducted at the Institute of Geography, University of Bern. The app is used in the context of a Bachelor''s thesis by Lukas Batschelet, supervised by Prof. Dr. Carolin Schurr and Dr. Moritz Gubler.
 
-## 1. Who Is Responsible?
+This privacy policy explains what data is collected, how it is processed, and what rights you have as a participant.
+
+## 1. Who is responsible?
 
 The data controller is:
 
-**Institute of Geography**  
+Institute of Geography  
 University of Bern  
 Hallerstrasse 12  
 3012 Bern, Switzerland
@@ -49,51 +78,51 @@ Hallerstrasse 12
 For any questions or concerns, please contact:  
 [lukas.batschelet@unibe.ch](mailto:lukas.batschelet@unibe.ch)
 
-## 2. What Data Is Collected?
+## 2. What data is collected?
 
 We collect the following information:
 
-- **Demographic data**, such as age and gender identity  
-- **Survey responses** about your emotions, thoughts, and surroundings  
-- **Location data** (GPS) — collected **only at the moment** of each survey entry, not continuously
+- Demographic data, such as age and gender identity  
+- Survey responses about your emotions, thoughts, and surroundings  
+- Location data (GPS) — collected only at the moment of each survey entry, not continuously
 
-We do **not** collect any personally identifying information. No name, phone number, email address or similar data is recorded.
+We do not collect any personally identifying information. No name, phone number, email address, or similar data is recorded.
 
-## 3. Why Do We Collect This Data?
+## 3. Why do we collect this data?
 
-The data is collected exclusively for **scientific research** at the Institute of Geography, University of Bern. It helps us understand how different people experience urban space and how these experiences relate to wellbeing.
+The data is collected exclusively for scientific research at the Institute of Geography, University of Bern. It helps us understand how different people experience their surroundings and how these experiences relate to their sense of wellbeing.
 
-Your data will **never** be used for commercial purposes.
+Your data will never be used for commercial purposes.
 
-## 4. Legal Basis
+## 4. Legal basis
 
-This study is conducted in accordance with the **Swiss Federal Act on Data Protection (FADP / DSG)**. All data processing is lawful, proportional, and based on informed consent.
+This study is conducted in accordance with the Swiss Federal Act on Data Protection (FADP / DSG). All data processing is lawful, proportionate, and based on informed consent.
 
-## 5. Data Storage and Retention
+## 5. Data storage and retention
 
 Your data is:
 
-- Stored securely on a server **currently located in Zurich, Switzerland**
-- Hosted by the provider **Supabase**
-- Protected through encryption and access controls
-- Fully **anonymised** and cannot be linked back to you
-- Retained **only as long as necessary for the research purpose**
+- Stored securely on a server currently located in Zurich, Switzerland  
+- Hosted by the provider Supabase  
+- Protected through encryption and access controls  
+- Fully anonymised and cannot be linked back to you  
+- Retained only as long as necessary for the research purpose
 
-By default, your data remains stored **until you actively delete it** via the app settings. You may delete your data at any time. Once deleted, it cannot be recovered.
+By default, your data remains stored until you actively delete it via the app settings. You may delete your data at any time. Once deleted, it cannot be recovered.
 
 The current hosting setup may be adjusted in the future (e.g. provider or server location), but any such changes will continue to comply with Swiss data protection law and ensure the same level of data security and privacy.
 
-## 6. Who Can Access Your Data?
+## 6. Who can access your data?
 
 Your data is:
 
-- Used **exclusively** for research purposes at the University of Bern  
-- **Not shared** with third parties outside the research team  
-- Fully **anonymous** and cannot be traced back to you
+- Used exclusively for research purposes at the University of Bern  
+- Not shared with third parties outside the research team  
+- Fully anonymous and cannot be traced back to you
 
 Future research projects may reuse anonymized data within the Institute of Geography only.
 
-## 7. Your Rights
+## 7. Your rights
 
 Under Swiss data protection law, you have the right to:
 
@@ -104,12 +133,11 @@ Under Swiss data protection law, you have the right to:
 
 Please note: Since your data is completely anonymised, we cannot retrieve or modify individual entries.
 
-## 8. Changes to This Policy
+## 8. Changes to this policy
 
 We may update this policy to reflect changes in the research project, infrastructure, or legal requirements. Any updates will be published in the app.
 
-**This Privacy Policy was last updated on 17 April 2025.**
-'
+This privacy policy was last updated on 11 May 2025.'
 );
 
 -- Consent Screen - English
@@ -118,37 +146,28 @@ VALUES (
   'consent',
   'en',
   'Consent',
-  'As part of this study, we will ask you some questions—first about yourself (e.g. age, gender identity), and then about your feelings and your surrounding environment at different moments in your day. Your responses help us understand how different people experience urban spaces and how these experiences relate to wellbeing.
+  'Before you start the survey, we ask for your consent to participate in this study.
 
-**Participation is voluntary**. You can skip any question by selecting "Prefer not to say." You can also delete all your data at any time via the app settings.
+Participation is voluntary.  
+You can skip individual questions (e.g. with "No response") and end your participation at any time.  
+You can also delete your data completely later in the app settings.
 
-## What Data Will Be Collected?
+## What data is collected?
 
-- **Demographic data**, such as your age and gender identity  
-- **Survey responses** about your emotions, thoughts, and surroundings  
-- **Location data** via GPS (if you choose to allow it)
+- Personal details (e.g. age, gender, education)
+- Answers about your current state of health and location
+- Location data, provided you give your consent
 
-We do **not** collect your name, phone number, email address, or any other identifying information. Your responses are **completely anonymous** and **cannot be linked to you**.
+## How do we handle your data?
 
-## How Will Your Data Be Used?
+- We do not store names, email addresses or other personal contact details
+- Your data is stored anonymously on a secure Supabase server in Switzerland
+- No movement profiles or permanently retrievable location histories are recorded
+- Your data will only be used for scientific purposes and will not be passed on to third parties
 
-Your data will be:
+By clicking "I agree", you confirm that you have read and understood this information and are voluntarily participating in the study. You can end your participation at any time and delete your data via the app settings.
 
-- Used for **academic research** on wellbeing and urban space
-- Stored securely on a **password-protected server**
-- **Not shared** with third parties
-- **Anonymized** and **non-identifiable**
-- Deletable by you at any time through the app
-
-## Your Consent
-
-By tapping **"I Agree"**, you confirm that:
-
-- You understand the purpose of this study
-- You agree to participate voluntarily
-- You can withdraw at any time by deleting your data in the app settings
-
-Please read our [Privacy Policy](https://intermind.ch/privacy-policy.html) for more details.'
+Further information can be found in our [Privacy Policy](https://intermind.ch/privacy-policy.html).'
 );
 
 -- =============================
@@ -161,17 +180,44 @@ VALUES (
   'about',
   'de',
   'Über InterMind',
-  '**InterMind** ist eine Forschungs-App, die von Lukas Batschelet am Institut für Geographie der Universität Bern entwickelt wurde. Sie sammelt Daten zum Wohlbefinden aus einer intersektionalen und räumlichen Perspektive. Die App ist Teil einer Bachelorarbeit und wird ausschließlich für akademische Forschung verwendet.
+  '**InterMind** wurde von Lukas Batschelet am Geographischen Institut der Universität Bern entwickelt. Die App ist Teil einer Bachelorarbeit, betreut von Prof. Dr. Carolin Schurr und Dr. Moritz Gubler. Sie wird ausschliesslich für wissenschaftliche Forschungszwecke eingesetzt und untersucht, wie unsere unmittelbare Umgebung das momentane Wohlbefinden beeinflusst.
+
+## Was meinen wir mit Wohlbefinden?
+
+Wohlbefinden kann vieles bedeuten. Manchmal geht es dabei um etwas Langfristiges – zum Beispiel, wie zufrieden wir mit unserem Leben insgesamt sind, wie gesund wir uns fühlen oder ob wir uns sicher und unterstützt fühlen im Alltag.
+
+In dieser Studie interessiert uns jedoch vor allem das **momentane Wohlbefinden**: Wie geht es Dir **jetzt gerade**, an diesem Ort, in dieser Situation?
+
+Wohlbefinden ist dabei ganzheitlich zu verstehen – es umfasst sowohl **körperliche** Aspekte (z. B. Müdigkeit, Wärme, Ruhe), als auch **psychische** Empfindungen (z. B. Zufriedenheit, Sicherheit, Zugehörigkeit). Diese kurzfristigen Eindrücke sind oft flüchtig und hängen stark davon ab, wo wir uns aufhalten, was wir gerade tun und wie wir dort wahrgenommen werden.
+
+## Warum untersuchen wir das?
+
+Wie wir uns an einem Ort fühlen, hängt stark von unserer Umgebung ab. Manche Orte wirken beruhigend, vertraut oder einladend. Andere lassen uns unruhig werden, ausgegrenzt erscheinen oder fehl am Platz fühlen.
+
+Solche Erfahrungen sind jedoch nicht für alle Menschen gleich. Sie können davon abhängen, wie wir an einem Ort wahrgenommen und behandelt werden – zum Beispiel aufgrund von Geschlecht, Herkunft, Sprache, Aussehen oder anderen Merkmalen, die unsere gesellschaftliche Position prägen.
+
+Uns interessiert, wie sich verschiedene Merkmale – einzeln oder in Kombination – auf das momentane Wohlbefinden auswirken. Zum Beispiel: Fühlt sich eine junge Frau mit Migrationsgeschichte an einem öffentlichen Ort anders als ein älterer Mann, der sich zur gleichen Zeit am gleichen Ort aufhält?
+
+In der Studie gehen wir der Frage nach, warum Orte auf verschiedene Menschen unterschiedlich wirken. Wir wollen besser verstehen, wie Zugehörigkeit, Sicherheit oder ein Gefühl des Nicht-Dazugehörens entstehen – und wie diese Erfahrungen mit dem Alltag, sozialen Zuschreibungen und persönlichen Lebenslagen zusammenhängen.
+
+## Wie läuft die Teilnahme ab?
+
+Die Studie dauert eine Woche. In dieser Zeit wirst Du dreimal täglich gebeten, eine kurze Befragung auf deinem Smartphone auszufüllen. Dabei geht es jeweils um:
+
+* den Ort, an dem Du dich gerade befindest  
+* was Du dort machst  
+* wie Du dich fühlst  
+* und ob Du dich dort zugehörig oder fremd erlebst
+
+Jede Befragung ist jeweils für eine Stunde verfügbar und verfällt danach automatisch. Die Zeitpunkte sind leicht zufällig über den Tag verteilt, damit nicht immer zur gleichen Zeit und am gleichen Ort geantwortet wird.
+
+Wenn Du eine Befragung verpasst, ist das kein Problem – Du kannst beim nächsten Zeitpunkt einfach wieder teilnehmen.
 
 ## Lizenzen
 
-**App-Quellcode**  
-Lizenziert unter GNU AGPL 3.0  
-Verfügbar unter: [github.com/lbatschelet/InterMind](https://github.com/lbatschelet/InterMind)
-
-**Publikationen**  
-Lizenziert unter Creative Commons CC BY-SA-NC 4.0  
-Verfügbar unter: [intermind.ch](https://intermind.ch)
+**Quellcode der App**  
+Verfügbar auf [GitHub](https://github.com/lbatschelet/InterMind)  
+Lizenziert unter der [GNU AGPL 3.0](https://www.gnu.org/licenses/agpl-3.0.html)
 
 ## Grafiken
 
@@ -185,81 +231,82 @@ VALUES (
   'privacy',
   'de',
   'Datenschutzerklärung',
-  '**InterMind** ist eine Forschungs-App, die im Rahmen einer Bachelorarbeit am Institut für Geographie der Universität Bern entwickelt wurde. Das Projekt wird von Prof. Dr. Carolin Schurr und Dr. Moritz Gubler betreut. Diese Datenschutzerklärung erläutert, welche Daten wir erheben, wie sie verarbeitet werden und welche Rechte Sie als Teilnehmer haben.
+  'InterMind ist Teil einer wissenschaftlichen Studie am Geographischen Institut der Universität Bern. Die App wird im Rahmen einer Bachelorarbeit von Lukas Batschelet eingesetzt, die von Prof. Dr. Carolin Schurr und Dr. Moritz Gubler betreut wird.
+
+Diese Datenschutzrichtlinie erklärt, welche Daten erhoben werden, wie sie verarbeitet werden und welche Rechte dir als teilnehmende Person zustehen.
 
 ## 1. Wer ist verantwortlich?
 
 Verantwortlich für die Datenverarbeitung ist:
 
-**Institut für Geographie**  
+Geographisches Institut  
 Universität Bern  
 Hallerstrasse 12  
 3012 Bern, Schweiz
 
-Bei Fragen oder Anliegen kontaktieren Sie bitte:  
+Bei Fragen oder Anliegen kannst du dich an folgende Adresse wenden:  
 [lukas.batschelet@unibe.ch](mailto:lukas.batschelet@unibe.ch)
 
 ## 2. Welche Daten werden erhoben?
 
-Wir erheben folgende Informationen:
+Wir erfassen folgende Informationen:
 
-- **Demografische Daten** wie Alter und Geschlechtsidentität  
-- **Umfrageantworten** zu Ihren Emotionen, Gedanken und Ihrer Umgebung  
-- **Standortdaten** (GPS) — werden **nur zum Zeitpunkt** jeder Umfrageeingabe erfasst, nicht kontinuierlich
+- Soziodemografische Angaben, wie Alter und Geschlechtsidentität  
+- Antworten auf Fragen zu deinen Gefühlen, Gedanken und deiner Umgebung  
+- Standortdaten (GPS) – erhoben nur zum Zeitpunkt der Umfrage, nicht kontinuierlich
 
-Wir erheben **keine** persönlich identifizierenden Informationen. Name, Telefonnummer, E-Mail-Adresse oder ähnliche Daten werden nicht erfasst.
+Es werden keine personenbezogenen Daten wie Name, Telefonnummer oder E-Mail-Adresse erfasst.
 
 ## 3. Warum erheben wir diese Daten?
 
-Die Daten werden ausschließlich für **wissenschaftliche Forschung** am Institut für Geographie der Universität Bern erhoben. Sie helfen uns zu verstehen, wie verschiedene Menschen den städtischen Raum erleben und wie diese Erfahrungen mit dem Wohlbefinden zusammenhängen.
+Die Daten dienen ausschliesslich der wissenschaftlichen Forschung am Geographischen Institut der Universität Bern. Sie helfen uns zu verstehen, wie Menschen ihre Umgebung wahrnehmen und wie diese Wahrnehmung mit dem momentanen Wohlbefinden zusammenhängt.
 
-Ihre Daten werden **niemals** für kommerzielle Zwecke verwendet.
+Deine Daten werden niemals für kommerzielle Zwecke verwendet.
 
-## 4. Rechtsgrundlage
+## 4. Rechtliche Grundlage
 
-Diese Studie wird in Übereinstimmung mit dem **Schweizerischen Bundesgesetz über den Datenschutz (DSG)** durchgeführt. Alle Datenverarbeitungen sind rechtmäßig, verhältnismäßig und basieren auf einer informierten Einwilligung.
+Diese Studie erfolgt gemäss dem Schweizer Datenschutzgesetz (DSG). Alle Datenverarbeitungen sind rechtmässig, verhältnismässig und basieren auf deiner Einwilligung.
 
-## 5. Datenspeicherung und -aufbewahrung
+## 5. Speicherung und Aufbewahrung der Daten
 
-Ihre Daten werden:
+Deine Daten werden:
 
-- Sicher auf einem Server gespeichert, der sich **derzeit in Zürich, Schweiz** befindet
-- Beim Anbieter **Supabase** gehostet
-- Durch Verschlüsselung und Zugriffskontrollen geschützt
-- Vollständig **anonymisiert** und können nicht auf Sie zurückgeführt werden
-- **Nur so lange aufbewahrt, wie für den Forschungszweck nötig**
+- Sicher gespeichert auf einem Server mit Standort in Zürich, Schweiz  
+- Verwaltet durch den Anbieter Supabase  
+- Geschützt durch Verschlüsselung und Zugriffskontrollen  
+- Vollständig anonymisiert und nicht rückverfolgbar gespeichert  
+- Nur so lange aufbewahrt, wie sie für den Forschungszweck erforderlich sind
 
-Standardmäßig bleiben Ihre Daten gespeichert, **bis Sie sie aktiv über die App-Einstellungen löschen**. Sie können Ihre Daten jederzeit löschen. Einmal gelöscht, können sie nicht wiederhergestellt werden.
+Standardmässig bleiben deine Daten gespeichert, bis du sie in den App-Einstellungen selbst löschst. Du kannst deine Daten jederzeit löschen – danach sind sie unwiderruflich entfernt.
 
-Die aktuelle Hosting-Konfiguration kann in Zukunft angepasst werden (z.B. Anbieter oder Serverstandort), aber solche Änderungen werden weiterhin dem Schweizer Datenschutzrecht entsprechen und dasselbe Niveau an Datensicherheit und Datenschutz gewährleisten.
+Die aktuelle Hosting-Infrastruktur kann sich in Zukunft ändern (z. B. Anbieter oder Serverstandort). Solche Änderungen werden weiterhin den Anforderungen des Schweizer Datenschutzrechts entsprechen.
 
-## 6. Wer kann auf Ihre Daten zugreifen?
+## 6. Wer hat Zugriff auf deine Daten?
 
-Ihre Daten werden:
+Deine Daten werden:
 
-- **Ausschließlich** für Forschungszwecke an der Universität Bern verwendet  
-- **Nicht an Dritte** außerhalb des Forschungsteams weitergegeben  
-- Vollständig **anonym** gehalten und können nicht auf Sie zurückgeführt werden
+- Ausschliesslich zu Forschungszwecken an der Universität Bern verwendet  
+- Nicht an Dritte ausserhalb des Forschungsteams weitergegeben  
+- Vollständig anonym und nicht auf dich zurückführbar gespeichert
 
-Zukünftige Forschungsprojekte dürfen anonymisierte Daten nur innerhalb des Instituts für Geographie wiederverwenden.
+Zukünftige Forschungsprojekte am Geographischen Institut können anonymisierte Daten weiterverwenden.
 
-## 7. Ihre Rechte
+## 7. Deine Rechte
 
-Nach Schweizer Datenschutzrecht haben Sie das Recht:
+Nach Schweizer Datenschutzrecht hast du das Recht:
 
-- Klare Informationen über die Datenverarbeitung zu erhalten  
-- Ihre Einwilligung jederzeit zu widerrufen  
-- Ihre Daten über die In-App-Option zu löschen  
-- Das Projektteam bei Fragen oder Bedenken zu kontaktieren
+- Klar über die Datenverarbeitung informiert zu werden  
+- Deine Einwilligung jederzeit zu widerrufen  
+- Deine Daten über die App zu löschen  
+- Das Forschungsteam bei Fragen oder Anliegen zu kontaktieren
 
-Bitte beachten Sie: Da Ihre Daten vollständig anonymisiert sind, können wir einzelne Einträge nicht abrufen oder ändern.
+Wichtig: Da deine Daten vollständig anonymisiert sind, können einzelne Einträge weder eingesehen noch verändert werden.
 
-## 8. Änderungen dieser Erklärung
+## 8. Änderungen an dieser Richtlinie
 
-Wir können diese Erklärung aktualisieren, um Änderungen im Forschungsprojekt, in der Infrastruktur oder in den rechtlichen Anforderungen widerzuspiegeln. Alle Aktualisierungen werden in der App veröffentlicht.
+Diese Datenschutzrichtlinie kann aktualisiert werden, wenn sich das Forschungsprojekt, die technische Infrastruktur oder rechtliche Vorgaben ändern. Alle Änderungen werden in der App veröffentlicht.
 
-**Diese Datenschutzerklärung wurde zuletzt am 17. April 2025 aktualisiert.**
-'
+Diese Datenschutzrichtlinie wurde zuletzt am 11. Mai 2025 aktualisiert.'
 );
 
 -- Consent Screen - German
@@ -268,37 +315,28 @@ VALUES (
   'consent',
   'de',
   'Einwilligung',
-  'Im Rahmen dieser Studie stellen wir dir einige Fragen – zunächst über dich selbst (z.B. Alter, Geschlechtsidentität) und dann über deine Gefühle und deine Umgebung zu verschiedenen Zeitpunkten deines Tages. Deine Antworten helfen uns zu verstehen, wie verschiedene Menschen städtische Räume erleben und wie diese Erfahrungen mit dem Wohlbefinden zusammenhängen.
+  'Bevor Du mit der Befragung startest, bitten wir dich um deine Zustimmung zur Teilnahme an dieser Studie.
 
-**Die Teilnahme ist freiwillig**. Du kannst jede Frage überspringen, indem du "Keine Angabe" auswählst. Du kannst auch jederzeit alle deine Daten über die App-Einstellungen löschen.
+Die Teilnahme ist freiwillig.  
+Du kannst einzelne Fragen überspringen (z. B. mit "Keine Angabe") und die Teilnahme jederzeit beenden.  
+In den App-Einstellungen kannst Du deine Daten auch nachträglich vollständig löschen.
 
-## Welche Daten werden erfasst?
+## Welche Daten werden erhoben?
 
-- **Demografische Daten** wie Alter und Geschlechtsidentität
-- **Umfrageantworten** zu deinen Emotionen, Gedanken und deiner Umgebung
-- **Standortdaten** via GPS (wenn du dies erlaubst)
+- Angaben zu Deiner Person (z. B. Alter, Geschlecht, Bildung)
+- Antworten zu Deinem aktuellen Befinden und deinem Aufenthaltsort
+- Standortdaten, sofern Du die Freigabe erteilst
 
-Wir erfassen **nicht** deinen Namen, deine Telefonnummer, E-Mail-Adresse oder andere identifizierende Informationen. Deine Antworten sind **völlig anonym** und **können nicht mit dir in Verbindung gebracht werden**.
+## Wie gehen wir mit Deinen Daten um?
 
-## Wie werden deine Daten verwendet?
+- Wir speichern keine Namen, E-Mail-Adressen oder andere persönlichen Kontaktdaten
+- Deine Daten werden anonymisiert auf einem gesicherten Server der Firma Supabase in der Schweiz gespeichert
+- Es werden keine Bewegungsprofile oder dauerhaft abrufbaren Standortverläufe aufgezeichnet
+- Deine Daten werden ausschliesslich für wissenschaftliche Zwecke verwendet und nicht an Dritte weitergegeben
 
-Deine Daten werden:
+Mit "Ich stimme zu" bestätigst Du, dass Du diese Informationen gelesen und verstanden hast und freiwillig an der Studie teilnimmst. Du kannst deine Teilnahme jederzeit beenden und deine Daten über die App-Einstellungen löschen.
 
-- Für **wissenschaftliche Forschung** zu Wohlbefinden im städtischen Raum verwendet
-- Sicher auf einem **passwortgeschützten Server** gespeichert
-- **Nicht an Dritte weitergegeben**
-- **Anonymisiert** und **nicht identifizierbar** gehalten
-- Jederzeit über die App von dir löschbar sein
-
-## Deine Einwilligung
-
-Durch Tippen auf **"Ich stimme zu"** bestätigst du, dass:
-
-- Du den Zweck dieser Studie verstehst
-- Du freiwillig an der Teilnahme einwilligst
-- Du jederzeit durch Löschen deiner Daten in den App-Einstellungen zurücktreten kannst
-
-Bitte lies unsere [Datenschutzrichtlinie](https://intermind.ch/privacy-policy.html) für weitere Details.'
+Weitere Informationen findest Du in unserer [Datenschutzrichtlinie](https://intermind.ch/privacy-policy.html).'
 );
 
 -- =============================
@@ -311,22 +349,49 @@ VALUES (
   'about',
   'fr',
   'À propos d''InterMind',
-  '**InterMind** est une application de recherche développée par Lukas Batschelet à l''Institut de Géographie de l''Université de Berne. Elle collecte des données sur le bien-être dans une perspective intersectionnelle et spatiale. L''application fait partie d''une thèse de bachelor et est utilisée exclusivement pour la recherche académique.
+  '**InterMind** a été développée par Lukas Batschelet à l''Institut de géographie de l''Université de Berne. L''application fait partie d''un travail de bachelor supervisé par la prof. Dr Carolin Schurr et le Dr Moritz Gubler. Elle est utilisée exclusivement à des fins de recherche scientifique pour étudier comment notre environnement immédiat influence le bien-être momentané.
+
+## Que signifie le bien-être ?
+
+Le bien-être peut avoir de nombreuses significations. Il peut s''agir de quelque chose de durable – par exemple, de notre satisfaction générale dans la vie, de notre santé ou du sentiment de sécurité et de soutien dans la vie quotidienne.
+
+Dans cette étude, nous nous intéressons principalement au **bien-être momentané** : Comment vous sentez-vous **à cet instant précis**, à cet endroit, dans cette situation ?
+
+Le bien-être est compris de manière holistique – il englobe des aspects **physiques** (par exemple fatigue, chaleur, calme) et des ressentis **psychiques** (par exemple satisfaction, sécurité, appartenance). Ces impressions sont souvent éphémères et dépendent fortement du lieu, de l''activité en cours et de la manière dont nous sommes perçu·e·s.
+
+## Pourquoi cette étude ?
+
+La façon dont nous nous sentons dans un lieu dépend fortement de notre environnement. Certains lieux paraissent apaisants, familiers ou accueillants. D''autres peuvent provoquer un malaise ou un sentiment d''exclusion.
+
+Mais ces expériences ne sont pas les mêmes pour tout le monde. Elles peuvent dépendre de la manière dont nous sommes perçu·e·s et traité·e·s – par exemple en fonction du genre, de l''origine, de la langue, de l''apparence ou d''autres caractéristiques liées à notre position sociale.
+
+Nous cherchons à comprendre comment différentes caractéristiques – isolées ou combinées – influencent le bien-être momentané. Par exemple : Une jeune femme ayant une histoire migratoire ressent-elle un lieu public différemment qu''un homme plus âgé au même endroit et au même moment ?
+
+Cette étude explore pourquoi les lieux affectent les personnes différemment. Elle vise à mieux comprendre comment se forment les sentiments d''appartenance, de sécurité ou d''exclusion – et en quoi ils sont liés à la vie quotidienne, aux catégorisations sociales et aux conditions de vie personnelles.
+
+## Comment se déroule la participation ?
+
+L''étude dure une semaine. Pendant cette période, vous serez invité·e trois fois par jour à répondre à une courte enquête sur votre smartphone. Chaque enquête porte sur :
+
+* le lieu où vous vous trouvez  
+* ce que vous y faites  
+* ce que vous ressentez  
+* et si vous vous y sentez à votre place ou non
+
+Chaque enquête est disponible pendant une heure, puis elle expire automatiquement. Les moments sont répartis de manière légèrement aléatoire dans la journée.
+
+Si vous manquez une enquête, ce n''est pas grave – vous pourrez simplement participer à la suivante.
 
 ## Licences
 
 **Code source de l''application**  
-Sous licence GNU AGPL 3.0  
-Disponible sur: [github.com/lbatschelet/InterMind](https://github.com/lbatschelet/InterMind)
-
-**Publications**  
-Sous licence Creative Commons CC BY-SA-NC 4.0  
-Disponible sur: [intermind.ch](https://intermind.ch)
+Disponible sur [GitHub](https://github.com/lbatschelet/InterMind)  
+Sous licence [GNU AGPL 3.0](https://www.gnu.org/licenses/agpl-3.0.html)
 
 ## Graphiques
 
 Toutes les illustrations © 2025 Katerina Limpitsouni  
-du projet open source [undraw.co](https://undraw.co)'
+issues du projet open source [undraw.co](https://undraw.co)'
 );
 
 -- Privacy Policy Screen - French
@@ -335,81 +400,82 @@ VALUES (
   'privacy',
   'fr',
   'Politique de Confidentialité',
-  '**InterMind** est une application de recherche développée dans le cadre d''une thèse de bachelor à l''Institut de Géographie de l''Université de Berne. Le projet est supervisé par Prof. Dr. Carolin Schurr et Dr. Moritz Gubler. Cette politique de confidentialité explique quelles données nous collectons, comment elles sont traitées et quels sont vos droits en tant que participant.
+  'InterMind fait partie d''une étude scientifique menée à l''Institut de géographie de l''Université de Berne. L''application est utilisée dans le cadre d''un travail de bachelor réalisé par Lukas Batschelet, sous la supervision de la prof. Dr Carolin Schurr et du Dr Moritz Gubler.
 
-## 1. Qui est responsable?
+La présente politique de confidentialité explique quelles données sont collectées, comment elles sont traitées et quels sont vos droits en tant que personne participante.
 
-Le responsable du traitement des données est:
+## 1. Qui est responsable ?
 
-**Institut de Géographie**  
+Le responsable du traitement des données est :
+
+Institut de géographie  
 Université de Berne  
 Hallerstrasse 12  
 3012 Berne, Suisse
 
-Pour toute question ou préoccupation, veuillez contacter:  
+Pour toute question ou remarque, veuillez contacter :  
 [lukas.batschelet@unibe.ch](mailto:lukas.batschelet@unibe.ch)
 
-## 2. Quelles données sont collectées?
+## 2. Quelles données sont collectées ?
 
-Nous collectons les informations suivantes:
+Nous collectons les informations suivantes :
 
-- **Données démographiques**, comme l''âge et l''identité de genre  
-- **Réponses aux enquêtes** concernant vos émotions, pensées et environnements  
-- **Données de localisation** via GPS (si vous choisissez de l''autoriser)
+- Données démographiques, telles que l''âge et l''identité de genre  
+- Réponses aux enquêtes sur vos émotions, pensées et environnement  
+- Données de localisation (GPS) – collectées uniquement au moment de chaque enquête, jamais en continu
 
-Nous ne collectons **pas** votre nom, numéro de téléphone, adresse e-mail ou toute autre information permettant de vous identifier. Vos réponses sont **complètement anonymes** et **ne peuvent pas être liées à vous**.
+Nous ne collectons aucune information permettant de vous identifier personnellement. Aucun nom, numéro de téléphone, e-mail ou autre donnée similaire n''est enregistré.
 
-## 3. Pourquoi collectons-nous ces données?
+## 3. Pourquoi collectons-nous ces données ?
 
-Les données sont collectées exclusivement pour la **recherche scientifique** à l''Institut de Géographie de l''Université de Berne. Elles nous aident à comprendre comment différentes personnes vivent l''espace urbain et comment ces expériences sont liées au bien-être.
+Les données sont collectées exclusivement à des fins de recherche scientifique à l''Institut de géographie de l''Université de Berne. Elles nous aident à comprendre comment différentes personnes perçoivent leur environnement et comment ces perceptions influencent leur bien-être.
 
-Vos données ne seront **jamais** utilisées à des fins commerciales.
+Vos données ne seront jamais utilisées à des fins commerciales.
 
 ## 4. Base légale
 
-Cette étude est menée conformément à la **Loi fédérale suisse sur la protection des données (LPD / DSG)**. Tout traitement de données est légal, proportionnel et basé sur un consentement éclairé.
+Cette étude est menée conformément à la Loi fédérale sur la protection des données (LPD / FADP). Le traitement des données est licite, proportionné et repose sur votre consentement éclairé.
 
 ## 5. Stockage et conservation des données
 
-Vos données sont:
+Vos données sont :
 
-- Stockées en toute sécurité sur un serveur **actuellement situé à Zurich, Suisse**
-- Hébergées par le fournisseur **Supabase**
-- Protégées par cryptage et contrôles d''accès
-- Entièrement **anonymisées** et ne peuvent pas être reliées à vous
-- Conservées **uniquement aussi longtemps que nécessaire pour la recherche**
+- Stockées de manière sécurisée sur un serveur situé actuellement à Zurich, Suisse  
+- Hébergées par le fournisseur Supabase  
+- Protégées par des mesures de cryptage et de contrôle d''accès  
+- Entièrement anonymisées et non traçables  
+- Conservées uniquement pendant la durée nécessaire à la recherche
 
-Par défaut, vos données restent stockées **jusqu''à ce que vous les supprimiez activement** via les paramètres de l''application. Vous pouvez supprimer vos données à tout moment. Une fois supprimées, elles ne peuvent pas être récupérées.
+Par défaut, vos données restent enregistrées jusqu''à ce que vous les supprimiez activement dans les paramètres de l''application. Une fois supprimées, elles ne peuvent plus être récupérées.
 
-La configuration d''hébergement actuelle peut être ajustée à l''avenir (par exemple, fournisseur ou emplacement du serveur), mais ces changements continueront à se conformer à la loi suisse sur la protection des données et à assurer le même niveau de sécurité et de confidentialité des données.
+L''infrastructure d''hébergement peut être modifiée à l''avenir (p. ex. changement de fournisseur ou de lieu du serveur). Toute modification continuera de respecter la législation suisse sur la protection des données.
 
-## 6. Qui peut accéder à vos données?
+## 6. Qui peut accéder à vos données ?
 
-Vos données sont:
+Vos données sont :
 
-- Utilisées **exclusivement** à des fins de recherche à l''Université de Berne  
-- **Non partagées** avec des tiers en dehors de l''équipe de recherche  
-- Entièrement **anonymes** et ne peuvent pas être retracées jusqu''à vous
+- Utilisées exclusivement à des fins de recherche à l''Université de Berne  
+- Non partagées avec des tiers extérieurs à l''équipe de recherche  
+- Entièrement anonymes et non traçables
 
-Les futurs projets de recherche peuvent réutiliser les données anonymisées uniquement au sein de l''Institut de Géographie.
+D''autres projets de recherche de l''Institut de géographie peuvent réutiliser ces données de manière anonymisée.
 
 ## 7. Vos droits
 
-Selon la loi suisse sur la protection des données, vous avez le droit de:
+Conformément à la législation suisse sur la protection des données, vous avez le droit :
 
-- Recevoir des informations claires sur le traitement des données  
-- Révoquer votre consentement à tout moment  
-- Supprimer vos données à l''aide de l''option dans l''application  
-- Contacter l''équipe du projet pour toute question ou préoccupation
+- De recevoir des informations claires sur le traitement de vos données  
+- De retirer votre consentement à tout moment  
+- De supprimer vos données via l''application  
+- De contacter l''équipe de recherche pour toute question
 
-Veuillez noter: Comme vos données sont complètement anonymisées, nous ne pouvons pas récupérer ou modifier des entrées individuelles.
+Veuillez noter : comme vos données sont totalement anonymisées, nous ne pouvons ni consulter ni modifier des entrées individuelles.
 
 ## 8. Modifications de cette politique
 
-Nous pouvons mettre à jour cette politique pour refléter des changements dans le projet de recherche, l''infrastructure ou les exigences légales. Toutes les mises à jour seront publiées dans l''application.
+Cette politique de confidentialité peut être mise à jour en fonction de l''évolution du projet, de l''infrastructure technique ou des exigences légales. Toute modification sera publiée dans l''application.
 
-**Cette politique de confidentialité a été mise à jour pour la dernière fois le 17 avril 2025.**
-'
+Cette politique de confidentialité a été mise à jour pour la dernière fois le 11 mai 2025.'
 );
 
 -- Consent Screen - French
@@ -417,36 +483,26 @@ INSERT INTO screen_content_translations (content_id, language, title, content)
 VALUES (
   'consent',
   'fr',
-  'Consentement',
-  'Dans le cadre de cette étude, nous vous poserons quelques questions—d''abord sur vous-même (par exemple, âge, identité de genre), puis sur vos sentiments et votre environnement à différents moments de votre journée. Vos réponses nous aident à comprendre comment différentes personnes vivent les espaces urbains et comment ces expériences sont liées au bien-être.
+  'Consentement à la participation', 'Avant de commencer l''enquête, nous te demandons ton accord pour participer à cette étude.
 
-**La participation est volontaire**. Vous pouvez ignorer n''importe quelle question en sélectionnant "Je préfère ne pas répondre". Vous pouvez également supprimer toutes vos données à tout moment via les paramètres de l''application.
+La participation est volontaire.  
+Tu peux ignorer certaines questions (par exemple en répondant "pas d''indication") et mettre fin à ta participation à tout moment.  
+Dans les paramètres de l''application, tu peux aussi effacer complètement tes données ultérieurement.
 
-## Quelles données seront collectées ?
+## Quelles données sont collectées ?
 
-- **Données démographiques**, comme votre âge et votre identité de genre
-- **Réponses aux enquêtes** sur vos émotions, pensées et environnements
-- **Données de localisation** via GPS (si vous choisissez de l''autoriser)
+- Données te concernant (par ex. âge, sexe, formation).
+- Réponses sur ton état actuel et ton lieu de séjour
+- données de localisation, si tu en donnes l''autorisation
 
-Nous ne collectons **pas** votre nom, numéro de téléphone, adresse e-mail ou toute autre information permettant de vous identifier. Vos réponses sont **complètement anonymes** et **ne peuvent pas être liées à vous**.
+## Comment utilisons-nous tes données ?
 
-## Comment vos données seront-elles utilisées ?
+- Nous n''enregistrons pas de noms, d''adresses e-mail ou d''autres données de contact personnelles.
+- Tes données sont stockées de manière anonyme sur un serveur sécurisé de la société Supabase en Suisse.
+- Aucun profil de déplacement ou historique de localisation consultable en permanence n''est enregistré.
+- Tes données sont utilisées exclusivement à des fins scientifiques et ne sont pas transmises à des tiers.
 
-Vos données seront :
+En cliquant sur "J''accepte", tu confirmes que tu as lu et compris ces informations et que tu participes volontairement à l''étude. Tu peux mettre fin à ta participation à tout moment et supprimer tes données via les paramètres de l''application.
 
-- Utilisées pour la **recherche académique** sur le bien-être et l''espace urbain
-- Stockées de manière sécurisée sur un **serveur protégé par mot de passe**
-- **Non partagées avec des tiers**
-- **Anonymisées** et **non identifiables**
-- Supprimables par vous à tout moment via l''application
-
-## Votre consentement
-
-En appuyant sur **"J''accepte"**, vous confirmez que :
-
-- Vous comprenez l''objectif de cette étude
-- Vous participez volontairement
-- Vous pouvez vous retirer à tout moment en supprimant vos données dans les paramètres de l''application
-
-Veuillez lire notre [politique de confidentialité](https://intermind.ch/privacy-policy.html) pour plus de détails.'
+Tu trouveras plus d''informations dans notre [Politique de confidentialité](https://intermind.ch/privacy-policy.html).'
 ); 
