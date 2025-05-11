@@ -31,7 +31,7 @@
  * );
  */
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Dimensions, Text, View, StyleSheet } from "react-native";
 import type { QuestionComponentProps } from "~/src/types/question";
 import QuestionImage from "../ui/question-image";
@@ -135,22 +135,45 @@ const InfoScreen: React.FC<QuestionComponentProps<"info_screen">> = ({
   // Parse the action from question options (if present)
   const action = question.options?.action as InfoScreenAction || null;
   
+  // Ref to track if we've already advanced to avoid double-advancing
+  const hasAdvanced = useRef(false);
+  
+  // Ref to track if we've already logged this instance, to prevent duplicate logs
+  const hasLoggedRef = useRef(false);
+  
   // Debug log for what exactly this InfoScreen has
   useEffect(() => {
-    log.info("InfoScreen rendered", {
-      title: question.title,
-      hasAction: !!action,
-      action: action
-    });
+    if (!hasLoggedRef.current) {
+      log.info("InfoScreen rendered", {
+        title: question.title,
+        hasAction: !!action,
+        action: action
+      });
+      hasLoggedRef.current = true;
+    }
   }, [question, action]);
   
   // For normal info screens without actions: automatically advance
   useEffect(() => {
     // Only for normal info screens without actions: automatically advance
-    if (!action && onNext) {
+    if (!action && onNext && !hasAdvanced.current) {
       log.info("InfoScreen without action - auto-advancing");
-      onNext();
-    } else if (action) {
+      
+      // Mark as advanced to prevent multiple triggers
+      hasAdvanced.current = true;
+      
+      // Add a small delay for better user experience and to avoid rapid loops
+      const timer = setTimeout(() => {
+        try {
+          onNext();
+        } catch (error) {
+          log.error("Error auto-advancing InfoScreen", error);
+        }
+      }, 300);
+      
+      // Clean up the timer on unmount
+      return () => clearTimeout(timer);
+    } else if (action && !hasLoggedRef.current) {
       log.info("InfoScreen with action - waiting for button click");
     }
   }, [onNext, action]);

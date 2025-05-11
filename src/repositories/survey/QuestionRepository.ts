@@ -232,9 +232,41 @@ export class QuestionRepository implements IQuestionRepository {
           case 'single_choice':
           case 'multiple_choice':
             if (langOptions && 'options' in langOptions) {
-              options = langOptions.options;
+              options = langOptions.options.map((opt: any) => {
+                // Basisdaten der Option
+                const processedOption = {
+                  value: opt.value,
+                  label: opt.label
+                };
+                
+                // Füge hideQuestions hinzu, falls vorhanden
+                if (opt.hideQuestions && Array.isArray(opt.hideQuestions)) {
+                  return {
+                    ...processedOption,
+                    hideQuestions: opt.hideQuestions
+                  };
+                }
+                
+                return processedOption;
+              });
             } else if (baseOptions && 'options' in baseOptions) {
-              options = baseOptions.options;
+              options = baseOptions.options.map((opt: any) => {
+                // Basisdaten der Option
+                const processedOption = {
+                  value: opt.value,
+                  label: opt.label
+                };
+                
+                // Füge hideQuestions hinzu, falls vorhanden
+                if (opt.hideQuestions && Array.isArray(opt.hideQuestions)) {
+                  return {
+                    ...processedOption,
+                    hideQuestions: opt.hideQuestions
+                  };
+                }
+                
+                return processedOption;
+              });
             }
             break;
             
@@ -342,6 +374,70 @@ export class QuestionRepository implements IQuestionRepository {
       const bSeq = b.sequence_number !== undefined ? b.sequence_number : 9999;
       return aSeq - bSeq;
     });
+  }
+
+  /**
+   * Holt eine einzelne Frage anhand ihrer ID
+   * @param questionId Die ID der abzurufenden Frage
+   * @param language Die Sprache für Fragetexte
+   * @returns Die abgerufene Frage oder undefined, wenn keine gefunden wurde
+   */
+  async getQuestionById(questionId: string, language: LanguageCode = 'en'): Promise<Question | undefined> {
+    try {
+      // Zuerst versuchen, die Frage aus dem Cache zu holen
+      if (this.questionCache.isValid(language)) {
+        const cachedQuestions = this.questionCache.get(language);
+        const cachedQuestion = cachedQuestions.find(q => q.id === questionId);
+        
+        if (cachedQuestion) {
+          log.debug("Found question in cache", { questionId, language });
+          return cachedQuestion;
+        }
+      }
+      
+      log.info("Fetching single question from database", { questionId, language });
+      
+      // Stelle sicher, dass wir authentifiziert sind
+      const isAuthenticated = await AuthService.isAuthenticated();
+      
+      if (!isAuthenticated) {
+        log.info("Not authenticated, signing in anonymously");
+        await AuthService.signInAnonymously();
+      }
+      
+      // Abfrage der Datenbank
+      const { data, error } = await supabase
+        .from('questions')
+        .select(`
+          id,
+          type,
+          category,
+          sequence_number,
+          image_source,
+          options_structure,
+          translations!inner(id, language, title, text, options_content)
+        `)
+        .eq('id', questionId)
+        .eq('translations.language', language);
+
+      if (error) {
+        log.error("Error fetching question", error);
+        throw new Error("Failed to fetch question: " + error.message);
+      }
+
+      if (!data || data.length === 0) {
+        log.warn("No question found with ID", { questionId });
+        return undefined;
+      }
+
+      // Formatieren und Transformieren der Daten ins benötigte Format
+      const formattedQuestions = this.transformQuestionsData(data as unknown as QuestionWithTranslation[], language);
+      
+      return formattedQuestions[0];
+    } catch (error) {
+      log.error("Error in getQuestionById", error);
+      return undefined;
+    }
   }
 }
 

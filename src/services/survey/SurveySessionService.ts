@@ -3,7 +3,8 @@ import { LanguageCode } from "../../locales";
 import { surveyRepository, questionRepository } from "../../repositories";
 import { Question } from "../../types/question";
 import { DeviceIdService } from "../device";
-import SurveyQuestionService from "./SurveyQuestionService";
+import { ISurveySessionService } from "./interfaces/ISurveySessionService";
+import { ISurveyQuestionService } from "./interfaces/ISurveyQuestionService";
 
 const log = createLogger("SurveySessionService");
 
@@ -15,7 +16,15 @@ const log = createLogger("SurveySessionService");
  * 1. Creating and managing survey sessions
  * 2. Starting and completing survey sessions
  */
-class SurveySessionService {
+class SurveySessionService implements ISurveySessionService {
+  // Private property - will be initialized by serviceInitialization.ts
+  _questionService!: ISurveyQuestionService;
+  
+  /**
+   * Empty constructor - dependencies will be injected by serviceInitialization.ts
+   */
+  constructor() {}
+  
   /**
    * Starts a new survey session.
    * 
@@ -29,7 +38,7 @@ class SurveySessionService {
    * @returns Object containing survey ID and questions array
    * @throws Error if survey creation fails
    */
-  static async startSurvey(includeAnsweredOnceQuestions = false, language: LanguageCode = 'en'): Promise<{ surveyId: string; questions: Question[] }> {
+  async startSurvey(includeAnsweredOnceQuestions = false, language: LanguageCode = 'en'): Promise<{ surveyId: string; questions: Question[] }> {
     log.info("Starting a new survey session...", { language });
 
     try {
@@ -41,7 +50,7 @@ class SurveySessionService {
       log.info("Survey session created", { surveyId, language });
       
       // Fragen über den SurveyQuestionService holen
-      const questions = await SurveyQuestionService.getQuestionsForSurvey(includeAnsweredOnceQuestions, language);
+      const questions = await this._questionService.getQuestionsForSurvey(includeAnsweredOnceQuestions, language);
       
       log.info("Questions processed", { 
         count: questions.length
@@ -60,7 +69,7 @@ class SurveySessionService {
    * @param surveyId The unique identifier of the completed survey
    * @param answeredQuestions Array of Question objects that were answered
    */
-  static async completeSurvey(surveyId: string, answeredQuestions?: Question[]): Promise<void> {
+  async completeSurvey(surveyId: string, answeredQuestions?: Question[]): Promise<void> {
     log.info("Completing survey", { surveyId });
     
     // Mark survey as completed in the repository
@@ -70,4 +79,12 @@ class SurveySessionService {
   }
 }
 
+/**
+ * Singleton-Instanz für die OOP-Nutzung
+ */
+export const sessionService = new SurveySessionService();
+
+/**
+ * Default-Export der Klasse für die Instanziierung
+ */
 export default SurveySessionService; 

@@ -2,6 +2,7 @@ import { createLogger } from "~/src/utils/logger";
 import { slotService } from "../slot-scheduling";
 import { FIRST_SURVEY_CHECKED_KEY } from "../../constants/storageKeys";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ISurveyAvailabilityService } from "./interfaces/ISurveyAvailabilityService";
 
 const log = createLogger("SurveyAvailabilityService");
 
@@ -14,7 +15,7 @@ const log = createLogger("SurveyAvailabilityService");
  * 2. Managing time-based availability constraints
  * 3. Delegating to the slot system
  */
-class SurveyAvailabilityService {
+class SurveyAvailabilityService implements ISurveyAvailabilityService {
   /**
    * Checks if a survey is currently available.
    * 
@@ -23,7 +24,7 @@ class SurveyAvailabilityService {
    * 
    * @returns Promise resolving to boolean indicating survey availability
    */
-  static async isSurveyAvailable(): Promise<boolean> {
+  async isSurveyAvailable(): Promise<boolean> {
     try {
       // Prüfen, ob die erste Umfrage bereits abgeschlossen wurde
       const firstSurveyCompleted = await this.isFirstSurveyCompleted();
@@ -49,7 +50,7 @@ class SurveyAvailabilityService {
    * 
    * @returns Promise mit boolean (true, wenn erste Umfrage bereits abgeschlossen wurde)
    */
-  private static async isFirstSurveyCompleted(): Promise<boolean> {
+  private async isFirstSurveyCompleted(): Promise<boolean> {
     try {
       if (!FIRST_SURVEY_CHECKED_KEY) {
         log.error("FIRST_SURVEY_CHECKED_KEY is not defined");
@@ -65,4 +66,12 @@ class SurveyAvailabilityService {
   }
 }
 
+/**
+ * Singleton-Instanz für die OOP-Nutzung
+ */
+export const availabilityService = new SurveyAvailabilityService();
+
+/**
+ * Default-Export der Klasse für die Instanziierung
+ */
 export default SurveyAvailabilityService; 

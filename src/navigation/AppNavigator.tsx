@@ -73,7 +73,7 @@ export type RootStackParamList = {
     Home: undefined;
     Settings: undefined;
     Question: { questionIndex: number; assessmentId: string };
-    SurveyScreen: undefined;
+    SurveyScreen: { surveyId: string; questions: any[] } | undefined;
     About: undefined;
     PrivacyPolicy: undefined;
     Consent: undefined;

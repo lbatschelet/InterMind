@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Animated, Keyboard, TouchableWithoutFeedback, View, Dimensions, ScrollView } from "react-native";
+import { Animated, View, Dimensions, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import QuestionRenderer from "../components/QuestionRenderer";
 import {
@@ -15,13 +15,14 @@ import {
 import { Button } from "../components/ui/button";
 import { Text } from "../components/ui/text";
 import { useLanguage } from "../contexts/LanguageContext";
-import { SurveyService, SurveyResponseService, SurveyLocationService } from "../services";
+import { SurveyService, locationService } from "../services";
 import { Question } from "../types/question";
 import { createLogger } from "../utils/logger";
 import QuestionImage from "../components/ui/question-image";
 import { executeAction } from '../components/QuestionTypes/InfoScreen';
 import { ErrorScreen } from '../screens';
 import LoadingScreen from '../screens/LoadingScreen';
+import { useSurveyNavigation, useSurveyResponses } from '../hooks';
 
 // Initialize logger for this module
 const log = createLogger("SurveyScreen");
@@ -36,42 +37,121 @@ const { width, height } = Dimensions.get('window');
  * - Submits responses to the database.
  * - Provides smooth transitions between questions.
  */
-const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string) => void; goBack: () => void } }) => {
+const SurveyScreen = ({ navigation, route }: { 
+  navigation: { navigate: (screen: string) => void; goBack: () => void },
+  route: { params?: { surveyId: string; questions: Question[] } }
+}) => {
   const { language, t } = useLanguage();
-  const [surveyId, setSurveyId] = useState<string | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [surveyId, setSurveyId] = useState<string | null>(route.params?.surveyId || null);
+  const [allQuestions, setAllQuestions] = useState<Question[]>(route.params?.questions || []);
+  const [isLoading, setIsLoading] = useState(!route.params);
   const [showExitDialog, setShowExitDialog] = useState(false);
 
-  // Store current response for each question
-  const responseCache = useRef<Record<string, unknown>>({});
-  
-  // Track which questions have already been answered at least once
-  const answeredQuestions = useRef<Set<string>>(new Set());
-
-  // Animation values
-  const slideAnim = useRef(new Animated.Value(0)).current;
-  
   // Refs for both ScrollViews to reset scroll position
   const outerScrollViewRef = useRef<ScrollView>(null);
   const questionScrollViewRef = useRef<ScrollView>(null);
+
+  // Animation values
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  // Custom hooks für Navigation und Antworten
+  const {
+    filteredQuestions,
+    currentIndex,
+    currentQuestion,
+    isAnimating,
+    isQuestionAnswered,
+    navigateNext,
+    navigateBack,
+    shouldCompleteSurvey,
+    markQuestionAsAnswered,
+    finishAnimation,
+    updateQuestions
+  } = useSurveyNavigation(allQuestions);
+
+  const {
+    responses,
+    updateResponse,
+    getResponse
+  } = useSurveyResponses(surveyId || '', allQuestions);
+
+  // Track if survey has been initialized to prevent infinite loops
+  const surveyInitializedRef = useRef(false);
+  
+  // Track which responses have been processed to prevent loops
+  const processedResponses = useRef(new Set<string>()).current;
+  
+  // Track button clicks to prevent multiple rapid clicks
+  const isProcessingButtonClick = useRef(false);
+
+  // Log debug information only when currentQuestion changes, not on every render
+  useEffect(() => {
+    if (currentQuestion) {
+      // Debug-Logs für Button-Text
+      if (currentQuestion.type === 'info_screen' && currentQuestion.buttonText) {
+        log.debug("Button Text Debug", { 
+          buttonText: currentQuestion.buttonText, 
+          type: typeof currentQuestion.buttonText,
+          isString: typeof currentQuestion.buttonText === 'string',
+          startsWithGeneral: typeof currentQuestion.buttonText === 'string' && currentQuestion.buttonText.startsWith('general.'),
+          translation: typeof currentQuestion.buttonText === 'string' && currentQuestion.buttonText.startsWith('general.') ? t(currentQuestion.buttonText) : 'n/a'
+        });
+      }
+
+      log.debug("Current question state", { 
+        index: currentIndex, 
+        type: currentQuestion.type,
+        previouslyAnswered: isQuestionAnswered(currentQuestion.id),
+        hasPreviousResponse: !!getResponse(currentQuestion.id)
+      });
+    }
+  }, [currentQuestion, currentIndex, t, isQuestionAnswered, getResponse]);
 
   /**
    * Initializes the survey session and loads questions.
    */
   useEffect(() => {
     const initializeSurvey = async () => {
+      // If we have survey params, use them instead of creating a new survey
+      if (route.params?.surveyId && route.params?.questions) {
+        // Survey data was passed via navigation, use it
+        log.info("Using provided survey data", { 
+          surveyId: route.params.surveyId, 
+          questionCount: route.params.questions.length 
+        });
+        
+        setSurveyId(route.params.surveyId);
+        setAllQuestions(route.params.questions);
+        updateQuestions(route.params.questions, route.params.questions);
+        
+        // Mark survey as initialized
+        surveyInitializedRef.current = true;
+        setIsLoading(false);
+        
+        return;
+      }
+      
+      // Skip initialization if survey is already initialized
+      if (surveyInitializedRef.current) {
+        log.debug("Survey already initialized, skipping re-initialization");
+        return;
+      }
+
       try {
         log.info("Initializing survey session...", { language });
         setIsLoading(true);
-    
+        
         const { surveyId, questions } = await SurveyService.startSurvey(false, language);
-    
+        
         setSurveyId(surveyId);
-        setQuestions(questions);
-    
+        setAllQuestions(questions);
+        
+        // Aktualisieren der gefilterten Fragen
+        updateQuestions(questions, questions);
+        
+        // Mark survey as initialized to prevent re-initialization
+        surveyInitializedRef.current = true;
+        
         log.info("Survey initialized", { surveyId, questionCount: questions.length });
       } catch (error) {
         log.error("Failed to initialize survey", error);
@@ -80,18 +160,40 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
       }
     };    
     initializeSurvey();
-  }, [language]);
+  }, [language, updateQuestions, route.params]);
 
   /**
    * Callback for receiving responses from question components.
-   * This updates the response cache without navigating.
+   * This updates the response cache and handles conditional logic.
    */
-  const handleResponseUpdate = (response: unknown) => {
-    if (!questions[currentIndex]) return;
+  const handleResponseUpdate = async (response: unknown) => {
+    if (!currentQuestion) return;
     
-    const questionId = questions[currentIndex].id;
-    responseCache.current[questionId] = response;
-    log.debug("Response updated for question", { questionId, response });
+    const questionId = currentQuestion.id;
+    
+    // Create a unique key for this response to avoid processing the same response multiple times
+    const responseKey = `${questionId}-${JSON.stringify(response)}`;
+    
+    // Skip if we've already processed this exact response
+    if (processedResponses.has(responseKey)) {
+      log.debug("Skipping already processed response", { questionId });
+      return;
+    }
+    
+    // Add to processed set
+    processedResponses.add(responseKey);
+    
+    try {
+      // Speichere die Antwort und wende bedingte Logik an
+      const filteredQuestions = await updateResponse(questionId, response);
+      
+      // Aktualisiere die gefilterte Fragenliste
+      updateQuestions(allQuestions, filteredQuestions);
+      
+      log.debug("Response updated for question", { questionId, response });
+    } catch (error) {
+      log.error("Error updating response", error);
+    }
   };
 
   /**
@@ -99,8 +201,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
    * Only allows autoAdvance if the question hasn't been answered before.
    */
   const shouldAllowAutoAdvance = (questionId: string): boolean => {
-    const hasBeenAnswered = answeredQuestions.current.has(questionId);
-    return !hasBeenAnswered;
+    return !isQuestionAnswered(questionId);
   };
 
   /**
@@ -108,16 +209,9 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
    * @param direction - Direction of transition ('forward' or 'backward')
    * @param nextIndex - The index of the next question to display
    */
-  const animateTransition = (direction: "forward" | "backward", nextIndex: number) => {
-    if (isAnimating) return;
-    
-    setIsAnimating(true);
-    
+  const animateTransition = (direction: "forward" | "backward") => {
     // Set initial position based on direction (smaller value for subtler animation)
     slideAnim.setValue(direction === "forward" ? 150 : -150);
-    
-    // Update index immediately
-    setCurrentIndex(nextIndex);
     
     // Reset scroll positions for both ScrollViews
     outerScrollViewRef.current?.scrollTo({ y: 0, animated: false });
@@ -129,7 +223,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
       useNativeDriver: true,
       duration: 150,  // Fast animation
     }).start(() => {
-      setIsAnimating(false);
+      finishAnimation();
     });
   };
 
@@ -139,73 +233,28 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
    * - Otherwise, advances to the next question.
    */
   const handleNext = async () => {
-    if (isAnimating) return;
+    if (isAnimating || !surveyId || !currentQuestion) return;
     
-    if (!surveyId) {
-      log.error("Survey ID is missing, cannot submit response");
+    // Markiere die aktuelle Frage als beantwortet
+    markQuestionAsAnswered(currentQuestion.id);
+    
+    // Prüfen, ob die Umfrage abgeschlossen werden sollte
+    if (shouldCompleteSurvey()) {
+      await handleComplete();
       return;
     }
-
-    if (!questions[currentIndex]) {
-      log.error("No current question found");
-      return;
-    }
-
-    const questionId = questions[currentIndex].id;
-    const currentQuestion = questions[currentIndex];
     
-    try {
-      // Get response from cache or use a default value based on question type
-      let response = responseCache.current[questionId];
-      
-      // Für Slider-Fragen: Wenn keine Antwort im Cache ist, setze den Standardwert (0.5)
-      if (currentQuestion.type === 'slider' && response === undefined) {
-        response = 0.5;
-        log.debug("Using default value (0.5) for slider question", { questionId });
-      } else if (response === undefined) {
-        // Für andere Fragetypen: leeres Objekt wenn keine Antwort
-        response = {};
+    // Navigation zur nächsten Frage
+    if (navigateNext()) {
+      // Try to capture location if appropriate
+      if (currentQuestion.sequence_number !== undefined && currentQuestion.sequence_number >= 100) {
+        // Background capture without awaiting
+        locationService.captureLocationIfEligible(surveyId, currentQuestion.sequence_number)
+          .then((success: boolean) => log.debug("Location capture result", { success }))
+          .catch((error: Error) => log.error("Error capturing location", error));
       }
       
-      log.debug("Submitting response", { questionId, response, type: currentQuestion.type });
-      await SurveyResponseService.submitResponse(surveyId, questionId, response);
-      
-      // Mark this question as having been answered
-      answeredQuestions.current.add(questionId);
-
-      if (currentIndex + 1 < questions.length) {
-        log.debug("Moving to next question", { 
-          from: currentIndex,
-          to: currentIndex + 1,
-          nextQuestion: questions[currentIndex + 1].text
-        });
-        
-        const nextIndex = currentIndex + 1;
-        const nextQuestion = questions[nextIndex];
-
-        // Attempt to capture location if next question's sequence_number is eligible
-        if (nextQuestion && nextQuestion.sequence_number !== undefined && nextQuestion.sequence_number >= 100) {
-          log.debug("Attempting to capture location for eligible question", { 
-            questionId: nextQuestion.id, 
-            sequenceNumber: nextQuestion.sequence_number 
-          });
-          
-          // Try to capture location in background - don't await this to avoid delaying navigation
-          SurveyLocationService.captureLocationIfEligible(surveyId, nextQuestion.sequence_number)
-            .then(success => {
-              log.debug("Location capture result", { success });
-            })
-            .catch(error => {
-              log.error("Error capturing location", error);
-            });
-        }
-        
-        animateTransition("forward", nextIndex);
-      } else {
-        handleComplete();
-      }
-    } catch (error) {
-      log.error("Error submitting response", error);
+      animateTransition("forward");
     }
   };
 
@@ -214,15 +263,14 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
    * Only triggers if the question hasn't been answered before.
    */
   const handleAutoAdvance = () => {
-    const questionId = questions[currentIndex]?.id;
-    if (!questionId) return;
+    if (!currentQuestion) return;
     
     // Check if this question should allow auto-advance
-    if (shouldAllowAutoAdvance(questionId)) {
-      log.debug("Auto-advance triggered for first-time answer", { questionId });
+    if (shouldAllowAutoAdvance(currentQuestion.id)) {
+      log.debug("Auto-advance triggered for first-time answer", { questionId: currentQuestion.id });
       handleNext();
     } else {
-      log.debug("Auto-advance skipped for previously answered question", { questionId });
+      log.debug("Auto-advance skipped for previously answered question", { questionId: currentQuestion.id });
     }
   };
 
@@ -235,10 +283,8 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
     if (isAnimating) return;
     
     if (currentIndex === 0) {
-      // On first question, check if we have any answers
-      const hasAnswers = answeredQuestions.current.size > 0;
-      
-      if (hasAnswers) {
+      // On first question, check if we have any answered questions
+      if (Object.keys(responses).length > 0) {
         // Show confirmation dialog if answers exist
         log.debug("Showing exit confirmation dialog");
         setShowExitDialog(true);
@@ -248,14 +294,10 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
         navigation.goBack();
       }
     } else {
-      log.debug("Moving to previous question", {
-        from: currentIndex,
-        to: currentIndex - 1,
-        prevQuestion: questions[currentIndex - 1].text
-      });
-      
-      const prevIndex = currentIndex - 1;
-      animateTransition("backward", prevIndex);
+      // Navigate back
+      if (navigateBack()) {
+        animateTransition("backward");
+      }
     }
   };
 
@@ -280,36 +322,40 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
    * Handles survey completion and navigates back to home.
    */
   const handleComplete = async () => {
-    if (surveyId) {
-      // Verhindere doppeltes Abschließen der Umfrage
-      if (isLoading) {
-        log.warn("Ignoring duplicate survey completion attempt");
-        return;
-      }
-      
-      setIsLoading(true);
-      log.info("Survey completed");
-      log.info("Completing survey", { surveyId });
-      
-      // Convert the set of answered question IDs to an array of Question objects
-      const allAnsweredQuestions = Array.from(answeredQuestions.current).map(qId => 
-        questions.find(q => q.id === qId)
-      ).filter(Boolean) as Question[];
-      
-      log.debug("Submitting answered questions to service", { count: allAnsweredQuestions.length });
-      try {
-        await SurveyService.completeSurvey(surveyId, allAnsweredQuestions);
-        // Navigiere nach erfolgreicher Übermittlung zurück
-        navigation.navigate("Home");
-      } catch (error) {
-        log.error("Failed to complete survey", error);
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      // Keine gültige Umfrage-ID
+    if (!surveyId) {
       log.error("Cannot complete survey, no valid survey ID");
       navigation.navigate("Home");
+      return;
+    }
+    
+    // Verhindere doppeltes Abschließen der Umfrage
+    if (isLoading) {
+      log.warn("Ignoring duplicate survey completion attempt");
+      return;
+    }
+    
+    setIsLoading(true);
+    log.info("Survey completed");
+    log.info("Completing survey", { surveyId });
+    
+    // Get the list of answered question IDs from responses
+    const answeredQuestionIds = Object.keys(responses);
+    
+    // Convert to actual Question objects
+    const answeredQuestions = answeredQuestionIds
+      .map(id => allQuestions.find(q => q.id === id))
+      .filter((q): q is Question => q !== undefined);
+    
+    log.debug("Submitting answered questions to service", { count: answeredQuestions.length });
+    
+    try {
+      await SurveyService.completeSurvey(surveyId, answeredQuestions);
+      // Navigiere nach erfolgreicher Übermittlung zurück
+      navigation.navigate("Home");
+    } catch (error) {
+      log.error("Failed to complete survey", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -319,7 +365,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
   }
 
   // Show error screen if no questions are available
-  if (questions.length === 0) {
+  if (filteredQuestions.length === 0) {
     return (
       <ErrorScreen
         title={t('survey.noQuestions') || 'No questions available.'}
@@ -330,28 +376,9 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
     );
   }
 
-  const currentQuestion = questions[currentIndex];
-  const questionId = currentQuestion.id;
-  const previousResponse = responseCache.current[questionId];
-  const isPreviouslyAnswered = answeredQuestions.current.has(questionId);
-
-  // Debug-Logs für Button-Text
-  if (currentQuestion.type === 'info_screen' && currentQuestion.buttonText) {
-    log.debug("Button Text Debug", { 
-      buttonText: currentQuestion.buttonText, 
-      type: typeof currentQuestion.buttonText,
-      isString: typeof currentQuestion.buttonText === 'string',
-      startsWithGeneral: typeof currentQuestion.buttonText === 'string' && currentQuestion.buttonText.startsWith('general.'),
-      translation: typeof currentQuestion.buttonText === 'string' && currentQuestion.buttonText.startsWith('general.') ? t(currentQuestion.buttonText) : 'n/a'
-    });
-  }
-
-  log.debug("Current question state", { 
-    index: currentIndex, 
-    type: currentQuestion.type,
-    previouslyAnswered: isPreviouslyAnswered,
-    hasPreviousResponse: !!previousResponse
-  });
+  // Get current response from cache
+  const previousResponse = currentQuestion ? getResponse(currentQuestion.id) : undefined;
+  const isPreviouslyAnswered = currentQuestion ? isQuestionAnswered(currentQuestion.id) : false;
 
   return (
     <SafeAreaView edges={["top", "bottom"]} className="flex-1 bg-background">
@@ -385,14 +412,14 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                     scrollEventThrottle={16}
                     decelerationRate="normal"
                   >
-                    {currentQuestion.type === "info_screen" ? (
+                    {currentQuestion && currentQuestion.type === "info_screen" ? (
                       <QuestionRenderer 
                         question={currentQuestion} 
                         onNext={handleResponseUpdate} 
                         onAutoAdvance={handleAutoAdvance}
                         initialValue={previousResponse}
                       />
-                    ) : (
+                    ) : currentQuestion && (
                       <View className="items-center">
                         {/* Bild zuerst, wenn vorhanden */}
                         {currentQuestion.imageSource && (
@@ -413,7 +440,7 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                 <View className="h-4" />
                 
                 {/* Antwortmöglichkeiten (nur für Nicht-InfoScreen-Typen) */}
-                {currentQuestion.type !== "info_screen" && (
+                {currentQuestion && currentQuestion.type !== "info_screen" && (
                   <View className="w-full">
                     <QuestionRenderer 
                       question={currentQuestion} 
@@ -447,16 +474,18 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                 variant="default" 
                 className="bg-accent" 
                 onPress={async () => {
-                  if (isAnimating) return;
+                  if (isAnimating || !currentQuestion || isProcessingButtonClick.current) return;
 
-                  log.info("Next/Submit button clicked", {
-                    questionType: currentQuestion.type,
-                    hasAction: currentQuestion.type === "info_screen" && !!currentQuestion.options?.action,
-                    action: currentQuestion.type === "info_screen" ? currentQuestion.options?.action : null
-                  });
-
-                  setIsAnimating(true);
+                  // Mark as processing to prevent multiple clicks
+                  isProcessingButtonClick.current = true;
+                  
                   try {
+                    log.info("Next/Submit button clicked", {
+                      questionType: currentQuestion.type,
+                      hasAction: currentQuestion.type === "info_screen" && !!currentQuestion.options?.action,
+                      action: currentQuestion.type === "info_screen" ? currentQuestion.options?.action : null
+                    });
+
                     if (currentQuestion.type === "info_screen" && currentQuestion.options?.action) {
                       const action = currentQuestion.options.action as 'request_notification_permission' | 'request_location_permission';
                       log.info(`Executing InfoScreen action: ${action}`);
@@ -466,23 +495,25 @@ const SurveyScreen = ({ navigation }: { navigation: { navigate: (screen: string)
                     }
 
                     if (currentQuestion.type === "info_screen") {
-                      handleResponseUpdate(undefined);
+                      await handleResponseUpdate(undefined);
                     }
 
                     await handleNext();
                   } catch (error) {
-                    log.error("Error in Next button handler:", error);
-                    await handleNext(); // trotzdem weiter
+                    log.error("Error processing button click", error);
                   } finally {
-                    setIsAnimating(false);
+                    // Reset processing flag after a delay to prevent rapid re-clicks
+                    setTimeout(() => {
+                      isProcessingButtonClick.current = false;
+                    }, 500);
                   }
                 }}
                 disabled={isAnimating}
               >
                 <Text className="text-primary">
-                  {currentIndex === questions.length - 1 
+                  {currentIndex === filteredQuestions.length - 1 
                     ? t('survey.submit')
-                    : currentQuestion.type === "info_screen" && currentQuestion.buttonText 
+                    : currentQuestion && currentQuestion.type === "info_screen" && currentQuestion.buttonText 
                       ? (typeof currentQuestion.buttonText === 'string')
                         ? (currentQuestion.buttonText.startsWith('survey.') || currentQuestion.buttonText.startsWith('general.'))
                           ? t(currentQuestion.buttonText) 

@@ -1,6 +1,7 @@
 import { createLogger } from "~/src/utils/logger";
 import LocationService from "../location/LocationService";
 import { supabase } from "~/src/lib/supabase";
+import { ISurveyLocationService } from "./interfaces/ISurveyLocationService";
 
 const log = createLogger("SurveyLocationService");
 
@@ -12,7 +13,7 @@ const log = createLogger("SurveyLocationService");
  * 1. Getting the user's location during a survey
  * 2. Updating the survey record with location data
  */
-class SurveyLocationService {
+class SurveyLocationService implements ISurveyLocationService {
   /**
    * Records location data for a survey if permissions are granted and question
    * sequence number is >= 100
@@ -21,7 +22,7 @@ class SurveyLocationService {
    * @param questionSequenceNumber The sequence number of the current question
    * @returns Boolean indicating if location was successfully captured
    */
-  static async captureLocationIfEligible(
+  async captureLocationIfEligible(
     surveyId: string,
     questionSequenceNumber: number
   ): Promise<boolean> {
@@ -85,4 +86,12 @@ class SurveyLocationService {
   }
 }
 
+/**
+ * Singleton-Instanz für die OOP-Nutzung
+ */
+export const locationService = new SurveyLocationService();
+
+/**
+ * Default-Export der Klasse für die Instanziierung
+ */
 export default SurveyLocationService; 

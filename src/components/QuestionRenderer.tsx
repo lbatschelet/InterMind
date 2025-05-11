@@ -13,7 +13,7 @@
  * - Handles auto-advance functionality
  */
 
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Text } from "react-native";
 import { createLogger } from "~/src/utils/logger";
 import { Question } from "../types/question";
@@ -46,7 +46,16 @@ const QuestionRenderer = ({
   onAutoAdvance?: () => void;
   initialValue?: unknown;
 }) => {
-  log.debug("Rendering question", { question, hasInitialValue: !!initialValue });
+  // Ref to track if we've already logged this question, to prevent duplicate logs
+  const hasLoggedRef = useRef(false);
+  
+  // Only log once per question instance
+  useEffect(() => {
+    if (!hasLoggedRef.current) {
+      log.debug("Rendering question", { question, hasInitialValue: !!initialValue });
+      hasLoggedRef.current = true;
+    }
+  }, [question, initialValue]);
 
   switch (question.type) {
     case "single_choice":
@@ -82,7 +91,10 @@ const QuestionRenderer = ({
       return <InfoScreen
         question={question}
         onNext={() => {
-          log.debug("InfoScreen onNext callback triggered");
+          const shouldLog = !hasLoggedRef.current;
+          if (shouldLog) {
+            log.debug("InfoScreen onNext callback triggered");
+          }
           onNext();
         }}
       />;
@@ -93,4 +105,5 @@ const QuestionRenderer = ({
   }
 };
 
-export default QuestionRenderer;
+// Use React.memo to prevent unnecessary rerenders
+export default React.memo(QuestionRenderer);

@@ -6,6 +6,7 @@ import { Text } from "../ui/text";
 export interface OptionType {
   value: string;
   label: string;
+  hideQuestions?: string[];  // IDs der Fragen, die ausgeblendet werden sollen, wenn diese Option ausgewählt wird
 }
 
 interface OptionsSelectorProps {

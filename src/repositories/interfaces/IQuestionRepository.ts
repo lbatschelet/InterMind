@@ -2,20 +2,24 @@ import { LanguageCode } from "../../locales";
 import { Question } from "../../types/question";
 
 /**
- * Interface für die Verwaltung von Fragen-Entitäten
+ * Interface für das Repository zum Abrufen von Fragen
  */
 export interface IQuestionRepository {
   /**
-   * Holt Fragen für eine bestimmte Sprache
-   * @param forceRefresh Flag, um den Cache zu umgehen und Daten neu zu laden
-   * @param language Sprachcode für die Fragen
-   * @returns Liste von Fragen
+   * Ruft alle verfügbaren Fragen ab.
+   * 
+   * @param includeDisabled Ob deaktivierte Fragen einbezogen werden sollen
+   * @param language Die Sprache, in der die Fragen abgerufen werden sollen
+   * @returns Eine Liste von Fragen
    */
-  fetchQuestions(forceRefresh?: boolean, language?: LanguageCode): Promise<Question[]>;
+  fetchQuestions(includeDisabled?: boolean, language?: LanguageCode): Promise<Question[]>;
   
   /**
-   * Löscht den Fragen-Cache für eine oder alle Sprachen
-   * @param language Optionaler Sprachcode; wenn nicht angegeben, wird für alle Sprachen gelöscht
+   * Ruft eine einzelne Frage anhand ihrer ID ab.
+   * 
+   * @param questionId Die ID der abzurufenden Frage
+   * @param language Die Sprache, in der die Frage abgerufen werden soll
+   * @returns Die abgerufene Frage oder undefined, wenn keine gefunden wurde
    */
-  clearCache(language?: LanguageCode): void;
+  getQuestionById(questionId: string, language?: LanguageCode): Promise<Question | undefined>;
 } 

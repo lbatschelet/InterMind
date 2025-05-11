@@ -4,6 +4,7 @@ import { slotService, SlotStatus, SlotServiceEvent, ISlot } from '../services/sl
 import { SurveyService } from '../services';
 import { createLogger } from '../utils/logger';
 import { LanguageCode } from '../locales';
+import { Question } from '../types/question';
 
 const log = createLogger('useSurveyAvailability');
 
@@ -107,9 +108,9 @@ export const useSurveyAvailability = () => {
    * Starts a survey session
    * 
    * @param language The language to use for the survey
-   * @returns Promise<boolean> True if survey was successfully started
+   * @returns Promise with survey data if successful, or false if failed
    */
-  const startSurvey = async (language: LanguageCode = 'en'): Promise<boolean> => {
+  const startSurvey = async (language: LanguageCode = 'en'): Promise<{ surveyId: string; questions: Question[] } | false> => {
     if (isCreatingSurvey) return false;
     
     try {
@@ -125,7 +126,7 @@ export const useSurveyAvailability = () => {
       }
       
       log.info('Starting survey session');
-      const { surveyId } = await SurveyService.startSurvey(false, language);
+      const result = await SurveyService.startSurvey(false, language);
       
       // Markiere den aktuellen Slot als abgeschlossen
       try {
@@ -135,7 +136,7 @@ export const useSurveyAvailability = () => {
         log.warn('Failed to mark slot as completed', e);
       }
       
-      return !!surveyId;
+      return result;
     } catch (error) {
       log.error('Failed to start survey', error);
       await checkAvailability();

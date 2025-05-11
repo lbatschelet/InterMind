@@ -77,11 +77,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     
     try {
       log.info("Starting a new survey session...");
-      const success = await startSurvey(language);
+      const surveyData = await startSurvey(language);
       
-      if (success) {
-        log.info("Survey session started, navigating to survey screen");
-        navigation.navigate("SurveyScreen");
+      if (surveyData) {
+        log.info("Survey session started, navigating to survey screen", {
+          surveyId: surveyData.surveyId,
+          questionCount: surveyData.questions.length
+        });
+        
+        // Pass survey data as navigation parameters
+        navigation.navigate("SurveyScreen", {
+          surveyId: surveyData.surveyId,
+          questions: surveyData.questions
+        });
       } else {
         // Wenn startSurvey false zurückgibt, aber keinen Fehler wirft,
         // wurde wahrscheinlich keine Verbindung hergestellt

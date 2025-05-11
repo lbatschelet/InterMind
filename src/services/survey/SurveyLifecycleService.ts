@@ -96,7 +96,7 @@ export class SurveyLifecycleService implements ISurveyLifecycleService {
   /**
    * Überprüft, ob die erste Umfrage bereits abgeschlossen wurde.
    */
-  public static async isFirstSurveyCompleted(): Promise<boolean> {
+  public async isFirstSurveyCompleted(): Promise<boolean> {
     try {
       if (!FIRST_SURVEY_CHECKED_KEY) {
         log.error("FIRST_SURVEY_CHECKED_KEY is not defined");
@@ -115,7 +115,7 @@ export class SurveyLifecycleService implements ISurveyLifecycleService {
    * Markiert die erste Umfrage als abgeschlossen.
    * Setzt auch das Slot-System zurück, um den regulären Zeitplan zu starten.
    */
-  public static async markFirstSurveyAsCompleted(): Promise<void> {
+  public async markFirstSurveyAsCompleted(): Promise<void> {
     try {
       log.info("Marking first survey as completed");
       
@@ -143,7 +143,7 @@ export class SurveyLifecycleService implements ISurveyLifecycleService {
    * 
    * @param answeredQuestions Die beantworteten Fragen (optional)
    */
-  public static async processSurveyCompletion(answeredQuestions?: any[]): Promise<void> {
+  public async processSurveyCompletion(answeredQuestions?: any[]): Promise<void> {
     try {
       log.info("Processing survey completion");
       
@@ -168,7 +168,7 @@ export class SurveyLifecycleService implements ISurveyLifecycleService {
   /**
    * Behandelt den Ablauf einer Umfrage ohne Abschluss.
    */
-  public static async handleSurveyExpired(): Promise<void> {
+  public async handleSurveyExpired(): Promise<void> {
     try {
       log.info("Handling survey expiration");
       
@@ -188,4 +188,9 @@ export class SurveyLifecycleService implements ISurveyLifecycleService {
       throw error;
     }
   }
-} 
+}
+
+/**
+ * Singleton-Instanz für die OOP-Nutzung
+ */
+export const lifecycleService = new SurveyLifecycleService(); 
